@@ -8,7 +8,7 @@
       <v-app-bar-title>{{ currentPageTitle }}</v-app-bar-title>
 
       <template v-slot:append>
-        <!-- <v-btn>connect</v-btn> -->
+        <ConnectButton />
       </template>
     </v-app-bar>
 
@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 const route = useRoute()
-
+const auth = useAuth()
 const navItems = ref([
   {
     label: 'Dashboard',
