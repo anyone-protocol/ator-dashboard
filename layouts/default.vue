@@ -33,7 +33,6 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const auth = useAuth()
 const navItems = ref([
   {
     label: 'Dashboard',
