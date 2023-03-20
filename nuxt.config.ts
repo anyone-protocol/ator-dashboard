@@ -1,6 +1,15 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   /**
+   * Runtime Config
+   */
+  runtimeConfig: {
+    public: {
+      api: 'http://localhost:1987' // TODO -> from environment
+    }
+  },
+
+  /**
    * Vuetify Config
    * See https://codybontecou.com/how-to-use-vuetify-with-nuxt-3.html
    * See https://pictogrammers.github.io/@mdi/font/7.1.96/
