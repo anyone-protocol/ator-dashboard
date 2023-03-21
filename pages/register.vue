@@ -22,7 +22,11 @@ const register = async () => {
     loading.value = true
 
     try {
-      const message = { method: 'register', fingerprint: fingerprint.value }
+      const message = {
+        method: 'register',
+        address: signer.address,
+        fingerprint: fingerprint.value
+      }
       const signature = await signer.signMessage(JSON.stringify(message))
 
       const res = await $fetch(`${config.public.api}/relays`, {
