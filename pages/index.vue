@@ -7,7 +7,7 @@
           :key="key"
           cols="3"
         >
-          <v-card>
+          <v-card class="primary-background">
             <v-container>
               <v-row align="center">
                 <v-col cols="7">
@@ -28,14 +28,14 @@
       </v-row>
       <v-row>
         <v-col cols="12">
-          <v-card class="text-center">
+          <v-card class="text-center primary-dark-background">
             <h1>a fancy graph might go here</h1>
           </v-card>
         </v-col>
       </v-row>
       <v-row justify="center">
         <v-col cols="7">
-          <v-card class="text-center" height="100%">
+          <v-card class="text-center primary-accent-background" height="100%">
             <v-progress-circular size="256" color="black">
               <span class="text-h1">--%</span>
             </v-progress-circular>
@@ -45,7 +45,7 @@
           </v-card>
         </v-col>
         <v-col cols="3">
-          <v-card height="100%">
+          <v-card height="100%" class="secondary-background">
             <v-card-title class="font-weight-bold text-center">$ATOR</v-card-title>
             <v-card-subtitle class="font-weight-bold">$ --</v-card-subtitle>
             <v-card-subtitle class="font-weight-bold">-- %</v-card-subtitle>
@@ -58,13 +58,36 @@
             <v-btn v-for="ping in pouPings" :key="ping" text flat disabled>
               {{ ping }}
             </v-btn>
-            <v-btn flat icon="mdi-refresh"></v-btn>
+            <v-btn flat icon="mdi-refresh" class="secondary-dark-background"></v-btn>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
   </div>
 </template>
+
+<style>
+  .primary-background {
+    background: rgb(var(--v-theme-primary));
+    color: rgba(var(--v-theme-surface), 0.9);
+  }
+  .primary-dark-background {
+    background: rgb(var(--v-theme-primary-darken-1));
+    color: rgba(var(--v-theme-surface), 0.9);
+  }
+  .primary-accent-background {
+    background: rgb(var(--v-theme-accent));
+    color: rgba(var(--v-theme-surface), 0.9);
+  }
+  .secondary-background {
+    background: rgb(var(--v-theme-secondary));
+    color: rgba(var(--v-theme-surface), 0.9);
+  }
+  .secondary-dark-background {
+    background: rgb(var(--v-theme-secondary-darken-1));
+    color: rgba(var(--v-theme-surface), 0.9);
+  }
+</style>
 
 <script setup lang="ts">
 const topCards = ref([
