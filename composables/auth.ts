@@ -1,12 +1,20 @@
-import { BrowserProvider, Eip1193Provider } from 'ethers'
-
 interface Auth {
   address: string
 }
 
-export const useAuth = () => useState<Auth | undefined>('auth', () => {
-  // TODO -> check if ethereum wallet is already connected
-  // with ethereum.request({ method: 'eth_requestAccounts' })
+export const setupAuth = async () => {
+  const auth = useAuth()
+  const provider = useProvider()
 
-  return undefined
-})
+  if (provider) {
+    const accounts = await provider.listAccounts()
+
+    if (accounts.length > 0) {
+      auth.value = { address: accounts[0].address }
+    }
+  }
+
+  return auth
+}
+
+export const useAuth = () => useState<Auth | undefined>('auth', () => undefined)
