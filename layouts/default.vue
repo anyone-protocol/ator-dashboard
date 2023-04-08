@@ -8,7 +8,9 @@
       <v-app-bar-title>{{ currentPageTitle }}</v-app-bar-title>
 
       <template v-slot:append>
-        <ConnectButton />
+        <ClientOnly>
+          <ConnectButton />
+        </ClientOnly>
       </template>
     </v-app-bar>
 
