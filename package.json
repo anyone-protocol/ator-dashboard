@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@mdi/font": "^7.1.96",
+    "ator-smart-contracts": "github:ATOR-Development/smart-contracts",
     "ethers": "^6.1.0",
     "sass": "^1.59.2",
     "vuetify": "^3.1.8"
