@@ -42,8 +42,7 @@ const navItems = ref([
   {
     label: 'My Relays',
     icon: 'mdi-lifebuoy',
-    to: '/my-relays',
-    disabled: true
+    to: '/my-relays'
   },
   {
     label: 'Register',

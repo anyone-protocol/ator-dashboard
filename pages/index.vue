@@ -26,14 +26,14 @@
           </v-card>
         </v-col>
       </v-row>
-      <v-row>
+      <!-- <v-row>
         <v-col cols="12">
           <v-card class="text-center">
             <h1>a fancy graph might go here</h1>
           </v-card>
         </v-col>
-      </v-row>
-      <v-row justify="center">
+      </v-row> -->
+      <!-- <v-row justify="center">
         <v-col cols="7">
           <v-card class="text-center" height="100%">
             <v-progress-circular size="256" color="black">
@@ -61,19 +61,19 @@
             <v-btn flat icon="mdi-refresh"></v-btn>
           </v-card>
         </v-col>
-      </v-row>
+      </v-row> -->
     </v-container>
   </div>
 </template>
 
 <script setup lang="ts">
 const topCards = ref([
-  {
-    key: '24h-traffic',
-    label: '24h Traffic',
-    value: '--',
-    icon: 'mdi-bus'
-  },
+  // {
+  //   key: '24h-traffic',
+  //   label: '24h Traffic',
+  //   value: '--',
+  //   icon: 'mdi-bus'
+  // },
   {
     key: 'total-users',
     label: 'Total Users',
@@ -86,12 +86,12 @@ const topCards = ref([
     value: '--',
     icon: 'mdi-lifebuoy'
   },
-  {
-    key: 'next-payout',
-    label: 'Next Payout',
-    value: '--',
-    icon: 'mdi-ethereum'
-  },
+  // {
+  //   key: 'next-payout',
+  //   label: 'Next Payout',
+  //   value: '--',
+  //   icon: 'mdi-ethereum'
+  // },
 ])
 
 const pouPings = ref([

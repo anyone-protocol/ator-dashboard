@@ -1,9 +1,6 @@
 # AirTor Protocol Dashboard
 
-This repository contains the AirTor Protocol Dashboard webapp, built with Nuxt v3.
-
-## Requirements
-- Node 16 LTS
+This repository contains the ATOR Protocol Dashboard webapp, built with Nuxt v3.
 
 ## Install
 ```bash
