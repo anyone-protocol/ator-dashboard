@@ -8,9 +8,7 @@
       {{ truncatedAddress }}
       <v-menu activator="parent">
         <v-list>
-          <v-list-item @click="disconnect">
-            <v-list-item-title>Disconnect</v-list-item-title>
-          </v-list-item>
+
         </v-list>
       </v-menu>
     </v-btn>
@@ -20,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-const auth = useAuth()
+const auth = await setupAuth()
 
 const connect = async () => {
   const signer = await useSigner()
@@ -28,8 +26,6 @@ const connect = async () => {
     auth.value = { address: signer.address }
   }
 }
-
-const disconnect = () => { auth.value = undefined }
 
 const truncatedAddress = computed(() => {
   if (auth.value) {
