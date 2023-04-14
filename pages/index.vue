@@ -5,7 +5,7 @@
         <v-col
           v-for="{ key, label, value, icon } in topCards"
           :key="key"
-          cols="3"
+          cols="6"
         >
           <v-card>
             <v-container>
@@ -67,6 +67,12 @@
 </template>
 
 <script setup lang="ts">
+const registry = useRelayRegistry()
+const relays = await registry.verified()
+const users = relays
+  .map(({ claimedBy }) => claimedBy)
+  .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
+
 const topCards = ref([
   // {
   //   key: '24h-traffic',
@@ -77,13 +83,13 @@ const topCards = ref([
   {
     key: 'total-users',
     label: 'Total Users',
-    value: '--',
+    value: users.length,
     icon: 'mdi-crowd'
   },
   {
-    key: 'active-relays',
-    label: 'Active Relays',
-    value: '--',
+    key: 'verified-relays',
+    label: 'Verified Relays',
+    value: relays.length,
     icon: 'mdi-lifebuoy'
   },
   // {
