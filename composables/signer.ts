@@ -1,8 +1,8 @@
+import { BrowserProvider } from 'ethers'
+
 export const useSigner = async () => {
   const provider = useProvider()
-  if (!provider) {
-    // TODO -> inform user they must connect with browser wallet
-
+  if (!provider || !(provider instanceof BrowserProvider)) {
     return null
   } else {
     return await provider.getSigner()

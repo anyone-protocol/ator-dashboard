@@ -1,10 +1,15 @@
-import { BrowserProvider } from 'ethers'
+import { BrowserProvider, getDefaultProvider } from 'ethers'
+
+const network = 31337 // TODO -> network swapping
 
 export const useProvider = () => {
-  if (process.server || typeof window === 'undefined' || !window.ethereum) {
+
+  if (process.server || typeof window === 'undefined') {
     return null
+  } else if (!window.ethereum) {
+    return getDefaultProvider(31337)
   } else {
-    const provider = new BrowserProvider(window.ethereum)
+    const provider = new BrowserProvider(window.ethereum, 31337)
 
     // @ts-ignore
     window.ethereum.on('accountsChanged', accounts => {

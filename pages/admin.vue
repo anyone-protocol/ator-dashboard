@@ -1,14 +1,18 @@
 <template>
-  <v-container class="register-page">
+  <v-container class="my-relays-page">
     <v-form>
       <v-text-field
         v-model="fingerprint"
         label="Relay Fingerprint"
-        placeholder="AABBCCDDEEFF11223344556677889900AABBCCDD"
         :loading="loading"
-      />
+      ></v-text-field>
+      <v-text-field
+        v-model="claimedBy"
+        label="Claimed By Address"
+        :loading="loading"
+      ></v-text-field>
       <v-btn
-        @click="register"
+        @click="verify"
         color="primary"
         :loading="loading"
       >Register</v-btn>
@@ -17,13 +21,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-const fingerprint = ref<string>('')
-const loading = ref<boolean>(false)
+const fingerprint = ref('')
+const claimedBy = ref('')
+const loading = ref(false)
 
 // TODO -> debounce
-const register = async () => {
+const verify = async () => {
   const signer = await useSigner()
   const registry = useRelayRegistry()
 
@@ -31,9 +34,10 @@ const register = async () => {
     loading.value = true
 
     try {
-      const tx = await registry
-        .connect(signer)
-        .registerRelay(fingerprint.value)
+      const tx = await registry.connect(signer).verifyRelay(
+        claimedBy.value,
+        fingerprint.value
+      )
 
       await tx.wait()
 
