@@ -17,7 +17,7 @@ const primaryATORTheme: ThemeDefinition = {
     success: '#4CAF50',
     warning: '#FFC107',
   }
-};
+}
 
 export default defineNuxtPlugin(nuxtApp => {
   const vuetify = createVuetify({

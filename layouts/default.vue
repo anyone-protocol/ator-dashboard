@@ -108,7 +108,7 @@ const navItems = ref([
   }
 ])
 
-const navDrawerListItemActive = ref("nav-drawer-list-item--active");
+const navDrawerListItemActive = ref("nav-drawer-list-item--active")
 
 const currentPageTitle = computed(() => {
   const currentNavItem = navItems.value.find(item => {
