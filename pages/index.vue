@@ -11,7 +11,7 @@
             <v-container>
               <v-row align="center">
                 <v-col cols="7">
-                  <div class="text-subitle-2 font-weight-bold">
+                  <div class="text-subitle-2">
                     {{ label }}
                   </div>
                   <div class="text-h6 font-weight-black">
@@ -19,7 +19,7 @@
                   </div>
                 </v-col>
                 <v-col cols="5" class="text-right">
-                  <v-icon :icon="icon" size="88"></v-icon>
+                  <v-icon :icon="icon" size="88" style="color: rgba(var(--v-theme-primary), 0.8);"></v-icon>
                 </v-col>
               </v-row>
             </v-container>
@@ -65,6 +65,14 @@
     </v-container>
   </div>
 </template>
+
+<style>
+.v-card {
+  border-bottom: 2px solid rgba(var(--v-theme-primary), 0.8);
+  border-radius: 5px;
+  color: rgba(0, 0, 0, 0.75);
+}
+</style>
 
 <script setup lang="ts">
 const registry = useRelayRegistry()
