@@ -14,7 +14,7 @@
                   <div class="text-subitle-2">
                     {{ label }}
                   </div>
-                  <div class="text-h6 font-weight-black">
+                  <div class="text-h5 font-weight-black">
                     {{ value }}
                   </div>
                 </v-col>
