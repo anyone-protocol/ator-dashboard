@@ -6,13 +6,16 @@
 
 .route-title {
     margin-left: 160px;
-    color: rgb(var(--v-theme-primary-3));
+    color: rgba(var(--v-theme-secondary), 0.777);
 }
 .primary-text {
     color: rgb(var(--v-theme-primary));
 }
-.primary-2-text {
-    color: rgb(var(--v-theme-primary-2));
+.secondary-text {
+    color: rgb(var(--v-theme-secondary));
+}
+.accent-text {
+    color: rgb(var(--v-theme-accent));
 }
 .primary-background {
     background: rgb(var(--v-theme-primary));
@@ -29,6 +32,10 @@
 }
 .nav-drawer-list-item:hover {
     background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.top-bar-button:hover {
+    background-color: rgba(var(--v-theme-primary), 0.055);
 }
 
 .list-item-row-container {
