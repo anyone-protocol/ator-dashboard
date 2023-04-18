@@ -2,7 +2,7 @@
   <div class="connect-button">
     <v-btn
       v-if="auth"
-      class="text-none font-weight-bold"
+      class="text-none font-weight-bold top-bar-button"
       append-icon="mdi-chevron-down"
     >
       {{ truncatedAddress }}
@@ -13,7 +13,7 @@
       </v-menu>
     </v-btn>
     
-    <v-btn v-else @click="connect">Connect</v-btn>
+    <v-btn v-else class="top-bar-button" @click="connect">Connect</v-btn>
   </div>
 </template>
 

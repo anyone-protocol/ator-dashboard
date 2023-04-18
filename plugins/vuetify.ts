@@ -7,16 +7,16 @@ const primaryATORTheme: ThemeDefinition = {
   colors: {
     //ator colors
     primary: '#03bec5',
-    'primary-2': '#025675',
-    'primary-3': '#025d66',
+    secondary: '#025675',
+    accent: '#025d66',
     //extra colors
     background: '#FFFFFF',
     surface: '#FFFFFF',
     'lightblue-1': '#71d0fb',
     'lightblue-2': '#4FC3F7',
-    secondary: '#0fc0b0',
-    'secondary-darken-1': '#0ba698',
-    accent: '#0C2572',
+    'lightgreen': '#0fc0b0',
+    'lightgreen-darken-1': '#0ba698',
+    'darkblue': '#0C2572',
     error: '#FF5252',
     info: '#2196F3',
     success: '#4CAF50',
