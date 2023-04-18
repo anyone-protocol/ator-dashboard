@@ -9,7 +9,7 @@
       />
       <v-btn
         @click="register"
-        class="primary-light-1-background"
+        class="primary-background"
         :loading="loading"
       >Register</v-btn>
     </v-form>

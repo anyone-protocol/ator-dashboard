@@ -5,7 +5,7 @@
         <v-btn text tile plain color="black">AIRTOR</v-btn>
       </template>
 
-      <v-app-bar-title><div class="route-title font-weight-bold">{{ currentPageTitle }}</div></v-app-bar-title>
+      <v-app-bar-title><div class="route-title">{{ currentPageTitle }}</div></v-app-bar-title>
 
       <template v-slot:append>
         <ClientOnly>
@@ -39,47 +39,7 @@
 </template>
 
 <style>
-  .route-title {
-    margin-left: 160px;
-    color: rgba(0, 0, 0, 0.777);
-  }
-  .primary-light-1-background {
-    background: rgb(var(--v-theme-primary-light-1));
-    color: white;
-  }
-
-  .nav-drawer-list-item {
-    color: white;
-  }
-  .nav-drawer-list-item--active {
-    background-color: white;
-    color: white;
-    box-shadow: inset -15px 0 0 -10px rgb(var(--v-theme-primary));
-  }
-  .nav-drawer-list-item:hover {
-    background-color: rgba(var(--v-theme-primary), 0.05);
-  }
-
-  .list-item-row-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    text-align: center;
-    align-items: center;
-  }
-  .list-item-row-text {
-    color: rgba(0, 0, 0, 0.94);
-    margin-left: 15%;
-  }
-  .nav-drawer-list-item--active .list-item-row-text {
-    color: rgb(var(--v-theme-primary));
-  }
-  .list-item-icon {
-    color: rgba(0, 0, 0, 0.94);
-  }
-  .nav-drawer-list-item--active .list-item-icon {
-    color: rgb(var(--v-theme-primary));
-  }
+@import "@/assets/styles/main.css";
 </style>
 
 <script setup lang="ts">
@@ -108,7 +68,7 @@ const navItems = ref([
   }
 ])
 
-const navDrawerListItemActive = ref("nav-drawer-list-item--active")
+const navDrawerListItemActive = "nav-drawer-list-item--active"
 
 const currentPageTitle = computed(() => {
   const currentNavItem = navItems.value.find(item => {

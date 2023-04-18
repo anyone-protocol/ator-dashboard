@@ -1,0 +1,53 @@
+.v-card-ator {
+    border-bottom: 2px solid rgba(var(--v-theme-primary), 0.8);
+    border-radius: 5px;
+    color: rgba(0, 0, 0, 0.75);
+}
+
+.route-title {
+    margin-left: 160px;
+    color: rgb(var(--v-theme-primary-3));
+}
+.primary-text {
+    color: rgb(var(--v-theme-primary));
+}
+.primary-2-text {
+    color: rgb(var(--v-theme-primary-2));
+}
+.primary-background {
+    background: rgb(var(--v-theme-primary));
+    color: white;
+}
+
+.nav-drawer-list-item {
+    color: white;
+}
+.nav-drawer-list-item--active {
+    background-color: white;
+    color: white;
+    box-shadow: inset -15px 0 0 -10px rgb(var(--v-theme-primary));
+}
+.nav-drawer-list-item:hover {
+    background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.list-item-row-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: center;
+    align-items: center;
+}
+.list-item-row-text {
+    color: rgba(0, 0, 0, 0.9);
+    margin-left: 15%;
+}
+.nav-drawer-list-item--active .list-item-row-text {
+    color: rgb(var(--v-theme-primary));
+}
+.list-item-icon {
+    color: rgba(0, 0, 0, 0.9);
+}
+.nav-drawer-list-item--active .list-item-icon {
+    color: rgb(var(--v-theme-primary));
+}
