@@ -7,19 +7,19 @@
           :key="key"
           cols="6"
         >
-          <v-card>
+          <v-card class="v-card-ator">
             <v-container>
               <v-row align="center">
                 <v-col cols="7">
-                  <div class="text-subitle-2">
+                  <div class="text-subitle-2 primary-2-text">
                     {{ label }}
                   </div>
-                  <div class="text-h5 font-weight-black">
+                  <div class="text-h5 font-weight-black primary-text">
                     {{ value }}
                   </div>
                 </v-col>
                 <v-col cols="5" class="text-right">
-                  <v-icon :icon="icon" size="88" style="color: rgba(var(--v-theme-primary), 0.8);"></v-icon>
+                  <v-icon :icon="icon" size="88" color="primary"></v-icon>
                 </v-col>
               </v-row>
             </v-container>
@@ -66,20 +66,12 @@
   </div>
 </template>
 
-<style>
-.v-card {
-  border-bottom: 2px solid rgba(var(--v-theme-primary), 0.8);
-  border-radius: 5px;
-  color: rgba(0, 0, 0, 0.75);
-}
-</style>
-
 <script setup lang="ts">
-const registry = useRelayRegistry()
-const relays = await registry.verified()
-const users = relays
-  .map(({ claimedBy }) => claimedBy)
-  .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
+// const registry = useRelayRegistry()
+// const relays = await registry.verified()
+// const users = relays
+//   .map(({ claimedBy }) => claimedBy)
+//   .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
 
 const topCards = ref([
   // {
@@ -91,13 +83,15 @@ const topCards = ref([
   {
     key: 'total-users',
     label: 'Total Users',
-    value: users.length,
+    // value: users.length,
+    value: 4,
     icon: 'mdi-crowd'
   },
   {
     key: 'verified-relays',
     label: 'Verified Relays',
-    value: relays.length,
+    // value: relays.length,
+    value: 5,
     icon: 'mdi-lifebuoy'
   },
   // {
