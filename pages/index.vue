@@ -67,11 +67,11 @@
 </template>
 
 <script setup lang="ts">
-// const registry = useRelayRegistry()
-// const relays = await registry.verified()
-// const users = relays
-//   .map(({ claimedBy }) => claimedBy)
-//   .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
+const registry = useRelayRegistry()
+const relays = await registry.verified()
+const users = relays
+  .map(({ claimedBy }) => claimedBy)
+  .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
 
 const topCards = ref([
   // {
@@ -83,15 +83,13 @@ const topCards = ref([
   {
     key: 'total-users',
     label: 'Total Users',
-    // value: users.length,
-    value: 4,
+    value: users.length,
     icon: 'mdi-crowd'
   },
   {
     key: 'verified-relays',
     label: 'Verified Relays',
-    // value: relays.length,
-    value: 5,
+    value: relays.length,
     icon: 'mdi-lifebuoy'
   },
   // {
