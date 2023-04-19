@@ -2,7 +2,12 @@
   <v-app class="app">
     <v-app-bar elevation="0">
       <template v-slot:prepend>
-        <v-btn text tile plain color="black">AIRTOR</v-btn>
+        <router-link to="/" custom v-slot="{navigate}">
+          <div class="logo-container" @click="navigate">
+            <div class="top-bar-title">ATOR</div>
+            <img src="@/assets/images/AtorLogo.png" width="30" height="30" />
+          </div>
+        </router-link>
       </template>
 
       <v-app-bar-title><div class="route-title">{{ currentPageTitle }}</div></v-app-bar-title>
