@@ -23,28 +23,29 @@ const fingerprint = ref<string>('')
 const loading = ref<boolean>(false)
 
 // TODO -> debounce
-const register = async () => {
-  const signer = await useSigner()
-  const registry = useRelayRegistry()
+const register = async () => {}
+// async () => {
+//   const signer = await useSigner()
+//   const registry = useRelayRegistry()
 
-  if (registry && signer) {
-    loading.value = true
+//   if (registry && signer) {
+//     loading.value = true
 
-    try {
-      const tx = await registry
-        .connect(signer)
-        .registerRelay(fingerprint.value)
+//     try {
+//       const tx = await registry
+//         .connect(signer)
+//         .registerRelay(fingerprint.value)
 
-      await tx.wait()
+//       await tx.wait()
 
-      // TODO -> success
-    } catch (error) {
-      console.error(error)
-      // TODO -> handle signing errors
-      // TODO -> handle api errors
-    }
+//       // TODO -> success
+//     } catch (error) {
+//       console.error(error)
+//       // TODO -> handle signing errors
+//       // TODO -> handle api errors
+//     }
 
-    loading.value = false
-  }
-}
+//     loading.value = false
+//   }
+// }
 </script>

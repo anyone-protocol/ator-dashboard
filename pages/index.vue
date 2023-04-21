@@ -67,11 +67,13 @@
 </template>
 
 <script setup lang="ts">
-const registry = useRelayRegistry()
-const relays = await registry.verified()
-const users = relays
-  .map(({ claimedBy }) => claimedBy)
-  .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
+// const registry = useRelayRegistry()
+// const relays = await registry.verified()
+// const users = relays
+//   .map(({ claimedBy }) => claimedBy)
+//   .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
+const users = []
+const relays = []
 
 const topCards = ref([
   // {

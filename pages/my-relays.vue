@@ -31,18 +31,18 @@
 <script setup lang="ts">
 import { Claim } from '~/composables/relayRegistry'
 
-const registry = useRelayRegistry()
-const signer = await useSigner()
+// const registry = useRelayRegistry()
+// const signer = await useSigner()
 const claim = ref<Claim | null>(null)
 const myRelays = ref<Claim[]>([])
 
-if (signer) {
-  try {
-    claim.value = await registry.claims(signer.address)
-    const relays = await registry.verified()
-    myRelays.value = relays.filter(claim => claim.claimedBy === signer.address)
-  } catch (error) {
-    console.log('error reading relay registry contract', error)
-  }
-}
+// if (signer) {
+//   try {
+//     claim.value = await registry.claims(signer.address)
+//     const relays = await registry.verified()
+//     myRelays.value = relays.filter(claim => claim.claimedBy === signer.address)
+//   } catch (error) {
+//     console.log('error reading relay registry contract', error)
+//   }
+// }
 </script>
