@@ -67,15 +67,20 @@
 </template>
 
 <script setup lang="ts">
-// const registry = useRelayRegistry()
-// const relays = await registry.verified()
-// const users = relays
-//   .map(({ claimedBy }) => claimedBy)
-//   .filter((address, idx, addresses) => addresses.indexOf(address) === idx)
-const users = []
-const relays = []
+const { pending, data: stats } = useLazyAsyncData('ator-stats', async () => {
+  const registry = await useRelayRegistry()
+  const relays = await registry.verified()
+  const verified = Object.keys(relays)
+  const users = verified
+    // reduce to relay owner addresses
+    .map(fp => relays[fp])
+    // ensure user address list is unique
+    .filter((addr, i, addrs) => addrs.indexOf(addr) === i)
 
-const topCards = ref([
+  return { relays, users, verified }
+})
+
+const topCards = computed(() => [
   // {
   //   key: '24h-traffic',
   //   label: '24h Traffic',
@@ -85,13 +90,13 @@ const topCards = ref([
   {
     key: 'total-users',
     label: 'Total Users',
-    value: users.length,
+    value: pending ? stats.value?.users.length || '--' : '--',
     icon: 'mdi-crowd'
   },
   {
     key: 'verified-relays',
     label: 'Verified Relays',
-    value: relays.length,
+    value: pending ? stats.value?.verified.length || '--' : '--',
     icon: 'mdi-lifebuoy'
   },
   // {
@@ -100,20 +105,5 @@ const topCards = ref([
   //   value: '--',
   //   icon: 'mdi-ethereum'
   // },
-])
-
-const pouPings = ref([
-  '01:00',
-  '02:00',
-  '03:00',
-  '04:00',
-  '05:00',
-  '06:00',
-  '07:00',
-  '08:00',
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
 ])
 </script>
