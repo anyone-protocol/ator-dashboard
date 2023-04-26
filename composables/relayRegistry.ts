@@ -1,12 +1,43 @@
 import {
   Contract,
-  JsonRpcSigner,
-  TransactionResponse,
-  Typed
-} from 'ethers'
+  EvolveState,
+  SigningFunction,
+  WriteInteractionResponse
+} from 'warp-contracts'
 
-import RelayRegistryABI from 'ator-smart-contracts/artifacts/contracts/RelayRegistry.sol/RelayRegistry.json'
-const registryAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+// TODO -> get types from ATOR-development/smart-contracts
+export type EvolvableState = Partial<EvolveState> & OwnableState
+export type OwnableState = { owner?: string }
+export type Fingerprint = string
+export type EvmAddress = string
+export type RelayRegistryState = OwnableState & EvolvableState & {
+  claims: { [address in EvmAddress as string]: Fingerprint[] }
+  verified: { [fingerprint: Fingerprint]: EvmAddress }
+}
+export type ContractFunctionInput = {
+  function: string
+  [key: string]: any
+}
+export interface Register extends ContractFunctionInput {
+  function: 'register'
+  fingerprint: Fingerprint
+}
+export interface Verify extends ContractFunctionInput {
+  function: 'verify'
+  fingerprint: Fingerprint
+  address: EvmAddress
+}
+export interface Unregister extends ContractFunctionInput {
+  function: 'unregister'
+  fingerprint: Fingerprint
+}
+export interface RemoveStale extends ContractFunctionInput {
+  function: 'remove-stale'
+  fingerprint: Fingerprint
+}
+
+// TODO -> from config
+const contractTxId = 'bVAfuHfmHaRtsxNgGxHerymJdQuE_3y1SCpnOg1Duaw'
 
 const formatTorFingerprint = (fingerprintHex: string) => {
   if (fingerprintHex === '0x0000000000000000000000000000000000000000') {
@@ -16,63 +47,63 @@ const formatTorFingerprint = (fingerprintHex: string) => {
   return fingerprintHex.substring(2).toUpperCase()
 }
 
-export type Claim = {
-  claimedBy: string
-  fingerprint: string
-}
-
 export class RelayRegistry {
-  constructor(private contract: Contract) {}
+  constructor(
+    private contract: Contract<RelayRegistryState>,
+    private sign: SigningFunction
+  ) {}
 
-  connect(signer: JsonRpcSigner): RelayRegistryWithSigner {
-    // @ts-ignore
-    return new RelayRegistryWithSigner(this.contract.connect(signer))
+  async verified(address: string): Promise<string[]>
+  async verified(): Promise<RelayRegistryState['verified']>
+  async verified(address?: string) {
+    const { cachedValue: { state } } = await this.contract.readState()
+
+    if (address) {
+      return Object
+        .keys(state.verified)
+        .map(fp => state.verified[fp])
+        .filter(a => a === address)
+    }
+
+    return state.verified
   }
 
-  async verified(): Promise<Claim[]> {
-    const claims: Claim[] = await this.contract['function verified() view returns(tuple(address claimedBy, bytes20 fingerprint)[] memory)']()
+  async claims(address: string): Promise<string[]>
+  async claims(): Promise<RelayRegistryState['claims']>
+  async claims(address?: string) {
+    const { cachedValue: { state } } = await this.contract.readState()
 
-    return claims.map(claim => {
-      return {
-        claimedBy: claim.claimedBy,
-        fingerprint: formatTorFingerprint(claim.fingerprint)
-      }
-    })
+    if (address) {
+      return state.claims[address]
+    }
+    
+    return state.claims
   }
 
-  async claims(address: string): Promise<Claim | null> {
-    const fingerprint = formatTorFingerprint(
-      await this.contract['function claims(address) view returns (bytes20)'](
-        Typed.address(address)
-      )
-    )
-
-    return fingerprint
-      ? { claimedBy: address, fingerprint }
-      : null
-  }
-}
-
-class RelayRegistryWithSigner {
-  constructor(private contract: Contract) {}
-
-  async registerRelay(fingerprint: string): Promise<TransactionResponse> {
-    return this.contract['function registerRelay(bytes20 fingerprint)'](
-      Typed.bytes20('0x' + fingerprint)
-    )
+  async register(
+    fingerprint: string
+  ): Promise<WriteInteractionResponse | null> {
+    return this.contract
+      .connect({ signer: this.sign, type: 'ethereum' })
+      .writeInteraction<Register>({ function: 'register', fingerprint })
   }
 
-  async verifyRelay(claimedBy: string, fingerprint: string) {
-    return this.contract['function verifyClaim(address claimedBy, bytes20 fingerprint)'](
-      Typed.address(claimedBy),
-      Typed.bytes20('0x' + fingerprint)
-    )
+  async verify(claimedBy: string, fingerprint: string) {
+    throw new Error('Not yet implemented')
   }
 }
 
-export const useRelayRegistry = () => {
-  const provider = useProvider()
-  const contract = new Contract(registryAddress, RelayRegistryABI.abi, provider)
-  
-  return new RelayRegistry(contract)
+export const useRelayRegistry = async () => {
+  const warp = await useWarp()
+  const contract = warp.contract<RelayRegistryState>(contractTxId)
+
+  let sign: SigningFunction
+  if (process.server) {
+    sign = async (tx) => {}
+  } else {
+    const { evmSignature } = await import('warp-contracts-plugin-signature')
+    sign = evmSignature
+  }
+
+  return new RelayRegistry(contract, sign)
 }

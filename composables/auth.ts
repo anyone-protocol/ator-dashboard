@@ -1,3 +1,5 @@
+import { BrowserProvider } from 'ethers'
+
 interface Auth {
   address: string
 }
@@ -6,7 +8,7 @@ export const setupAuth = async () => {
   const auth = useAuth()
   const provider = useProvider()
 
-  if (provider) {
+  if (provider && provider instanceof BrowserProvider) {
     const accounts = await provider.listAccounts()
 
     if (accounts.length > 0) {

@@ -3,19 +3,44 @@
     <v-btn
       v-if="auth"
       class="text-none font-weight-bold top-bar-button"
-      append-icon="mdi-chevron-down"
     >
-      {{ truncatedAddress }}
-      <v-menu activator="parent">
+      <code>{{ auth.address }}</code>
+      <!-- {{ truncatedAddress }} -->
+      <!-- <v-menu activator="parent">
         <v-list>
-
+          {{ auth.address }}
         </v-list>
-      </v-menu>
+      </v-menu> -->
     </v-btn>
     
-    <v-btn v-else class="top-bar-button" @click="connect">Connect</v-btn>
+    <v-btn
+      v-else
+      class="top-bar-button"
+      :class="{ animate: shouldAnimate }"
+      :color="shouldAnimate ? 'red' : 'primary'"
+      variant="tonal"
+      @click="connect"
+    >
+      Connect
+    </v-btn>
   </div>
 </template>
+
+<style scoped>
+  .animate {
+    animation: wiggle 1s;
+
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes wiggle {
+    0%    { transform: rotate(10deg);  }
+    25%   { transform: rotate(-10deg); }
+    50%   { transform: rotate(10deg);  }
+    75%   { transform: rotate(-10deg); }
+    100%  { transform: rotate(0deg);   }
+  }
+</style>
 
 <script setup lang="ts">
 const auth = await setupAuth()
@@ -38,4 +63,6 @@ const truncatedAddress = computed(() => {
 
   return ''
 })
+
+const shouldAnimate = computed(() => useHighlightConnectButton().value)
 </script>

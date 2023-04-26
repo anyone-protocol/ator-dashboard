@@ -28,18 +28,16 @@ const loading = ref(false)
 // TODO -> debounce
 const verify = async () => {
   const signer = await useSigner()
-  const registry = useRelayRegistry()
+  const registry = await useRelayRegistry()
 
   if (registry && signer) {
     loading.value = true
 
     try {
-      const tx = await registry.connect(signer).verifyRelay(
+      const success = await registry.verify(
         claimedBy.value,
         fingerprint.value
       )
-
-      await tx.wait()
 
       // TODO -> success
     } catch (error) {
