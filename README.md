@@ -1,4 +1,4 @@
-# AirTor Protocol Dashboard
+# ATOR Protocol Dashboard
 
 This repository contains the ATOR Protocol Dashboard webapp, built with Nuxt v3.
 
