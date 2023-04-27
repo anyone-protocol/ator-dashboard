@@ -5,11 +5,7 @@ export default defineNuxtConfig({
   /**
    * Runtime Config
    */
-  runtimeConfig: {
-    public: {
-      api: 'http://localhost:1987' // TODO -> from environment
-    }
-  },
+  runtimeConfig: {},
 
   /**
    * Vuetify Config

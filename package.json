@@ -12,9 +12,16 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "deploy:balance:ar": "bundlr balance jp0QaS_Zai2hGaB-yRvAIMEtodmH_iHr0drpZxAZQtU -c arweave -h https://node2.bundlr.network",
+    "deploy:fund:ar": "bundlr fund 500000000000 -c arweave -w ./.secrets/dashboard-deployer-keyfile.json -h https://node2.bundlr.network",
+    "deploy:ar": "bundlr upload-dir ./.output/public --index-file index.html -c arweave -w ./.secrets/dashboard-deployer-keyfile.json -h https://node2.bundlr.network",
+    "deploy:balance:eth": "bundlr balance 0xc93F6314e3a8854CC00Db79Cd0883316554AF437 -c ethereum -h https://node1.bundlr.network",
+    "deploy:fund:eth": "bundlr fund 5000000000000000 -c ethereum -h https://node1.bundlr.network -w \"$(cat ./.secrets/dashboard-deployer-eth-keyfile.txt)\"",
+    "deploy:eth": "bundlr upload-dir ./.output/public --index-file index.html -c ethereum -h https://node1.bundlr.network -w \"$(cat ./.secrets/dashboard-deployer-eth-keyfile.txt)\""
   },
   "devDependencies": {
+    "@bundlr-network/client": "^0.11.0",
     "@types/lodash": "^4.14.194",
     "nuxt": "^3.2.3"
   },
