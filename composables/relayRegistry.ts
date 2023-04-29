@@ -74,7 +74,7 @@ export class RelayRegistry {
     const { cachedValue: { state } } = await this.contract.readState()
 
     if (address) {
-      return state.claims[address]
+      return state.claims[address] || []
     }
     
     return state.claims
