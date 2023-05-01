@@ -9,7 +9,7 @@ export const useNavDrawerOpen = () => useState<boolean | undefined>(
 )
 
 // Make decisions about this / these numbers
-const smallScreenWidth = 800;
+const smallScreenWidth = 800
 
 const smallScreen = useSmallScreen()
 const navDrawerOpen = useNavDrawerOpen()
