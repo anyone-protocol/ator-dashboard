@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     
     highlightConnectButton.value = true
 
-    setTimeout(() => highlightConnectButton.value = false, 2000)
+    setTimeout(() => highlightConnectButton.value = false, 1000)
 
     return navigateTo('/')
   }
