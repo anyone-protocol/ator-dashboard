@@ -30,7 +30,7 @@
   .animate {
     animation: wiggle 1s;
 
-    animation-iteration-count: infinite;
+    /* animation-iteration-count: infinite; */
   }
 
   @keyframes wiggle {

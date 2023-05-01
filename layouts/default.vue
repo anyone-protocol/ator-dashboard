@@ -10,7 +10,8 @@
         </router-link>
       </template>
 
-      <v-app-bar-title><div class="route-title">{{ currentPageTitle }}</div></v-app-bar-title>
+      <v-app-bar-title v-if="!smallScreen"><div class="route-title">{{ currentPageTitle }}</div></v-app-bar-title>
+      <v-app-bar-title v-if="smallScreen"><div class="route-title" @click="toggleNavDrawer">Hamburger Menu Test</div></v-app-bar-title>
 
       <template v-slot:append>
         <ClientOnly>
@@ -19,7 +20,7 @@
       </template>
     </v-app-bar>
 
-    <v-navigation-drawer>
+    <v-navigation-drawer v-model="navDrawer">
       <v-list>
         <v-list-item
           class="nav-drawer-list-item"
@@ -72,6 +73,20 @@ const navItems = ref([
     disabled: true
   }
 ])
+
+const smallScreen = computed(() => useSmallScreen().value)
+
+const navDrawerOpen = useNavDrawerOpen()
+
+const toggleNavDrawer = () => {
+  navDrawerOpen.value = !navDrawerOpen.value
+}
+
+//v-model tries to set navDrawer on render so adding a set: here to suppress the warning that it's readonly
+const navDrawer = computed({
+  get: () => navDrawerOpen.value,
+  set: () => navDrawerOpen.value
+})
 
 const navDrawerListItemActive = "nav-drawer-list-item--active"
 
