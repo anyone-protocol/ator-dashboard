@@ -22,7 +22,7 @@
     "deploy:eth": "bundlr upload-dir ./.output/public --index-file index.html -c ethereum -h https://node2.bundlr.network -w \"$(cat ./.secrets/dashboard-deployer-eth-keyfile)\""
   },
   "devDependencies": {
-    "@bundlr-network/client": "^0.11.0",
+    "@bundlr-network/client": "^0.9.11",
     "@types/lodash": "^4.14.194",
     "nuxt": "^3.2.3"
   },
