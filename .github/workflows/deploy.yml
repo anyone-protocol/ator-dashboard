@@ -19,4 +19,4 @@ jobs:
       - run: npm run generate
       - run: npm run deploy
         env:
-          KEY: ${{ secrets.PERMAWEB_KEY }}
+          PERMAWEB_KEY: ${{ secrets.PERMAWEB_KEY }}
