@@ -13,7 +13,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "npm run build && node deploy.mjs",
+    "deploy": "node deploy.mjs",
     "deploy:balance:ar": "bundlr balance jp0QaS_Zai2hGaB-yRvAIMEtodmH_iHr0drpZxAZQtU -c arweave -h https://node2.bundlr.network",
     "deploy:fund:ar": "bundlr fund 500000000000 -c arweave -w ./.secrets/dashboard-deployer-keyfile.json -h https://node2.bundlr.network",
     "deploy:ar": "bundlr upload-dir ./.output/public --index-file index.html -c arweave -w ./.secrets/dashboard-deployer-keyfile.json -h https://node2.bundlr.network",

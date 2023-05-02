@@ -15,7 +15,7 @@ const jwk = JSON.parse(
   Buffer.from(process.env.PERMAWEB_KEY, 'base64').toString('utf-8')
 )
 
-const bundlr = new Bundlr.default(BUNDLR_NODE, 'arweave', jwk)
+const bundlr = new Bundlr(BUNDLR_NODE, 'arweave', jwk)
 const warp = WarpFactory.custom(
   arweave,
   defaultCacheOptions,
