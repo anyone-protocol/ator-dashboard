@@ -19,7 +19,7 @@
                   </div>
                 </v-col>
                 <v-col cols="5" class="text-right">
-                  <v-icon :icon="icon" size="88" color="primary"></v-icon>
+                  <v-icon :icon="icon" class="icon-ator" color="primary"></v-icon>
                 </v-col>
               </v-row>
             </v-container>

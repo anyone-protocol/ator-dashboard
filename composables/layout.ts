@@ -8,7 +8,6 @@ export const useNavDrawerOpen = () => useState<boolean | undefined>(
   () => true
 )
 
-// Make decisions about this / these numbers
 const smallScreenWidth = 800
 
 const smallScreen = useSmallScreen()
@@ -27,3 +26,6 @@ window.addEventListener('resize', () => {
   }
 }, true)
 
+export const toggleNavDrawer = () => {
+  navDrawerOpen.value = !navDrawerOpen.value
+}
