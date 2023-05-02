@@ -37,7 +37,7 @@ export interface RemoveStale extends ContractFunctionInput {
 }
 
 // TODO -> from config
-const contractTxId = 'bVAfuHfmHaRtsxNgGxHerymJdQuE_3y1SCpnOg1Duaw'
+const contractTxId = 'kvPua_H71Iwsvx4q-SwAmSMuw7Y9Tj8DyxUIhFKK-JQ'
 
 const formatTorFingerprint = (fingerprintHex: string) => {
   if (fingerprintHex === '0x0000000000000000000000000000000000000000') {
@@ -74,7 +74,7 @@ export class RelayRegistry {
     const { cachedValue: { state } } = await this.contract.readState()
 
     if (address) {
-      return state.claims[address]
+      return state.claims[address] || []
     }
     
     return state.claims
