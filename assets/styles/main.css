@@ -18,11 +18,29 @@
     color: rgba(0, 0, 0, 0.75);
 }
 
+.v-card-ator .icon-ator {
+    font-size: 88px;
+}
+
+@media only screen and (max-width: 550px) {
+    .v-card-ator .icon-ator {
+        font-size: 55px;
+    }
+}
+
 .route-title {
     margin-left: 160px;
     color: rgba(var(--v-theme-secondary), 0.777);
     font-size: 19.5px;
 }
+
+.route-title-small-screen {
+    margin-left: 20px;
+    margin-top: 15px;
+    color: rgba(var(--v-theme-secondary), 0.777);
+    font-size: 19.5px;
+}
+
 .primary-text {
     color: rgb(var(--v-theme-primary));
 }
@@ -47,6 +65,10 @@
 }
 .nav-drawer-list-item:hover {
     background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+@media (hover: none) {
+    .nav-drawer-list-item:hover { background-color: white; }
 }
 
 .top-bar-button:hover {
