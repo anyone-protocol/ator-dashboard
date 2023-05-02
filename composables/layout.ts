@@ -10,22 +10,26 @@ export const useNavDrawerOpen = () => useState<boolean | undefined>(
 
 const smallScreenWidth = 800
 
-const smallScreen = useSmallScreen()
-const navDrawerOpen = useNavDrawerOpen()
+export const smallScreen = useSmallScreen()
+export const navDrawerOpen = useNavDrawerOpen()
 
 if (window.innerWidth < smallScreenWidth) {
   smallScreen.value = true
   navDrawerOpen.value = false
 }
 
-window.addEventListener('resize', () => {
+export const onResize = () => {
   if (window.innerWidth < smallScreenWidth) smallScreen.value = true
   else {
     smallScreen.value = false
     if (!navDrawerOpen.value) navDrawerOpen.value = true
   }
-}, true)
+}
 
 export const toggleNavDrawer = () => {
   navDrawerOpen.value = !navDrawerOpen.value
+}
+
+export const closeNavIfSmall = () => {
+  if (smallScreen.value && navDrawerOpen.value) navDrawerOpen.value = false
 }

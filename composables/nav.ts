@@ -1,4 +1,4 @@
-const route = useRoute()
+export const route = useRoute()
 
 export const navItems = ref([
   {

@@ -20,6 +20,7 @@
 
 .v-card-ator .icon-ator {
     font-size: 88px;
+    color: rgb(var(--v-theme-primary));
 }
 
 @media only screen and (max-width: 550px) {
