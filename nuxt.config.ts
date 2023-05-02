@@ -2,6 +2,14 @@
 export default defineNuxtConfig({
   ssr: false,
 
+  app: {
+    baseURL: '/'
+  },
+
+  experimental: {
+    writeEarlyHints: false
+  },
+
   /**
    * Runtime Config
    */
