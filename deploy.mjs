@@ -17,7 +17,7 @@ const BUNDLR_NODE = 'https://node2.bundlr.network'
     ).toString('utf-8')
   )
   LoggerFactory.INST.logLevel('fatal')
-  const bundlr = new Bundlr(BUNDLR_NODE, 'arweave', jwk)
+  const bundlr = new Bundlr.default(BUNDLR_NODE, 'arweave', jwk)
   const warp = WarpFactory.custom(
     arweave,
     defaultCacheOptions,
