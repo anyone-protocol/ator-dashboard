@@ -11,7 +11,6 @@ const arweave = Arweave.init({
   port: 443,
   protocol: 'https'
 })
-
 const jwk = JSON.parse(
   Buffer.from(process.env.PERMAWEB_KEY, 'base64').toString('utf-8')
 )
