@@ -36,6 +36,7 @@ const BUNDLR_NODE = 'https://node2.bundlr.network'
     const deployed = await contract.writeInteraction({
       function: 'setRecord',
       subDomain: '@',
+      ttlSeconds: 3600,
       transactionId: result.id
     })
 
