@@ -1,10 +1,9 @@
 <template>
-  <v-app class="app">
-    <TopBar v-if="!smallScreen" />
-    <TopBarSmallScreen v-if="smallScreen" />
+  <v-app class="app" v-resize="onResize">
+    <TopBar />
 
-    <v-navigation-drawer v-model="navDrawer" :permanent="!smallScreen">
-      <v-list>
+    <v-navigation-drawer id="nav-drawer" v-model="navDrawer" :permanent="!smallScreen">
+      <v-list v-click-outside="{handler: closeNavIfSmall, include}">
         <v-list-item
           class="nav-drawer-list-item"
           v-for="{ label, icon, disabled, to } in navItems"
@@ -29,19 +28,19 @@
 </template>
 
 <style>
-  @import "@/assets/styles/main.css";
+@import "@/assets/styles/main.css";
 </style>
 
 <script setup lang="ts">
-  const smallScreen = computed(() => useSmallScreen().value)
+const navDrawerOpen = useNavDrawerOpen()
 
-  const navDrawerOpen = useNavDrawerOpen()
+//v-navigation-drawer v-model also sets navDrawer so adding a set: here to override that
+const navDrawer = computed({
+  get: () => navDrawerOpen.value,
+  set: () => navDrawerOpen.value
+})
 
-  //v-model tries to set navDrawer on render so adding a set: here to suppress the warning that it's readonly
-  const navDrawer = computed({
-    get: () => navDrawerOpen.value,
-    set: () => navDrawerOpen.value
-  })
+const navDrawerListItemActive = "nav-drawer-list-item--active"
 
-  const navDrawerListItemActive = "nav-drawer-list-item--active"
+const include = () => [document.getElementById('burger'), document.getElementById('nav-drawer')]
 </script>
