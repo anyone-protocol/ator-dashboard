@@ -23,9 +23,8 @@ import { ref } from 'vue'
 import { VForm } from 'vuetify/components'
 import _ from 'lodash'
 
-definePageMeta({
-  middleware: 'auth'
-})
+definePageMeta({ middleware: 'auth' })
+useHead({ title: 'Register' })
 
 const form = ref<VForm>()
 const fingerprint = ref<string>('')

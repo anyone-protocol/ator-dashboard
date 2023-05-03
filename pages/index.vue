@@ -67,6 +67,8 @@
 </template>
 
 <script setup lang="ts">
+useHead({ title: 'Dashboard' })
+
 const { pending, data: stats } = useLazyAsyncData('ator-stats', async () => {
   const registry = await useRelayRegistry()
   const relays = await registry.verified()
