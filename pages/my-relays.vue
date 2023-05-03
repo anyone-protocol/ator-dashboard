@@ -32,9 +32,8 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'auth'
-})
+definePageMeta({ middleware: 'auth' })
+useHead({ title: 'My Relays' })
 
 const { pending, data: myRelays } = useLazyAsyncData('my-relays', async () => {
   const registry = await useRelayRegistry()

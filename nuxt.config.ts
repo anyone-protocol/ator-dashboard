@@ -3,7 +3,25 @@ export default defineNuxtConfig({
   ssr: false,
 
   app: {
-    baseURL: '/'
+    baseURL: '/',
+    head: {
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        {
+          hid: 'description',
+          name: 'Description',
+          content: 'ATOR Dashboard'
+        },
+        { property: 'og:site_name', content: 'ATOR Dashboard' },
+        { name: 'twitter:site', content: '@atorprotocol' }
+      ],
+      link: [{
+        rel: 'icon',
+        type: 'image/png',
+        href: '/images/AtorLogo.png'
+      }]
+    }
   },
 
   experimental: {
