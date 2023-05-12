@@ -85,6 +85,7 @@
 .list-item-row-text {
     color: rgba(0, 0, 0, 0.9);
     margin-left: 16%;
+    margin-right: 5px;
 }
 .nav-drawer-list-item--active .list-item-row-text {
     color: rgb(var(--v-theme-primary));
