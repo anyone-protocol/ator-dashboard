@@ -58,8 +58,7 @@ export class RelayRegistry {
     if (address) {
       return Object
         .keys(state.verified)
-        .map(fp => state.verified[fp])
-        .filter(a => a === address)
+        .filter(fp => state.verified[fp] === address)
     }
 
     return state.verified
