@@ -36,9 +36,6 @@ export interface RemoveStale extends ContractFunctionInput {
   fingerprint: Fingerprint
 }
 
-// TODO -> from config
-const contractTxId = 'kvPua_H71Iwsvx4q-SwAmSMuw7Y9Tj8DyxUIhFKK-JQ'
-
 const formatTorFingerprint = (fingerprintHex: string) => {
   if (fingerprintHex === '0x0000000000000000000000000000000000000000') {
     return ''
@@ -94,8 +91,9 @@ export class RelayRegistry {
 }
 
 export const useRelayRegistry = async () => {
+  const { contracts } = useAppConfig()
   const warp = await useWarp()
-  const contract = warp.contract<RelayRegistryState>(contractTxId)
+  const contract = warp.contract<RelayRegistryState>(contracts.relayRegistry)
 
   let sign: SigningFunction
   if (process.server) {
