@@ -24,6 +24,8 @@
       <div v-if="smallScreen" class="route-title-small-screen">{{ currentPageTitle }}</div>
       <slot />
     </v-main>
+
+    <Footer />
   </v-app>
 </template>
 
