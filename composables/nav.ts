@@ -1,5 +1,7 @@
 export const route = useRoute()
 
+const { links } = useAppConfig()
+
 export const navItems = ref([
   {
     label: 'Dashboard',
@@ -19,14 +21,13 @@ export const navItems = ref([
   {
     label: 'Purchase',
     icon: 'mdi-ethereum',
-    to: '/purchase',
-    disabled: true
+    href: links.uniswap
   }
 ])
 
 export const currentPageTitle = computed(() => {
     const currentNavItem = navItems.value.find(item => {
-      if (route.name === item.to.substring(1)) {
+      if (item.to && route.name === item.to.substring(1)) {
         return true
       }
       
