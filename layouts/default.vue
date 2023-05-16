@@ -8,7 +8,7 @@
       :permanent="!smallScreen"
     >
       <v-list v-click-outside="{ handler: closeNavIfSmall, include }">
-        <template v-for="{ label, icon, to, href } in navItems" :key="label">
+        <template v-for="{ label, icon, pathToLogo, to, href } in navItems" :key="label">
             <template v-if="to">
               <v-list-item
               class="nav-drawer-list-item"
@@ -16,7 +16,7 @@
               :active-class="navDrawerListItemActive"
             >
               <div class="list-item-row-container">
-                <v-icon class="list-item-icon" :icon="icon"></v-icon>
+                <VIconOrImg :icon="icon" :pathToImg="pathToLogo" />
                 <div class="list-item-row-text">{{ label }}</div>
               </div>
             </v-list-item>
@@ -28,7 +28,7 @@
               target="_blank"
             >
               <div class="list-item-row-container">
-                <v-icon class="list-item-icon" :icon="icon"></v-icon>
+                <VIconOrImg :icon="icon" :pathToImg="pathToLogo" />
                 <div class="list-item-row-text">{{ label }}</div>
                 <v-icon
                   size="x-small"

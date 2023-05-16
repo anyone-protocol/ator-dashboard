@@ -96,3 +96,7 @@
 .nav-drawer-list-item--active .list-item-icon {
     color: rgb(var(--v-theme-primary));
 }
+
+.black-and-white {
+    filter: grayscale(100%) brightness(57%);
+}

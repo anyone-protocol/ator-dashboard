@@ -20,7 +20,7 @@ export const navItems = ref([
   },
   {
     label: 'Purchase',
-    icon: 'mdi-ethereum',
+    pathToLogo: '/images/AtorLogo.png',
     href: links.uniswap
   }
 ])
