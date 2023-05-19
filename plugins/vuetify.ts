@@ -33,6 +33,13 @@ export default defineNuxtPlugin(nuxtApp => {
       defaultTheme: 'primaryATORTheme',
       themes: {
         primaryATORTheme,
+        dark: {
+          colors: {
+            primary: '#03bec5',
+            secondary: '#025675',
+            accent: '#025d66',
+          }
+        },
       }
     }
   })
