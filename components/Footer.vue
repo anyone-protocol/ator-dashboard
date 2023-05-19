@@ -50,9 +50,9 @@ const { contracts } = useAppConfig()
 const sonarUrlBase = 'https://sonar.warp.cc/#/app/contract'
 const relayRegistrySonarUrl = `${sonarUrlBase}/${contracts.relayRegistry}`
 
-const appTheme = useTheme();
+const appTheme = useTheme()
 
-const themes = ['primaryATORTheme', 'dark'];
+const themes = ['primaryATORTheme', 'dark']
 
 const changeTheme = (theme: string) => appTheme.global.name.value = theme
 </script>
