@@ -14,11 +14,6 @@ export const navItems = ref([
     to: '/my-relays'
   },
   {
-    label: 'Register',
-    icon: 'mdi-clipboard-edit-outline',
-    to: '/register'
-  },
-  {
     label: 'Purchase',
     pathToLogo: '/images/AtorLogo.png',
     href: links.uniswap

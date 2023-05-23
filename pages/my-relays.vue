@@ -10,16 +10,22 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="fingerprint in myRelays.claims" :key="fingerprint">
+            <tr v-for="fingerprint in myRelays.claimable" :key="fingerprint">
               <td><code>{{ fingerprint }}</code></td>
-              <td>{{ 'Pending Verification' }}</td>
+              <td>
+                <v-btn
+                  @click="claim(fingerprint)"
+                  class="primary-background"
+                  :loading="loading"
+                >Claim</v-btn>
+              </td>
             </tr>
             <tr v-for="fingerprint in myRelays.verified" :key="fingerprint">
               <td><code>{{ fingerprint }}</code></td>
               <td>{{ 'Verified' }}</td>
             </tr>
             <tr v-if="noRelays">
-              No pending claims or verified relays!
+              No pending claimable or verified relays!
             </tr>
           </tbody>
         </v-table>
@@ -32,8 +38,12 @@
 </template>
 
 <script setup lang="ts">
+import _ from 'lodash'
+
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Relays' })
+
+const loading = ref<boolean>(false)
 
 const { pending, data: myRelays } = useLazyAsyncData('my-relays', async () => {
   const registry = await useRelayRegistry()
@@ -41,10 +51,10 @@ const { pending, data: myRelays } = useLazyAsyncData('my-relays', async () => {
 
   if (registry && signer) {
     try {
-      const claims = await registry.claims(signer.address)
+      const claimable = await registry.claimable(signer.address)
       const verified = await registry.verified(signer.address)
 
-      return { claims, verified }
+      return { claimable, verified }
     } catch (error) {
       console.log('error reading relay registry contract', error)
     }
@@ -55,10 +65,30 @@ const { pending, data: myRelays } = useLazyAsyncData('my-relays', async () => {
 
 const noRelays = computed(() => {
   if (myRelays.value) {
-    return myRelays.value.claims.length === 0
+    return myRelays.value.claimable.length === 0
       && myRelays.value.verified.length === 0
   }
 
   return true
 })
+
+const claim = _.debounce(async (fingerprint: string) => {
+  loading.value = true
+
+  const registry = await useRelayRegistry()
+
+  try {
+    const success = await registry.claim(fingerprint)
+
+    // TODO -> inform user of success, state update may be delayed
+
+    if (!success) {
+      console.error('Unknown error interacting with registry contract')
+    }
+  } catch (error) {
+    console.error(error)
+  }
+
+  loading.value = false
+}, 300, { leading: true, trailing: false })
 </script>
