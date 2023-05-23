@@ -45,7 +45,11 @@ useHead({ title: 'My Relays' })
 
 const loading = ref<boolean>(false)
 
-const { pending, data: myRelays } = useLazyAsyncData('my-relays', async () => {
+const {
+  pending,
+  data: myRelays,
+  refresh
+} = useLazyAsyncData('my-relays', async () => {
   const registry = await useRelayRegistry()
   const signer = await useSigner()
 
@@ -82,7 +86,9 @@ const claim = _.debounce(async (fingerprint: string) => {
 
     // TODO -> inform user of success, state update may be delayed
 
-    if (!success) {
+    if (success) {
+      await refresh()  
+    } else {
       console.error('Unknown error interacting with registry contract')
     }
   } catch (error) {
