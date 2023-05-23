@@ -52,7 +52,7 @@ const relayRegistrySonarUrl = `${sonarUrlBase}/${contracts.relayRegistry}`
 
 const appTheme = useTheme()
 
-const themes = ['primaryATORTheme', 'dark']
+const themes = Object.keys(appTheme.themes.value)
 
 const changeTheme = (theme: string) => appTheme.global.name.value = theme
 </script>
