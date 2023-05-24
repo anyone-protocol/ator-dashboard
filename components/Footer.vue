@@ -19,8 +19,8 @@
           {{appTheme.global.name.value}}
           <v-menu activator="parent" offset-y>
           <v-list>
-            <v-list-item v-for="theme in themes" :key="theme" @click="changeTheme(theme)">
-              <v-list-item-title>{{ theme }}</v-list-item-title>
+            <v-list-item class="theme-menu-list-item" v-for="theme in themes" :key="theme" @click="changeTheme(theme)">
+              <div class="theme-menu-list-item-container"><v-list-item-title>{{ theme }}</v-list-item-title></div>
             </v-list-item>
           </v-list>
         </v-menu>

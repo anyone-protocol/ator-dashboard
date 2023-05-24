@@ -57,11 +57,10 @@
 }
 
 .nav-drawer-list-item {
-    color: white;
+    color: rgb(var(--v-theme-surface));
 }
 .nav-drawer-list-item--active {
-    background-color: white;
-    color: white;
+    background-color: inherit;
     box-shadow: inset -15px 0 0 -10px rgb(var(--v-theme-primary));
 }
 .nav-drawer-list-item:hover {
@@ -69,7 +68,7 @@
 }
 
 @media (hover: none) {
-    .nav-drawer-list-item:hover { background-color: white; }
+    .nav-drawer-list-item:hover { background-color: rgb(var(--v-theme-surface)); }
 }
 
 .top-bar-button:hover {
@@ -99,4 +98,17 @@
 
 .black-and-white {
     filter: grayscale(100%) brightness(57%);
+}
+
+.theme-menu-list-item {
+    color: rgb(var(--v-theme-surface));
+}
+.theme-menu-list-item:hover {
+    background-color: rgba(var(--v-theme-primary), 0.05);
+}
+/* @media (hover: none) {
+    .theme-menu-list-item:hover { background-color: rgb(var(--v-theme-surface)); }
+} */
+.theme-menu-list-item-container {
+    color: rgb(var(--v-theme-primary));
 }
