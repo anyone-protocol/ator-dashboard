@@ -16,5 +16,5 @@ export default {
     icon: String,
     pathToImg: String
   }
-};
+}
 </script>
