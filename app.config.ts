@@ -12,5 +12,6 @@ export default defineAppConfig({
   links: {
     dexscreener: `${dexscreenerBaseUrl}/${contracts.uniswapPair}`,
     uniswap: `${uniswapBaseUrl}/#/swap?outputCurrency=${contracts.erc20}`
-  }
+  },
+  welcomeDialogUpdated: 1685010992249
 })
