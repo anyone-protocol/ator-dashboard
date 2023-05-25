@@ -8,6 +8,12 @@ const contracts = {
 }
 
 export default defineAppConfig({
+  arweave: {
+    gateway: 'https://arweave.net'
+  },
+  ator: {
+    metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY'
+  },
   contracts,
   links: {
     dexscreener: `${dexscreenerBaseUrl}/${contracts.uniswapPair}`,

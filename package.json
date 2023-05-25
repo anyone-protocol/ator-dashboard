@@ -29,6 +29,7 @@
   "dependencies": {
     "@mdi/font": "^7.1.96",
     "@metamask/onboarding": "^1.0.1",
+    "ardb": "^1.1.10",
     "arweave": "^1.13.7",
     "ethers": "^6.1.0",
     "lodash": "^4.17.21",

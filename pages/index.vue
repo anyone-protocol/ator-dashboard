@@ -67,11 +67,15 @@
 </template>
 
 <script setup lang="ts">
+import { useRelayRegistry } from '~~/composables'
+
 useHead({ title: 'Dashboard' })
 
-const { pending, data: stats } = useLazyAsyncData('ator-stats', async () => {
+const { data: stats } = useLazyAsyncData('ator-stats', async () => {
   const registry = await useRelayRegistry()
   const relays = await registry.verified()
+  const validationStats = await useValidationStats()
+
   const verified = Object.keys(relays)
   const users = verified
     // reduce to relay owner addresses
@@ -79,33 +83,43 @@ const { pending, data: stats } = useLazyAsyncData('ator-stats', async () => {
     // ensure user address list is unique
     .filter((addr, i, addrs) => addrs.indexOf(addr) === i)
 
-  return { relays, users, verified }
+  return { relays, users, verified, validationStats }
 })
 
-const topCards = computed(() => [
-  // {
-  //   key: '24h-traffic',
-  //   label: '24h Traffic',
-  //   value: '--',
-  //   icon: 'mdi-bus'
-  // },
-  {
-    key: 'total-users',
-    label: 'Total Users',
-    value: pending ? stats.value?.users.length || '--' : '--',
-    icon: 'mdi-crowd'
-  },
-  {
-    key: 'verified-relays',
-    label: 'Verified Relays',
-    value: pending ? stats.value?.verified.length || '--' : '--',
-    icon: 'mdi-lifebuoy'
-  },
-  // {
-  //   key: 'next-payout',
-  //   label: 'Next Payout',
-  //   value: '--',
-  //   icon: 'mdi-ethereum'
-  // },
-])
+const topCards = computed(() => {
+  const atorRunningObservedBandwidth =
+  stats.value?.validationStats?.verified_and_running.observed_bandwidth
+  ? (
+      stats.value.validationStats.verified_and_running.observed_bandwidth
+      / Math.pow(1024, 2)
+    ).toFixed(3)
+  : '--'
+
+  return [
+    {
+      key: 'total-users',
+      label: 'Total Users',
+      value: stats.value?.users?.length || '--',
+      icon: 'mdi-crowd'
+    },
+    {
+      key: 'verified-relays',
+      label: 'Verified Relays',
+      value: stats.value?.verified?.length || '--',
+      icon: 'mdi-lifebuoy'
+    },
+    {
+      key: 'active-relays',
+      label: 'Active Relays',
+      value: stats.value?.validationStats?.verification.running || '--',
+      icon: 'mdi-transit-connection'
+    },
+    {
+      key: 'observed-bandwidth',
+      label: 'Observed Bandwidth',
+      value: `${atorRunningObservedBandwidth} MiB/s`,
+      icon: 'mdi-speedometer'
+    }
+  ]
+})
 </script>
