@@ -49,6 +49,12 @@ const connect = async () => {
   const signer = await useSigner()
   if (signer) {
     auth.value = { address: signer.address }
+    const openWelcomeDialog = useWelcomeDialogOpen()
+    const welcomeLastSeen = useWelcomeLastSeen()
+    const { welcomeDialogUpdated } = useAppConfig()
+    openWelcomeDialog.value = welcomeLastSeen.value
+      ? welcomeLastSeen.value < welcomeDialogUpdated
+      : true
   }
 }
 

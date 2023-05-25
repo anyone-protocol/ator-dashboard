@@ -49,6 +49,8 @@
     </v-main>
 
     <Footer />
+
+    <WelcomeDialog />
   </v-app>
 </template>
 
