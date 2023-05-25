@@ -40,6 +40,7 @@ export default defineNuxtPlugin(nuxtApp => {
             secondary: '#025675',
             accent: '#025d66',
             //extra colors
+            'basic-text': '#000000',
             background: '#FFFFFF',
             surface: '#FFFFFF',
             'lightblue-1': '#71d0fb',
@@ -56,8 +57,10 @@ export default defineNuxtPlugin(nuxtApp => {
         dark: {
           colors: {
             primary: '#03bec5',
-            secondary: '#025675',
+            // the styles connected to secondary need to be the same as primary for this theme
+            secondary: '#03bec5',
             accent: '#025d66',
+            'basic-text': '#FFFFFF',
           }
         },
       }

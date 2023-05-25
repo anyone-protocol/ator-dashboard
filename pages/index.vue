@@ -11,10 +11,10 @@
             <v-container>
               <v-row align="center">
                 <v-col cols="7">
-                  <div class="text-subitle-2">
+                  <div class="text-subitle-2 basic-text">
                     {{ label }}
                   </div>
-                  <div class="text-h5 font-weight-black">
+                  <div class="text-h5 font-weight-black basic-text">
                     {{ value }}
                   </div>
                 </v-col>

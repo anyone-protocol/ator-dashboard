@@ -3,13 +3,13 @@
     <v-row>
       <v-col cols="3">
         <a
-          class="text-black"
+          class="basic-text"
           target="_blank"
           href="https://ator.io"
         >ATOR</a>
         |
         <a
-          class="text-black"
+          class="basic-text"
           target="_blank"
           href="https://github.com/ATOR-Development"
         >GitHub</a>
@@ -30,7 +30,7 @@
         Relay Registry:
         <code>          
           <a
-            class="text-black"
+            class="basic-text"
             target="_blank"
             :href="relayRegistrySonarUrl"
           >

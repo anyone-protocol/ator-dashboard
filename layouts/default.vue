@@ -57,7 +57,6 @@
 </style>
 
 <script setup lang="ts">
-import { useTheme } from 'vuetify'
 const navDrawerOpen = useNavDrawerOpen()
 
 /*
@@ -75,7 +74,4 @@ const include = () => [
   document.getElementById('burger'),
   document.getElementById('nav-drawer')
 ]
-
-const appTheme = useTheme()
-let darkTheme = appTheme.global.current.value.dark
 </script>
