@@ -5,8 +5,8 @@
         <v-table v-if="!pending && myRelays">
           <thead>
             <tr>
-              <th class="font-weight-black">Relay Fingerprint</th>
-              <th class="font-weight-black">Status</th>
+              <th class="font-weight-black basic-text">Relay Fingerprint</th>
+              <th class="font-weight-black basic-text">Status</th>
             </tr>
           </thead>
           <tbody>
