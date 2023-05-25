@@ -58,6 +58,10 @@
     background: rgb(var(--v-theme-primary));
     color: white;
 }
+.danger-background {
+    background: rgb(var(--v-theme-error));
+    color: white;
+}
 
 .nav-drawer-list-item {
     color: rgb(var(--v-theme-surface));

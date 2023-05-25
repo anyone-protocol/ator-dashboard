@@ -7,22 +7,33 @@
             <tr>
               <th class="font-weight-black basic-text">Relay Fingerprint</th>
               <th class="font-weight-black basic-text">Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="fingerprint in myRelays.claimable" :key="fingerprint">
               <td><code>{{ fingerprint }}</code></td>
+              <td>Claimable</td>
               <td>
                 <v-btn
                   @click="claim(fingerprint)"
                   class="primary-background"
+                  size="small"
                   :loading="loading"
                 >Claim</v-btn>
               </td>
             </tr>
             <tr v-for="fingerprint in myRelays.verified" :key="fingerprint">
               <td><code>{{ fingerprint }}</code></td>
-              <td>{{ 'Verified' }}</td>
+              <td>Verified</td>
+              <td>
+                <v-btn
+                  @click="openRenounceDialog(fingerprint)"
+                  class="danger-background"
+                  size="small"
+                  :loading="loading"
+                >Renounce</v-btn>
+              </td>
             </tr>
             <tr v-if="noRelays">
               No pending claimable or verified relays!
@@ -34,11 +45,39 @@
         </div>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="isRenounceDialogOpen" width="500">
+      <v-card>
+        <v-card-title>Renounce Relay</v-card-title>
+        <v-card-text>
+          <p>
+            Are you sure you would like to renounce relay
+            <code>{{ renounceFingerprint }}</code>?
+          </p>
+          <p>
+            Type <strong>{{ renouncePhrase }}</strong> below to confirm.
+          </p>
+          <v-text-field v-model="userTypedRenouncePhrase" />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn
+            color="primary-background"
+            @click="cancelRenounce"
+          >Cancel</v-btn>
+          <v-btn
+            color="danger-background"
+            @click="renounce(renounceFingerprint)"
+            :loading="loading"
+            :disabled="userTypedRenouncePhrase !== renouncePhrase"
+          >Renounce</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import _ from 'lodash'
+import { useRelayRegistry } from '~~/composables'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Relays' })
@@ -76,7 +115,7 @@ const noRelays = computed(() => {
   return true
 })
 
-const claim = _.debounce(async (fingerprint: string) => {
+const claim = debounce(async (fingerprint: string) => {
   loading.value = true
 
   const registry = await useRelayRegistry()
@@ -84,7 +123,7 @@ const claim = _.debounce(async (fingerprint: string) => {
   try {
     const success = await registry.claim(fingerprint)
 
-    // TODO -> inform user of success, state update may be delayed
+    // TODO -> inform user of success, contract state update may be delayed
 
     if (success) {
       await refresh()  
@@ -96,5 +135,41 @@ const claim = _.debounce(async (fingerprint: string) => {
   }
 
   loading.value = false
-}, 300, { leading: true, trailing: false })
+})
+
+const renounceFingerprint = ref<string | null>(null)
+const isRenounceDialogOpen = ref<boolean>(false)
+const renouncePhrase = 'I am renouncing my ATOR relay'
+const userTypedRenouncePhrase = ref<string>('')
+const openRenounceDialog = debounce((fingerprint: string) => {
+  renounceFingerprint.value = fingerprint
+  isRenounceDialogOpen.value = true
+})
+
+const cancelRenounce = () => {
+  isRenounceDialogOpen.value = false
+}
+
+const renounce = debounce(async (fingerprint: string) => {
+  loading.value = true
+
+  const registry = await useRelayRegistry()
+
+  try {
+    const success = await registry.renounce(fingerprint)
+
+    // TODO -> inform user of success, contract state update may be delayed
+
+    if (success) {
+      await refresh()
+      isRenounceDialogOpen.value = false
+    } else {
+      console.error('Unknown error interacting with registry contract')
+    }
+  } catch (error) {
+    console.error(error)
+  }
+
+  loading.value = false
+})
 </script>
