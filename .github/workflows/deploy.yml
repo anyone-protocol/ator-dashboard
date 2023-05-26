@@ -1,22 +1,58 @@
-name: publish 
+name: Release New Version 
 
 on:
   push:
     tags:
       - "v*"
+env:
+  IMAGE_NAME: ator-dashboard
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 18.x
-      - run: yarn install
-      - run: yarn generate
-      - run: yarn deploy
+
+      - name: Build image
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+
+      - name: Push image
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          # Strip "v" prefix from tag name
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "master" ] && VERSION=stage
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+
+          echo -e "{\"deploy\":\"$VERSION\"}" > deploy-vars.json
+
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION
+
+      - name: Deploy new version
         env:
           PERMAWEB_KEY: ${{ secrets.PERMAWEB_KEY }}
+          NOMAD_CACERT: admin-ui-ca.crt
+          NOMAD_TOKEN: ${{ secrets.DASHBOARD_DEPLOY_SECRET }}
+          NOMAD_ADDR: ${{ secrets.ATOR_DEPLOY_ADDR }}
+        run: |
+          curl -L https://releases.hashicorp.com/levant/0.3.2/levant_0.3.2_linux_amd64.zip -o levant.zip
+          unzip levant.zip
+          [[ -n $(grep "stage" deploy-vars.json) ]] && ./levant deploy -var-file="deploy-vars.json" deploy-dashboard-stage.hcl || ./levant deploy -var-file="deploy-vars.json" deploy-dashboard-live.hcl
+          
