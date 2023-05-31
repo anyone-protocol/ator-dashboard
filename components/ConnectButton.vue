@@ -3,6 +3,7 @@
     <v-btn
       v-if="auth"
       class="text-none font-weight-bold top-bar-button"
+      :style="{'pointer-events': 'none'}"
     >
       <code>{{ auth.address }}</code>
       <!-- {{ truncatedAddress }} -->
@@ -19,7 +20,7 @@
       :class="{ animate: shouldAnimate }"
       :color="shouldAnimate ? 'red' : 'primary'"
       variant="tonal"
-      @click="connect"
+      @click="suggestMetaMask ? linkToGetMetaMask() : connect()"
     >
       Connect
     </v-btn>
@@ -56,6 +57,10 @@ const connect = async () => {
       ? welcomeLastSeen.value < welcomeDialogUpdated
       : true
   }
+}
+
+const linkToGetMetaMask = () => {
+  window.open("https://metamask.io/download/", '_blank')
 }
 
 const truncatedAddress = computed(() => {

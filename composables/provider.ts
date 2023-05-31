@@ -1,13 +1,28 @@
-import { BrowserProvider, getDefaultProvider } from 'ethers'
+import { BrowserProvider } from 'ethers'
+// import { BrowserProvider, getDefaultProvider } from 'ethers'
 
 const network = 31337 // TODO -> network swapping
+
+export const useSuggestMetaMask = () => useState<boolean | undefined>(
+  'suggest-meta-mask',
+  () => false
+)
+
+export const suggestMetaMask = useSuggestMetaMask()
 
 export const useProvider = () => {
 
   if (process.server || typeof window === 'undefined') {
     return null
   } else if (!window.ethereum) {
-    return getDefaultProvider(31337)
+    suggestMetaMask.value = true
+    return null
+    // try {
+    //   return getDefaultProvider(31337)
+    // } catch {
+    //   suggestMetaMask.value = true
+    //   return null
+    // }
   } else {
     const provider = new BrowserProvider(window.ethereum, 31337)
 
