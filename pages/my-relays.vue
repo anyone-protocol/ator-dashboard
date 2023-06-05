@@ -40,9 +40,7 @@
             </tr>
           </tbody>
         </v-table>
-        <div v-else>
-          Loading...
-        </div>
+        <LoadingBreeze v-else />
       </v-col>
     </v-row>
 

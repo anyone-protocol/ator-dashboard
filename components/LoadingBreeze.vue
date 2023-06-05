@@ -13,14 +13,14 @@ export default {
   },
   methods: {
     startAnimation() {
+      this.resetAnimation()
+
       const grid = [11, 1]
-      let animation
       let index = 0
 
       const play = () => {
-        if (animation) animation.pause()
 
-        animation = anime.timeline({
+        anime.timeline({
           easing: 'easeInOutQuad',
           complete: play
         })
@@ -48,6 +48,9 @@ export default {
 
       play()
     },
+    resetAnimation() {
+      anime.remove('.dot')
+    },
   },
 }
 </script>
@@ -55,6 +58,7 @@ export default {
 <style>
 .dots-wrapper {
   display: flex;
+  margin-top: 10px;
 }
 
 .dot {
@@ -64,7 +68,7 @@ export default {
   height: 2px;
   margin: 1px;
   background-color: transparent;
-  background-image: linear-gradient(180deg, #FFFFFF 8%, blue 100%);
+  background-image: linear-gradient(180deg, rgb(var(--v-theme-background)) 0, rgb(var(--v-theme-primary)) 100%);
   border-radius: 50%;
 }
 </style>
