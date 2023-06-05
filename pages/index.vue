@@ -14,8 +14,10 @@
                   <div class="text-subitle-2 basic-text">
                     {{ label }}
                   </div>
-                  <LoadingBreeze v-if="!value" />
-                  <div v-if="value" class="text-h5 font-weight-black basic-text">
+                  <div v-if="!value" class="margin-top">
+                    <LoadingBreeze :dots="11" />
+                  </div>
+                  <div v-else class="text-h5 font-weight-black basic-text">
                     {{ value }}
                   </div>
                 </v-col>

@@ -122,3 +122,7 @@
 .theme-menu-list-item-container {
     color: rgb(var(--v-theme-primary));
 }
+
+.margin-top {
+    margin-top: 10px;
+}

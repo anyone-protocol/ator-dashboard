@@ -40,7 +40,9 @@
             </tr>
           </tbody>
         </v-table>
-        <LoadingBreeze v-else />
+        <div v-else class="margin-top">
+          <LoadingBreeze :dots="11" />
+        </div>
       </v-col>
     </v-row>
 

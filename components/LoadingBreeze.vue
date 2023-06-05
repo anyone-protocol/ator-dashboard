@@ -1,6 +1,6 @@
 <template>
     <div class="dots-wrapper">
-        <div v-for="index in 11" :key="index" class="dot"></div>
+        <div v-for="index in dots" :key="index" class="dot"></div>
     </div>
 </template>
 
@@ -11,11 +11,14 @@ export default {
   mounted() {
     this.startAnimation()
   },
+  props: {
+    dots: Number
+  },
   methods: {
     startAnimation() {
       this.resetAnimation()
 
-      const grid = [11, 1]
+      const grid = [this.dots, 1]
       let index = 0
 
       const play = () => {
@@ -58,7 +61,6 @@ export default {
 <style>
 .dots-wrapper {
   display: flex;
-  margin-top: 10px;
 }
 
 .dot {
