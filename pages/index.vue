@@ -77,8 +77,9 @@ useHead({ title: 'Dashboard' })
 const { data: stats } = useLazyAsyncData('ator-stats', async () => {
   const registry = await useRelayRegistry()
   const relays = await registry.verified()
-  const validationStats = await useValidationStats()
+  const relayMetrics = await useRelayMetrics()
 
+  const { validationStats } = relayMetrics
   const verified = Object.keys(relays)
   const users = verified
     // reduce to relay owner addresses

@@ -26,23 +26,101 @@ export interface ValidationStats {
   }
 }
 
-export const useValidationStats = async () => {
-  const { arweave, ator } = useAppConfig()
-  const tx: ArdbTransaction | null = await ardb
-    .search('transactions')
-    .from(ator.metricsDeployer)
-    .tags([
-      { name: 'Protocol', values: 'ator' },
-      { name: 'Entity-Type', values: 'validation/stats' }
-    ])
-    .sort('HEIGHT_DESC')
-    .findOne() as ArdbTransaction | null
-  
-  if (tx) {
-    return await $fetch<ValidationStats>(`${arweave.gateway}/${tx.id}`)
-  } else {
-    console.error('Could not find validation/stats tx')
+export type RelayVerificationResult =
+    | 'OK'
+    | 'AlreadyVerified'
+    | 'NotRegistered'
+    | 'Failed'
+export interface ValidatedRelay {
+  fingerprint: string
+  ator_address: string
+  consensus_weight: number
+  consensus_weight_fraction: number
+  observed_bandwidth: number
+  running: boolean
+}
+export interface VerificationResultDto {
+  result: RelayVerificationResult
+  relay: ValidatedRelay
+}
 
-    return null
+export class RelayMetrics {
+  metricsDeployer!: string
+  gateway!: string
+  validationStats: ValidationStats | null = null
+  validationStatsTimestamp: Date | null = null
+  relayMetrics: VerificationResultDto[] = []
+  relayMetricsTimestamp: Date | null = null
+
+  constructor(
+    gateway: string,
+    metricsDeployer: string
+  ) {
+    this.gateway = gateway
+    this.metricsDeployer = metricsDeployer
   }
+
+  async refresh() {
+    await this.refreshValidationStats()
+    await this.refreshRelayMetrics()
+  }
+
+  private async refreshValidationStats() {
+    const tx: ArdbTransaction | null = await ardb
+      .search('transactions')
+      .from(this.metricsDeployer)
+      .tags([
+        { name: 'Protocol', values: 'ator' },
+        { name: 'Entity-Type', values: 'validation/stats' }
+      ])
+      .sort('HEIGHT_DESC')
+      .findOne() as ArdbTransaction | null
+  
+    if (tx) {
+      this.validationStats =
+        await $fetch<ValidationStats>(`${this.gateway}/${tx.id}`)
+
+      const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
+      if (!Number.isNaN(timestamp)) {
+        console.log('timestamp', timestamp)
+        this.validationStatsTimestamp = new Date(timestamp)
+      }
+    } else {
+      console.error('Could not find validation/stats tx')
+    }
+  }
+
+  private async refreshRelayMetrics() {
+    const tx: ArdbTransaction | null = await ardb
+      .search('transactions')
+      .from(this.metricsDeployer)
+      .tags([
+        { name: 'Protocol', values: 'ator' },
+        { name: 'Entity-Type', values: 'relay/metrics' }
+      ])
+      .sort('HEIGHT_DESC')
+      .findOne() as ArdbTransaction | null
+
+    if (tx) {
+      this.relayMetrics = 
+        await $fetch<VerificationResultDto[]>(`${this.gateway}/${tx.id}`)
+
+      const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
+      if (!Number.isNaN(timestamp)) {
+        console.log('timestamp', timestamp)
+        this.relayMetricsTimestamp = new Date(timestamp)
+      }
+    } else {
+      console.error('Could not find relay/metrics tx')
+    }
+  }
+}
+
+export const useRelayMetrics = async () => {
+  const { arweave, ator } = useAppConfig()
+  const metrics = new RelayMetrics(arweave.gateway, ator.metricsDeployer)
+
+  await metrics.refresh()
+
+  return metrics
 }
