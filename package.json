@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@bundlr-network/client": "^0.9.11",
+    "@types/animejs": "^3.1.7",
     "@types/lodash": "^4.14.194",
     "nuxt": "^3.2.3"
   },

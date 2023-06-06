@@ -1,7 +1,7 @@
 <template>
-  <v-container class="my-relays-page">
-    <v-row>
-      <v-col cols="12">
+  <v-container class="my-relays-page h-100">
+    <v-row class="h-100">
+      <v-col cols="12" class="h-100">
         <v-table v-if="!pending && myRelays">
           <thead>
             <tr>
@@ -40,8 +40,8 @@
             </tr>
           </tbody>
         </v-table>
-        <div v-else class="margin-top">
-          <LoadingBreeze :dots="11" />
+        <div v-else class="center-loading-splash">
+          <LoadingBreeze :dots="7" size="large" />
         </div>
       </v-col>
     </v-row>

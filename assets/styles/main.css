@@ -123,6 +123,8 @@
     color: rgb(var(--v-theme-primary));
 }
 
-.margin-top {
-    margin-top: 10px;
+.center-loading-splash {
+  position: relative;
+  top: 25%;
+  margin: 0;
 }
