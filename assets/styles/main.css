@@ -122,3 +122,9 @@
 .theme-menu-list-item-container {
     color: rgb(var(--v-theme-primary));
 }
+
+.center-loading-splash {
+  position: relative;
+  top: 25%;
+  margin: 0;
+}

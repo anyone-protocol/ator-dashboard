@@ -14,7 +14,10 @@
                   <div class="text-subitle-2 basic-text">
                     {{ label }}
                   </div>
-                  <div class="text-h5 font-weight-black basic-text">
+                  <div v-if="!value" class="mt-3">
+                    <LoadingBreeze :dots="11" />
+                  </div>
+                  <div v-else class="text-h5 font-weight-black basic-text">
                     {{ value }}
                   </div>
                 </v-col>
@@ -93,31 +96,31 @@ const topCards = computed(() => {
       stats.value.validationStats.verified_and_running.observed_bandwidth
       / Math.pow(1024, 2)
     ).toFixed(3)
-  : '--'
+  : ''
 
   return [
     {
       key: 'total-users',
       label: 'Total Users',
-      value: stats.value?.users?.length || '--',
+      value: stats.value?.users?.length || '',
       icon: 'mdi-crowd'
     },
     {
       key: 'verified-relays',
       label: 'Verified Relays',
-      value: stats.value?.verified?.length || '--',
+      value: stats.value?.verified?.length || '',
       icon: 'mdi-lifebuoy'
     },
     {
       key: 'active-relays',
       label: 'Active Relays',
-      value: stats.value?.validationStats?.verification.running || '--',
+      value: stats.value?.validationStats?.verification.running || '',
       icon: 'mdi-transit-connection'
     },
     {
       key: 'observed-bandwidth',
       label: 'Observed Bandwidth',
-      value: `${atorRunningObservedBandwidth} MiB/s`,
+      value: atorRunningObservedBandwidth ? atorRunningObservedBandwidth + ' MiB/s' : '',
       icon: 'mdi-speedometer'
     }
   ]
