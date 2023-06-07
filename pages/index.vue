@@ -34,42 +34,6 @@
           <span class="text-caption">Last Updated: {{ stats.timestamp }}</span>
         </v-col>
       </v-row>
-      <!-- <v-row>
-        <v-col cols="12">
-          <v-card class="text-center">
-            <h1>a fancy graph might go here</h1>
-          </v-card>
-        </v-col>
-      </v-row> -->
-      <!-- <v-row justify="center">
-        <v-col cols="7">
-          <v-card class="text-center" height="100%">
-            <v-progress-circular size="256" color="black">
-              <span class="text-h1">--%</span>
-            </v-progress-circular>
-            <v-card-title class="font-weight-bold">
-              24h Cumulative Relay Update (%)
-            </v-card-title>
-          </v-card>
-        </v-col>
-        <v-col cols="3">
-          <v-card height="100%">
-            <v-card-title class="font-weight-bold text-center">$ATOR</v-card-title>
-            <v-card-subtitle class="font-weight-bold">$ --</v-card-subtitle>
-            <v-card-subtitle class="font-weight-bold">-- %</v-card-subtitle>
-            <h5>Another fancy graph might go here</h5>
-          </v-card>
-        </v-col>
-        <v-col cols="2">
-          <v-card class="text-center" height="100%">
-            <v-card-title class="font-weight-bold">PoU Pings</v-card-title>
-            <v-btn v-for="ping in pouPings" :key="ping" text flat disabled>
-              {{ ping }}
-            </v-btn>
-            <v-btn flat icon="mdi-refresh"></v-btn>
-          </v-card>
-        </v-col>
-      </v-row> -->
     </v-container>
   </div>
 </template>
