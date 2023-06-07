@@ -29,42 +29,11 @@
           </v-card>
         </v-col>
       </v-row>
-      <!-- <v-row>
+      <v-row v-if="stats && stats.timestamp">
         <v-col cols="12">
-          <v-card class="text-center">
-            <h1>a fancy graph might go here</h1>
-          </v-card>
+          <span class="text-caption">Last Updated: {{ stats.timestamp }}</span>
         </v-col>
-      </v-row> -->
-      <!-- <v-row justify="center">
-        <v-col cols="7">
-          <v-card class="text-center" height="100%">
-            <v-progress-circular size="256" color="black">
-              <span class="text-h1">--%</span>
-            </v-progress-circular>
-            <v-card-title class="font-weight-bold">
-              24h Cumulative Relay Update (%)
-            </v-card-title>
-          </v-card>
-        </v-col>
-        <v-col cols="3">
-          <v-card height="100%">
-            <v-card-title class="font-weight-bold text-center">$ATOR</v-card-title>
-            <v-card-subtitle class="font-weight-bold">$ --</v-card-subtitle>
-            <v-card-subtitle class="font-weight-bold">-- %</v-card-subtitle>
-            <h5>Another fancy graph might go here</h5>
-          </v-card>
-        </v-col>
-        <v-col cols="2">
-          <v-card class="text-center" height="100%">
-            <v-card-title class="font-weight-bold">PoU Pings</v-card-title>
-            <v-btn v-for="ping in pouPings" :key="ping" text flat disabled>
-              {{ ping }}
-            </v-btn>
-            <v-btn flat icon="mdi-refresh"></v-btn>
-          </v-card>
-        </v-col>
-      </v-row> -->
+      </v-row>
     </v-container>
   </div>
 </template>
@@ -77,8 +46,9 @@ useHead({ title: 'Dashboard' })
 const { data: stats } = useLazyAsyncData('ator-stats', async () => {
   const registry = await useRelayRegistry()
   const relays = await registry.verified()
-  const validationStats = await useValidationStats()
+  const relayMetrics = await useRelayMetrics()
 
+  const { validationStats, validationStatsTimestamp: timestamp } = relayMetrics
   const verified = Object.keys(relays)
   const users = verified
     // reduce to relay owner addresses
@@ -86,7 +56,7 @@ const { data: stats } = useLazyAsyncData('ator-stats', async () => {
     // ensure user address list is unique
     .filter((addr, i, addrs) => addrs.indexOf(addr) === i)
 
-  return { relays, users, verified, validationStats }
+  return { relays, users, verified, validationStats, timestamp }
 })
 
 const topCards = computed(() => {

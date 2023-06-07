@@ -7,6 +7,9 @@
             <tr>
               <th class="font-weight-black basic-text">Relay Fingerprint</th>
               <th class="font-weight-black basic-text">Status</th>
+              <th class="font-weight-black basic-text">Consensus Weight</th>
+              <th class="font-weight-black basic-text">Observed Bandwidth</th>
+              <th class="font-weight-black basic-text">Active</th>
               <th></th>
             </tr>
           </thead>
@@ -14,6 +17,9 @@
             <tr v-for="fingerprint in myRelays.claimable" :key="fingerprint">
               <td><code>{{ fingerprint }}</code></td>
               <td>Claimable</td>
+              <td></td>
+              <td></td>
+              <td></td>
               <td>
                 <v-btn
                   @click="claim(fingerprint)"
@@ -23,12 +29,19 @@
                 >Claim</v-btn>
               </td>
             </tr>
-            <tr v-for="fingerprint in myRelays.verified" :key="fingerprint">
-              <td><code>{{ fingerprint }}</code></td>
+            <tr v-for="relay in myRelays.verified" :key="relay.fingerprint">
+              <td><code>{{ relay.fingerprint }}</code></td>
               <td>Verified</td>
+              <td class="text-end">{{ (relay as ValidatedRelay).consensus_weight }}</td>
+              <td>{{
+                (relay as ValidatedRelay).observed_bandwidth
+                  ? ((relay as ValidatedRelay).observed_bandwidth / Math.pow(1024, 2)).toFixed(3) + ' MiB/s'
+                  : ''
+              }}</td>
+              <td><v-icon>{{ (relay as ValidatedRelay).running ? 'mdi-check' : 'mdi-close' }}</v-icon></td>
               <td>
                 <v-btn
-                  @click="openRenounceDialog(fingerprint)"
+                  @click="openRenounceDialog(relay.fingerprint)"
                   class="danger-background"
                   size="small"
                   :loading="loading"
@@ -39,6 +52,13 @@
               No pending claimable or verified relays!
             </tr>
           </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="6">
+                <span class="text-caption">Last Updated: {{ myRelays.timestamp }}</span>
+              </td>
+            </tr>
+          </tfoot>
         </v-table>
         <div v-else class="center-loading-splash">
           <LoadingBreeze :dots="7" size="large" />
@@ -78,6 +98,7 @@
 
 <script setup lang="ts">
 import { useRelayRegistry } from '~~/composables'
+import { ValidatedRelay } from '~~/composables/metrics'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Relays' })
@@ -91,13 +112,27 @@ const {
 } = useLazyAsyncData('my-relays', async () => {
   const registry = await useRelayRegistry()
   const signer = await useSigner()
+  const metrics = await useRelayMetrics()
 
   if (registry && signer) {
     try {
       const claimable = await registry.claimable(signer.address)
-      const verified = await registry.verified(signer.address)
+      const verifiedRelays = await registry.verified(signer.address)
 
-      return { claimable, verified }
+      const verified = verifiedRelays
+        .map(
+          fp => {
+            const myMetrics = metrics.relayMetrics.find(({ relay }) => fp === relay.fingerprint)
+
+            return myMetrics
+              ? myMetrics.relay
+              : { fingerprint: fp }
+          }
+        )
+
+      console.log('verified', verified)
+
+      return { claimable, verified, timestamp: metrics.relayMetricsTimestamp }
     } catch (error) {
       console.log('error reading relay registry contract', error)
     }
