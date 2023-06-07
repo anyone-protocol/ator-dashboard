@@ -31,7 +31,13 @@ export default defineNuxtConfig({
   /**
    * Runtime Config
    */
-  runtimeConfig: {},
+  runtimeConfig: {
+    public: {
+      relayRegistryAddress: 'R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w',
+      metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
+      phase: 'dev'
+    },
+  },
 
   /**
    * Vuetify Config

@@ -34,7 +34,7 @@
             target="_blank"
             :href="relayRegistrySonarUrl"
           >
-            {{ contracts.relayRegistry }}
+            {{ runtimeCfg.public.relayRegistryAddress }}
           </a>
         </code>
       </v-col>
@@ -45,10 +45,10 @@
 <script setup lang="ts">
 import { useTheme } from 'vuetify'
 
-const { contracts } = useAppConfig()
+const runtimeCfg = useRuntimeConfig()
 
 const sonarUrlBase = 'https://sonar.warp.cc/#/app/contract'
-const relayRegistrySonarUrl = `${sonarUrlBase}/${contracts.relayRegistry}`
+const relayRegistrySonarUrl = `${sonarUrlBase}/${runtimeCfg.public.relayRegistryAddress}`
 
 const appTheme = useTheme()
 

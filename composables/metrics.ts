@@ -115,8 +115,9 @@ export class RelayMetrics {
 }
 
 export const useRelayMetrics = async () => {
-  const { arweave, ator } = useAppConfig()
-  const metrics = new RelayMetrics(arweave.gateway, ator.metricsDeployer)
+  const { arweave } = useAppConfig()
+  const runtimeConfig = useRuntimeConfig()
+  const metrics = new RelayMetrics(arweave.gateway, runtimeConfig.public.metricsDeployer)
 
   await metrics.refresh()
 

@@ -60,9 +60,9 @@ export class RelayRegistry {
 }
 
 export const useRelayRegistry = async () => {
-  const { contracts } = useAppConfig()
+  const config = useRuntimeConfig()
   const warp = await useWarp()
-  const contract = warp.contract<RelayRegistryState>(contracts.relayRegistry)
+  const contract = warp.contract<RelayRegistryState>(config.public.relayRegistryAddress)
 
   let sign: SigningFunction
   if (process.server) {

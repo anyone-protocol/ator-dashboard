@@ -28,39 +28,16 @@ job "deploy-dashboard-live" {
             {{with secret "kv/dashboard/live"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}
+            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key "smart-contracts/live/relay-registry-address" }}"
+            NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/live/validator-address-base64" }}"
             EOH
             destination = "secrets/file.env"
             env         = true
         }
 
-        template {
-            data = <<EOH
-const uniswapBaseUrl = 'https://app.uniswap.org'
-const dexscreenerBaseUrl = 'https://dexscreener.com/ethereum'
-
-const contracts = {
-  relayRegistry: '[[ consulKey "smart-contracts/live/relay-registry-address" ]]',
-  erc20: '0x0f7b3f5a8fed821c5eb60049538a548db2d479ce',
-  uniswapPair: '0xa7480AAfA8AD2af3ce24Ac6853F960AE6Ac7F0c4'
-}
-
-export default defineAppConfig({
-  arweave: {
-    gateway: 'https://arweave.net'
-  },
-  ator: {
-    metricsDeployer: '[[ consulKey "valid-ator/live/validator-address-base64" ]]'
-  },
-  contracts,
-  links: {
-    dexscreener: `${dexscreenerBaseUrl}/${contracts.uniswapPair}`,
-    uniswap: `${uniswapBaseUrl}/#/swap?outputCurrency=${contracts.erc20}`
-  },
-  welcomeDialogUpdated: 1685010992249
-})
-            EOH
-            destination = "local/app.config.ts"
-            env         = false
+        env {
+            NUXT_PUBLIC_PHASE="live"
+            DASHBOARD_VERSION="[[.commit_sha]]"
         }
 
         restart {
