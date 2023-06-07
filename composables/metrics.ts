@@ -82,7 +82,6 @@ export class RelayMetrics {
 
       const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
       if (!Number.isNaN(timestamp)) {
-        console.log('timestamp', timestamp)
         this.validationStatsTimestamp = new Date(timestamp)
       }
     } else {
@@ -107,7 +106,6 @@ export class RelayMetrics {
 
       const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
       if (!Number.isNaN(timestamp)) {
-        console.log('timestamp', timestamp)
         this.relayMetricsTimestamp = new Date(timestamp)
       }
     } else {

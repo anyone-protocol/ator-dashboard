@@ -29,6 +29,11 @@
           </v-card>
         </v-col>
       </v-row>
+      <v-row v-if="stats && stats.timestamp">
+        <v-col cols="12">
+          <span class="text-caption">Last Updated: {{ stats.timestamp }}</span>
+        </v-col>
+      </v-row>
       <!-- <v-row>
         <v-col cols="12">
           <v-card class="text-center">
@@ -79,7 +84,7 @@ const { data: stats } = useLazyAsyncData('ator-stats', async () => {
   const relays = await registry.verified()
   const relayMetrics = await useRelayMetrics()
 
-  const { validationStats } = relayMetrics
+  const { validationStats, validationStatsTimestamp: timestamp } = relayMetrics
   const verified = Object.keys(relays)
   const users = verified
     // reduce to relay owner addresses
@@ -87,7 +92,7 @@ const { data: stats } = useLazyAsyncData('ator-stats', async () => {
     // ensure user address list is unique
     .filter((addr, i, addrs) => addrs.indexOf(addr) === i)
 
-  return { relays, users, verified, validationStats }
+  return { relays, users, verified, validationStats, timestamp }
 })
 
 const topCards = computed(() => {
