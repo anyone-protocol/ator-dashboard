@@ -15,9 +15,6 @@ job "deploy-dashboard-stage" {
             entrypoint = ["yarn"]
             command = "deploy"
             args = []
-            volumes = [
-                "local/app.config.ts:/usr/src/app/app.config.ts"
-            ]
         }
 
         vault {
