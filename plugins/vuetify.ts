@@ -2,6 +2,9 @@ import { createVuetify, ThemeDefinition } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
+let theme = 'light'
+if (localStorage && localStorage.getItem('theme')) theme = localStorage.getItem('theme') as string
+
 const primaryATORTheme: ThemeDefinition = {
   dark: false,
   colors: {
@@ -30,7 +33,7 @@ export default defineNuxtPlugin(nuxtApp => {
     components,
     directives,
     theme: {
-      defaultTheme: 'light',
+      defaultTheme: theme,
       themes: {
         // primaryATORTheme,
         light: {

@@ -9,8 +9,8 @@
     >
       <v-list v-click-outside="{ handler: closeNavIfSmall, include }">
         <template v-for="{ label, icon, pathToLogo, to, href } in navItems" :key="label">
-            <template v-if="to">
-              <v-list-item
+          <template v-if="to">
+            <v-list-item
               class="nav-drawer-list-item"
               :to="to"
               :active-class="navDrawerListItemActive"

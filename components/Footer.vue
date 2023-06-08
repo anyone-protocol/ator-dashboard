@@ -54,5 +54,10 @@ const appTheme = useTheme()
 
 const themes = Object.keys(appTheme.themes.value)
 
-const changeTheme = (theme: string) => appTheme.global.name.value = theme
+const changeTheme = (theme: string) => {
+  appTheme.global.name.value = theme
+  if (localStorage) {
+    localStorage.setItem('theme', theme)
+  }
+}
 </script>
