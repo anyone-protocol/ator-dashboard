@@ -48,7 +48,6 @@ jobs:
 
       - name: Deploy new version
         env:
-          PERMAWEB_KEY: ${{ secrets.PERMAWEB_KEY }}
           NOMAD_CACERT: admin-ui-ca.crt
           NOMAD_TOKEN: ${{ secrets.DASHBOARD_DEPLOY_SECRET }}
           NOMAD_ADDR: ${{ secrets.ATOR_DEPLOY_ADDR }}

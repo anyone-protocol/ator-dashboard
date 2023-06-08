@@ -9,4 +9,3 @@ COPY --chown=node:node . .
 
 RUN yarn install
 
-RUN yarn generate
