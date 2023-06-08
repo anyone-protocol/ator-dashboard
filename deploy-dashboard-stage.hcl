@@ -34,7 +34,7 @@ job "deploy-dashboard-stage" {
         }
 
         env {
-            NUXT_PUBLIC_PHASE="stage"
+            PHASE="stage"
             DASHBOARD_VERSION="[[.commit_sha]]"
         }
 

@@ -33,7 +33,7 @@ job "deploy-dashboard-live" {
         }
 
         env {
-            NUXT_PUBLIC_PHASE="live"
+            PHASE="live"
             DASHBOARD_VERSION="[[.commit_sha]]"
         }
 
