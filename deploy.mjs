@@ -33,10 +33,18 @@ const result = await bundlr.uploadFolder(DEPLOY_FOLDER, {
 // update ANT
 if (result) {
   console.log('bundlr result id', result.id)
+  var subDomain = 'dev'
+  if (process.env.PHASE === 'live') {
+    subDomain = '@'
+  } else if (process.env.PHASE === 'stage') {
+    subDomain = 'stage'
+  }
+
+  console.log(`Deploying to: ${subDomain}`)
 
   const deployed = await contract.writeInteraction({
     function: 'setRecord',
-    subDomain: (process.env.PHASE === undefined || process.env.PHASE === 'live')?'@':'stage',
+    subDomain: subDomain,
     ttlSeconds: 3600,
     transactionId: result.id
   })
