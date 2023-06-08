@@ -11,6 +11,7 @@ job "deploy-dashboard-stage" {
 
         config {
             image = "ghcr.io/ator-development/ator-dashboard:[[.deploy]]"
+            force_pull = true
             entrypoint = ["yarn"]
             command = "deploy"
             args = []
