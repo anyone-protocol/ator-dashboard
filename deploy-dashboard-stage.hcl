@@ -26,8 +26,6 @@ job "deploy-dashboard-stage" {
             {{with secret "kv/dashboard/stage"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}
-            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key "smart-contracts/stage/relay-registry-address" }}"
-            NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/stage/validator-address-base64" }}"
             EOH
             destination = "secrets/file.env"
             env         = true
@@ -36,6 +34,9 @@ job "deploy-dashboard-stage" {
         env {
             PHASE="stage"
             DASHBOARD_VERSION="[[.commit_sha]]"
+            
+            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key "smart-contracts/stage/relay-registry-address" }}"
+            NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/stage/validator-address-base64" }}"
         }
 
         restart {
