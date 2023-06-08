@@ -3,7 +3,10 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
 let theme = 'light'
-if (localStorage && localStorage.getItem('theme')) theme = localStorage.getItem('theme') as string
+const localStorageTheme = localStorage && localStorage.getItem('theme')
+if (localStorageTheme) {
+  theme = localStorageTheme
+} 
 
 const primaryATORTheme: ThemeDefinition = {
   dark: false,
