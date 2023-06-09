@@ -22,6 +22,8 @@ job "deploy-dashboard-live" {
 
         template {
             data = <<EOH
+            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS={{ key "smart-contracts/live/relay-registry-address" }}
+            NUXT_PUBLIC_METRICS_DEPLOYER={{ key "valid-ator/live/validator-address-base64" }}
             {{with secret "kv/dashboard/live"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}
@@ -33,9 +35,6 @@ job "deploy-dashboard-live" {
         env {
             PHASE="live"
             DASHBOARD_VERSION="[[.commit_sha]]"
-
-            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS={{ key "smart-contracts/live/relay-registry-address" }}
-            NUXT_PUBLIC_METRICS_DEPLOYER={{ key "valid-ator/live/validator-address-base64" }}
         }
 
         restart {

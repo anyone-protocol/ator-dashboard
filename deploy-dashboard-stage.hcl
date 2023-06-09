@@ -23,20 +23,13 @@ job "deploy-dashboard-stage" {
 
         template {
             data = <<EOH
+            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key `smart-contracts/stage/relay-registry-address` }}"
+            NUXT_PUBLIC_METRICS_DEPLOYER="{{ key `valid-ator/stage/validator-address-base64` }}"
             {{with secret "kv/dashboard/stage"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
-            env         = true
-        }
-
-        template {
-            data = <<EOH
-                NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key `smart-contracts/stage/relay-registry-address` }}"
-                NUXT_PUBLIC_METRICS_DEPLOYER="{{ key `valid-ator/stage/validator-address-base64` }}"
-            EOH
-            destination = "local/vars.env"
             env         = true
         }
         
