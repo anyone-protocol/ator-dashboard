@@ -33,9 +33,9 @@ job "deploy-dashboard-live" {
         env {
             PHASE="live"
             DASHBOARD_VERSION="[[.commit_sha]]"
-            
-            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key "smart-contracts/live/relay-registry-address" }}"
-            NUXT_PUBLIC_METRICS_DEPLOYER="{{ key "valid-ator/live/validator-address-base64" }}"
+
+            NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS={{ key "smart-contracts/live/relay-registry-address" }}
+            NUXT_PUBLIC_METRICS_DEPLOYER={{ key "valid-ator/live/validator-address-base64" }}
         }
 
         restart {
