@@ -32,15 +32,14 @@ job "deploy-dashboard-stage" {
         }
 
         template {
-            data = <<EOF
-                NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS={{ key "smart-contracts/stage/relay-registry-address" }}
-                NUXT_PUBLIC_METRICS_DEPLOYER={{ key "valid-ator/stage/validator-address-base64" }}
-            EOF
+            data = <<EOH
+                NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="{{ key `smart-contracts/stage/relay-registry-address` }}"
+                NUXT_PUBLIC_METRICS_DEPLOYER="{{ key `valid-ator/stage/validator-address-base64` }}"
+            EOH
             destination = "local/vars.env"
             env         = true
         }
         
-
         env {
             PHASE="stage"
             DASHBOARD_VERSION="[[.commit_sha]]"
