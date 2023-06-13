@@ -66,7 +66,7 @@
       </v-col>
     </v-row>
 
-    <v-dialog v-model="isRenounceDialogOpen" width="500">
+    <v-dialog v-model="isRenounceDialogOpen">
       <v-card>
         <v-card-title>Renounce Relay</v-card-title>
         <v-card-text>
@@ -81,11 +81,12 @@
         </v-card-text>
         <v-card-actions>
           <v-btn
-            color="primary-background"
+            class="danger-background"
             @click="cancelRenounce"
           >Cancel</v-btn>
+          <v-spacer />
           <v-btn
-            color="danger-background"
+            class="primary-background"
             @click="renounce(renounceFingerprint)"
             :loading="loading"
             :disabled="userTypedRenouncePhrase !== renouncePhrase"
@@ -130,8 +131,6 @@ const {
           }
         )
 
-      console.log('verified', verified)
-
       return { claimable, verified, timestamp: metrics.relayMetricsTimestamp }
     } catch (error) {
       console.log('error reading relay registry contract', error)
@@ -174,10 +173,12 @@ const claim = debounce(async (fingerprint: string) => {
 
 const renounceFingerprint = ref<string | null>(null)
 const isRenounceDialogOpen = ref<boolean>(false)
-const renouncePhrase = 'I am renouncing my ATOR relay'
+const baseRenouncePhrase = 'I am renouncing fingerprint'
+const renouncePhrase = ref<string>(baseRenouncePhrase)
 const userTypedRenouncePhrase = ref<string>('')
 const openRenounceDialog = debounce((fingerprint: string) => {
   renounceFingerprint.value = fingerprint
+  renouncePhrase.value = `${baseRenouncePhrase} ${fingerprint}`
   isRenounceDialogOpen.value = true
 })
 
