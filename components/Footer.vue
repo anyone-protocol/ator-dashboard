@@ -29,30 +29,22 @@
       <v-col cols="5" style="text-align:end">
         <v-btn color="primary" variant="plain" size="small">
           Relay Registry
-          <v-menu activator="parent" offset-y>
+          <v-menu activator="parent" offset-y :close-on-content-click="false">
             <v-list>
-              <v-list-item class="theme-menu-list-item" @click="goToRelayRegSonar()">
-                <div class="theme-menu-list-item-container">
-                  <v-list-item-title>
-                    <code class="basic-text">
-                      {{ runtimeCfg.public.relayRegistryAddress }}
-                    </code>
-                  </v-list-item-title>
-                </div>
+              <v-list-item>
+                <code>          
+                  <a
+                    class="basic-text"
+                    target="_blank"
+                    :href="relayRegistrySonarUrl"
+                  >
+                    {{ runtimeCfg.public.relayRegistryAddress }}
+                  </a>
+                </code>
               </v-list-item>
             </v-list>
           </v-menu>
         </v-btn>
-        <!-- Relay Registry:
-        <code>          
-          <a
-            class="basic-text"
-            target="_blank"
-            :href="relayRegistrySonarUrl"
-          >
-            {{ runtimeCfg.public.relayRegistryAddress }}
-          </a>
-        </code> -->
       </v-col>
     </v-row>
   </v-footer>
@@ -75,9 +67,5 @@ const changeTheme = (theme: string) => {
   if (localStorage) {
     localStorage.setItem('theme', theme)
   }
-}
-
-const goToRelayRegSonar = () => {
-  window.open(relayRegistrySonarUrl, '_blank')?.focus()
 }
 </script>
