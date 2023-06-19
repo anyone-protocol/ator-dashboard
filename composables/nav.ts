@@ -13,11 +13,11 @@ export const navItems = ref([
     icon: 'mdi-lifebuoy',
     to: '/my-relays'
   },
-  {
-    label: 'Purchase',
-    pathToLogo: '/images/AtorLogo.png',
-    href: links.uniswap
-  }
+  // {
+  //   label: 'Purchase',
+  //   pathToLogo: '/images/AtorLogo.png',
+  //   href: links.uniswap
+  // }
 ])
 
 export const currentPageTitle = computed(() => {

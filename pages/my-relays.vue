@@ -55,7 +55,9 @@
           <tfoot>
             <tr>
               <td colspan="6">
-                <span class="text-caption">Last Updated: {{ myRelays.timestamp }}</span>
+                <span class="text-caption">
+                  Last Updated: {{ myRelays.timestamp?.toUTCString() }}
+                </span>
               </td>
             </tr>
           </tfoot>
