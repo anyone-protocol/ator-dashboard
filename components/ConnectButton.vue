@@ -1,18 +1,24 @@
 <template>
   <div class="connect-button">
-    <v-btn
+    <div
       v-if="auth"
-      class="text-none font-weight-bold top-bar-button"
-      :style="{'pointer-events': 'none'}"
+      class="font-weight-bold"
+      style="margin-right:10px"
     >
-      <code>{{ auth.address }}</code>
-      <!-- {{ truncatedAddress }} -->
-      <!-- <v-menu activator="parent">
-        <v-list>
-          {{ auth.address }}
-        </v-list>
-      </v-menu> -->
-    </v-btn>
+      <div v-if="smallScreen" style="cursor:pointer">
+        <code>{{ truncatedAddress }}</code>
+        <v-menu activator="parent" offset-y :close-on-content-click="false">
+          <v-list>
+            <v-list-item>
+              <code>{{ auth.address }}</code>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+      <div v-else>
+        <code>{{ auth.address }}</code>
+      </div>
+    </div>
     
     <v-btn
       v-else
