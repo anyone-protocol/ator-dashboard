@@ -36,7 +36,7 @@
       </v-row>
       <v-row v-if="stats && stats.timestamp">
         <v-col cols="12">
-          <span class="text-caption">Last Updated: {{ stats.timestamp }}</span>
+          <span class="text-caption">Last Updated: {{ stats.timestamp.toUTCString() }}</span>
         </v-col>
       </v-row>
     </v-container>
