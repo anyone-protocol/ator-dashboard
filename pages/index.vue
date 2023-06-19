@@ -5,7 +5,12 @@
         <v-col
           v-for="{ key, label, value, icon } in topCards"
           :key="key"
-          cols="6"
+          cols="12"
+          sm="6"
+          md="6"
+          lg="6"
+          xl="6"
+          xxl="3"
         >
           <v-card class="v-card-ator">
             <v-container>
