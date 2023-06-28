@@ -1,10 +1,12 @@
 export class TxCache {
     private dbName: string
     private objectStoreName: string
+    private keyPrefix: string
 
     constructor() {
         this.dbName = 'arweaveDataDB'
         this.objectStoreName = 'transactions'
+        this.keyPrefix = 'ar://'
     }
 
     private async openDB(): Promise<IDBDatabase> {
@@ -32,7 +34,7 @@ export class TxCache {
             return new Promise<void>((resolve, reject) => {
                 const transaction = db.transaction(this.objectStoreName, 'readwrite')
                 const objectStore = transaction.objectStore(this.objectStoreName)
-                const request = objectStore.put(data, txId)
+                const request = objectStore.put(data, this.keyPrefix + txId)
 
                 request.onerror = () => {
                     reject(new Error('Failed to save transaction data'))
@@ -53,7 +55,7 @@ export class TxCache {
             return new Promise<any>((resolve, reject) => {
                 const transaction = db.transaction(this.objectStoreName, 'readonly')
                 const objectStore = transaction.objectStore(this.objectStoreName)
-                const request = objectStore.get(txId)
+                const request = objectStore.get(this.keyPrefix + txId)
 
                 request.onerror = () => {
                     reject(new Error('Failed to get transaction data from IndexedDB'))
@@ -67,27 +69,6 @@ export class TxCache {
             return null
         }
     }
-
-    public async hasTransactionData(txId: string): Promise<boolean> {
-        try {
-            const db = await this.openDB()
-            return new Promise<boolean>((resolve, reject) => {
-                const transaction = db.transaction(this.objectStoreName, 'readonly')
-                const objectStore = transaction.objectStore(this.objectStoreName)
-                const request = objectStore.get(txId)
-
-                request.onerror = () => {
-                    reject(new Error('Failed to check transaction data existence in IndexedDB'))
-                }
-                request.onsuccess = () => {
-                    resolve(!!request.result)
-                }
-            })
-        } catch (error) {
-            console.error('Failed to check transaction data existence:', error)
-            return false
-        }
-    }
 }
 
 export const useTxCache = () => {
@@ -95,7 +76,6 @@ export const useTxCache = () => {
 
     return {
         saveTransactionData: txCache.saveTransactionData,
-        getTransactionData: txCache.getTransactionData,
-        hasTransactionData: txCache.hasTransactionData
+        getTransactionData: txCache.getTransactionData
     }
 }
