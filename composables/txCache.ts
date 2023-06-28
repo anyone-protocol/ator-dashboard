@@ -73,7 +73,6 @@ export class TxCache {
 
 export const useTxCache = () => {
     const txCache = new TxCache()
-
     return {
         saveTransactionData: txCache.saveTransactionData,
         getTransactionData: txCache.getTransactionData
