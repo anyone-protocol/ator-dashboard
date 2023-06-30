@@ -9,7 +9,7 @@ export class TxCache {
         this.keyPrefix = 'ar://'
     }
 
-    private async openDB(): Promise<IDBDatabase> {
+    private openDB = async (): Promise<IDBDatabase> => {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbName)
 
@@ -28,28 +28,7 @@ export class TxCache {
         })
     }
 
-    public async saveTransactionData(txId: string, data: any): Promise<void | null> {
-        try {
-            const db = await this.openDB()
-            return new Promise<void>((resolve, reject) => {
-                const transaction = db.transaction(this.objectStoreName, 'readwrite')
-                const objectStore = transaction.objectStore(this.objectStoreName)
-                const request = objectStore.put(data, this.keyPrefix + txId)
-
-                request.onerror = () => {
-                    reject(new Error('Failed to save transaction data'))
-                }
-                request.onsuccess = () => {
-                    resolve()
-                }
-            })
-        } catch (error) {
-            console.error('Failed to save transaction data:', error)
-            return null
-        }
-    }
-
-    public async getTransactionData(txId: string): Promise<any | null> {
+    public getTransactionData = async (txId: string): Promise<any | null> => {
         try {
             const db = await this.openDB()
             return new Promise<any>((resolve, reject) => {
@@ -66,6 +45,27 @@ export class TxCache {
             })
         } catch (error) {
             console.error('Failed to get transaction data:', error)
+            return null
+        }
+    }
+
+    public saveTransactionData = async (txId: string, data: any): Promise<void | null> => {
+        try {
+            const db = await this.openDB()
+            return new Promise<void>((resolve, reject) => {
+                const transaction = db.transaction(this.objectStoreName, 'readwrite')
+                const objectStore = transaction.objectStore(this.objectStoreName)
+                const request = objectStore.put(data, this.keyPrefix + txId)
+
+                request.onerror = () => {
+                    reject(new Error('Failed to save transaction data'))
+                }
+                request.onsuccess = () => {
+                    resolve()
+                }
+            })
+        } catch (error) {
+            console.error('Failed to save transaction data:', error)
             return null
         }
     }
