@@ -1,6 +1,7 @@
 import Arweave from 'arweave'
 import ArDB from 'ardb'
 import ArdbTransaction from 'ardb/lib/models/transaction'
+import { useTxCache } from './txCache'
 
 const arweave = new Arweave({
   protocol: 'https',
@@ -8,6 +9,8 @@ const arweave = new Arweave({
   port: '443'
 })
 const ardb = new ArDB(arweave)
+
+const { getTransactionData, saveTransactionData } = useTxCache()
 
 export interface ValidationStats {
   consensus_weight: number
@@ -77,8 +80,18 @@ export class RelayMetrics {
       .findOne() as ArdbTransaction | null
   
     if (tx) {
-      this.validationStats =
-        await $fetch<ValidationStats>(`${this.gateway}/${tx.id}`)
+      try {
+        let validationStats = await getTransactionData(tx.id)
+
+        if (!validationStats) {
+          validationStats = await $fetch<ValidationStats>(`${this.gateway}/${tx.id}`)
+          await saveTransactionData(tx.id, validationStats)
+        }
+  
+        this.validationStats = validationStats
+      } catch (error) {
+        console.error('Could not fetch validation/stats tx', error)
+      }
 
       const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
       if (!Number.isNaN(timestamp)) {
@@ -101,8 +114,18 @@ export class RelayMetrics {
       .findOne() as ArdbTransaction | null
 
     if (tx) {
-      this.relayMetrics = 
-        await $fetch<VerificationResultDto[]>(`${this.gateway}/${tx.id}`)
+      try {
+        let relayMetrics = await getTransactionData(tx.id)
+
+        if (!relayMetrics) {
+          relayMetrics = await $fetch<VerificationResultDto[]>(`${this.gateway}/${tx.id}`)
+          await saveTransactionData(tx.id, relayMetrics)
+        }
+  
+        this.relayMetrics = relayMetrics
+      } catch (error) {
+        console.error('Could not fetch relay/metrics tx', error)
+      }
 
       const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
       if (!Number.isNaN(timestamp)) {

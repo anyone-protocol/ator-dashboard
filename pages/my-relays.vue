@@ -49,7 +49,7 @@
               </td>
             </tr>
             <tr v-if="noRelays">
-              No pending claimable or verified relays!
+              <td>No pending claimable or verified relays!</td>
             </tr>
           </tbody>
           <tfoot>
