@@ -41,11 +41,20 @@
           </span>
         </v-col>
       </v-row>
+      <v-row>
+        <svg :width="width" :height="height">
+          <!-- <path fill="none" stroke="rgb(3,190,197)" stroke-width="1.5" :d="validationStatsOverTime.observedBandwidth.line()" />
+          <g>
+
+          </g> -->
+        </svg>
+      </v-row>
     </v-container>
   </div>
 </template>
 
 <script setup lang="ts">
+import * as d3 from 'd3'
 import { useRelayRegistry } from '~~/composables'
 
 useHead({ title: 'Dashboard' })
@@ -66,11 +75,42 @@ const { data: stats } = useLazyAsyncData('ator-stats', async () => {
   return { relays, users, verified, validation }
 })
 
+const width = 400
+const height = 100
+
+// const validationStatsOverTime = computed(() => {
+//   const validationStats = stats.value && stats.value.validation
+//     ? stats.value.validation.stats
+//     : []
+
+//   const observedBandwidthData = validationStats.map(vs => { return { timestamp: vs.timestamp, observedBandwidth: vs.stats.verified_and_running.observed_bandwidth } })
+//   const observedBandwidthX = d3.scaleTime()
+//     .domain([
+//       observedBandwidthData[0].timestamp,
+//       observedBandwidthData[observedBandwidthData.length - 1].timestamp
+//     ])
+//     .rangeRound([0, width])
+//   const observedBandwidthY = d3.scaleLinear()
+//     .domain([
+//       observedBandwidthData[0].observedBandwidth,
+//       observedBandwidthData[observedBandwidthData.length - 1].observedBandwidth
+//     ])
+//     .rangeRound([height, 0])
+//   const observedBandwidthLine = d3.line((d, i) => observedBandwidthX(i), observedBandwidthY)
+  
+//   const observedBandwidth = {
+//     x: observedBandwidthX,
+//     y: observedBandwidthY,
+//     line: observedBandwidthLine(observedBandwidthData)
+//   }
+
+//   return { observedBandwidth }
+// })
+
 const topCards = computed(() => {
   const { latest } = stats.value && stats.value.validation.latest
     ? stats.value.validation
     : { latest: null }
-
   const totalUsers = stats.value?.users?.length || ''
   const verifiedRelays = stats.value?.verified?.length || ''
   const activeRelays =

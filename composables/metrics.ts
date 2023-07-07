@@ -63,8 +63,6 @@ class MetricsEntityCache<MET extends MetricsEntityType> {
     timestamp: Date
   }[] = []
 
-  constructor() {}
-
   push(stats: ResolveMetricsEntityType<MET>, timestamp: Date) {
     this.stats.push({ stats, timestamp })
     this.stats.sort((a, b) => {
@@ -101,6 +99,19 @@ export class RelayMetrics {
     await this.refreshMetricsEntity('relay/metrics')
   }
 
+  private async fetchTxData(txid: string): Promise<any> {
+    const cachedData = await getTransactionData(txid)
+
+    if (cachedData) {
+      return cachedData
+    }
+
+    const fetchedData = await $fetch(`${this.gateway}/${txid}`)
+    await saveTransactionData(txid, fetchedData)
+
+    return fetchedData
+  }
+
   private async refreshMetricsEntity(
     metricsEntityType: MetricsEntityType,
     limit = 5
@@ -123,7 +134,7 @@ export class RelayMetrics {
       
       for (let i = 0; i < txs.length; i++) {
         const tx = txs[i]
-        const stats = await $fetch(`${this.gateway}/${tx.id}`)
+        const stats = await this.fetchTxData(tx.id)
         const timestamp = parseInt(
           tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || ''
         )
@@ -152,7 +163,10 @@ export class RelayMetrics {
 export const useRelayMetrics = async () => {
   const { arweave } = useAppConfig()
   const runtimeConfig = useRuntimeConfig()
-  const metrics = new RelayMetrics(arweave.gateway, runtimeConfig.public.metricsDeployer)
+  const metrics = new RelayMetrics(
+    arweave.gateway,
+    runtimeConfig.public.metricsDeployer
+  )
 
   await metrics.refresh()
 
