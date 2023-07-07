@@ -7,5 +7,4 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node . .
 
-RUN yarn install
-
+RUN npm install

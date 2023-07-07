@@ -1,6 +1,7 @@
 import Arweave from 'arweave'
 import ArDB from 'ardb'
 import ArdbTransaction from 'ardb/lib/models/transaction'
+import { useTxCache } from './txCache'
 
 const arweave = new Arweave({
   protocol: 'https',
@@ -8,6 +9,8 @@ const arweave = new Arweave({
   port: '443'
 })
 const ardb = new ArDB(arweave)
+
+const { getTransactionData, saveTransactionData } = useTxCache()
 
 export interface ValidationStats {
   consensus_weight: number

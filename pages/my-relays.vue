@@ -49,13 +49,15 @@
               </td>
             </tr>
             <tr v-if="noRelays">
-              No pending claimable or verified relays!
+              <td>No pending claimable or verified relays!</td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
               <td colspan="6">
-                <span class="text-caption">Last Updated: {{ myRelays.timestamp }}</span>
+                <span class="text-caption">
+                  Last Updated: {{ myRelays.timestamp?.toUTCString() }}
+                </span>
               </td>
             </tr>
           </tfoot>
