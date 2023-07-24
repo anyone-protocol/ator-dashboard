@@ -1,0 +1,31 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  // "extends": ["plugin:vue/recommended", "prettier"],
+  "extends": ["plugin:vue/recommended"],
+  // "plugins": ["vue", "prettier"],
+  "plugins": ["vue"],
+  "parserOptions": {
+    "parser": "@typescript-eslint/parser"
+  },
+  "rules": {
+    "vue/html-indent": ["error", 2],
+    "vue/html-self-closing": "off",
+    "vue/max-attributes-per-line": "off",
+    "vue/singleline-html-element-content-newline": "off",
+    "vue/html-closing-bracket-newline": "off",
+    // "prettier/prettier": [
+    //   "error",
+    //   {
+    //     "semi": false,
+    //     "singleQuote": true,
+    //     "trailingComma": "none"
+    //   }
+    // ],
+    "semi": ["error", "never"]
+  }
+}
