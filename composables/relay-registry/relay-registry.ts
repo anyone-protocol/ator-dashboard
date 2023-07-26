@@ -4,11 +4,9 @@ import {
   WriteInteractionResponse
 } from 'warp-contracts'
 
+import { Claimable, EvmAddress, Fingerprint } from '~/utils/contracts'
 import {
   Claim,
-  Claimable,
-  EvmAddress,
-  Fingerprint,
   RelayRegistryState,
   Renounce,
   Verified
@@ -54,23 +52,17 @@ export class RelayRegistry {
     fingerprint: string
   ): Promise<WriteInteractionResponse | null> {
     return this.contract
-    .connect({ signer: this.sign, type: 'ethereum' })
-    .writeInteraction<Renounce>({ function: 'renounce', fingerprint })
+      .connect({ signer: this.sign, type: 'ethereum' })
+      .writeInteraction<Renounce>({ function: 'renounce', fingerprint })
   }
 }
 
 export const useRelayRegistry = async () => {
   const config = useRuntimeConfig()
   const warp = await useWarp()
-  const contract = warp.contract<RelayRegistryState>(config.public.relayRegistryAddress)
+  const contract = warp.contract<RelayRegistryState>(
+    config.public.relayRegistryAddress
+  )
 
-  let sign: SigningFunction
-  if (process.server) {
-    sign = async (tx) => {}
-  } else {
-    const { evmSignature } = await import('warp-contracts-plugin-signature')
-    sign = evmSignature
-  }
-
-  return new RelayRegistry(contract, sign)
+  return new RelayRegistry(contract, await createWarpSigningFunction())
 }

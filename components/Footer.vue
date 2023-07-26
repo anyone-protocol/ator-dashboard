@@ -45,6 +45,25 @@
             </v-list>
           </v-menu>
         </v-btn>
+
+        <v-btn color="primary" variant="plain" size="small">
+          Distribution
+          <v-menu activator="parent" offset-y :close-on-content-click="false">
+            <v-list>
+              <v-list-item>
+                <code>          
+                  <a
+                    class="basic-text"
+                    target="_blank"
+                    :href="distributionSonarUrl"
+                  >
+                    {{ runtimeCfg.public.distributionContract }}
+                  </a>
+                </code>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </v-btn>
       </v-col>
     </v-row>
   </v-footer>
@@ -56,7 +75,10 @@ import { useTheme } from 'vuetify'
 const runtimeCfg = useRuntimeConfig()
 
 const sonarUrlBase = 'https://sonar.warp.cc/#/app/contract'
-const relayRegistrySonarUrl = `${sonarUrlBase}/${runtimeCfg.public.relayRegistryAddress}`
+const relayRegistrySonarUrl =
+  `${sonarUrlBase}/${runtimeCfg.public.relayRegistryAddress}`
+const distributionSonarUrl =
+  `${sonarUrlBase}/${runtimeCfg.public.distributionContract}`
 
 const appTheme = useTheme()
 

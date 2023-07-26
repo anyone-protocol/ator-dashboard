@@ -135,7 +135,7 @@ const {
 
       return { claimable, verified, timestamp: metrics.relayMetricsTimestamp }
     } catch (error) {
-      console.log('error reading relay registry contract', error)
+      console.error('Error reading relay registry contract', error)
     }
   }
 
