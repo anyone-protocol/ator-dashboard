@@ -1,12 +1,16 @@
 import { Contract, SigningFunction } from 'warp-contracts'
+import BigNumber from 'bignumber.js'
 
-import { DistributionState } from './contract'
 import { Claimable } from '~~/utils/contracts'
+import { DistributionState } from './contract'
 
 export type PreviousDistribution = {
   timestamp: string,
   date: Date,
-  amount: string
+  timeElapsed: string,
+  tokensDistributedPerSecond: string,
+  totalScore: string,
+  totalDistributed: string
 }
 
 export class Distribution {
@@ -15,10 +19,21 @@ export class Distribution {
     private sign: SigningFunction
   ) {}
 
-  async getDistributionRate() {
+  async getDistributionRatePer(period: 'second' | 'hour' | 'day' = 'day') {
     const { cachedValue: { state } } = await this.contract.readState()
 
-    return state.distributionAmount
+    const wholeTokensPerSecond = BigNumber(state.tokensDistributedPerSecond)
+      .dividedBy(10e18)
+
+    switch (period) {
+      case 'second':
+        return wholeTokensPerSecond
+      case 'hour':
+        return wholeTokensPerSecond.times(24 * 60)
+      case 'day':
+      default:
+        return wholeTokensPerSecond.times(24 * 60 * 60)
+    }
   }
 
   async getPreviousDistributions(): Promise<PreviousDistribution[]> {
@@ -26,14 +41,21 @@ export class Distribution {
 
     return Object
       .keys(state.previousDistributions)
+      .reverse()
       .map<PreviousDistribution>(timestamp => {
+        const totalDistributed = state
+          .previousDistributions[timestamp]
+          .totalDistributed
+
         return {
           timestamp,
           date: new Date(Number.parseInt(timestamp)),
-          amount: state.previousDistributions[timestamp].distributionAmount
+          ...state.previousDistributions[timestamp],
+          totalDistributed: BigNumber(totalDistributed)
+            .dividedBy(10e18)
+            .toString()
         }
       })
-      .reverse()
   }
 
   async claimable(address: string) {

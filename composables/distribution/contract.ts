@@ -11,7 +11,7 @@ export type Score = {
 }
 
 export type DistributionState = OwnableState & EvolvableState & {
-  distributionAmount: string,
+  tokensDistributedPerSecond: string,
   pendingDistributions: {
     [timestamp: string]: Score[]
   },
@@ -19,13 +19,18 @@ export type DistributionState = OwnableState & EvolvableState & {
     [address: string]: string
   }
   previousDistributions: {
-    [timestamp: string]: { distributionAmount: string }
+    [timestamp: string]: {
+      totalScore: string
+      totalDistributed: string
+      timeElapsed: string
+      tokensDistributedPerSecond: string
+    }
   }
 }
 
-export interface SetDistributionAmount extends ContractFunctionInput {
-  function: 'setDistributionAmount',
-  distributionAmount: string
+export interface SetTokenDistributionRate extends ContractFunctionInput {
+  function: 'setTokenDistributionRate',
+  tokensDistributedPerSecond: string
 }
 
 export interface AddScores extends ContractFunctionInput {

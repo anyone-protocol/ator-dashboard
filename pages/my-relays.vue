@@ -125,7 +125,9 @@ const {
       const verified = verifiedRelays
         .map(
           fp => {
-            const myMetrics = metrics.relayMetrics.find(({ relay }) => fp === relay.fingerprint)
+            const myMetrics = metrics
+              .relayMetrics
+              .find(({ relay }) => fp === relay.fingerprint)
 
             return myMetrics
               ? myMetrics.relay
