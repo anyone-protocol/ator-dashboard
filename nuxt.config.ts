@@ -33,9 +33,10 @@ export default defineNuxtConfig({
    */
   runtimeConfig: {
     public: {
-      relayRegistryAddress: 'R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w',
+      // TODO -> relayRegistryAddress: 'R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w',
+      relayRegistryAddress: 'LYtr_ztHqd4nFFSZyYN9_BWIinESJNBVzOJwo1u5dU0',
       metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',
-      distributionContract: 'DVldfQ8PFjxmak7FZgGyM31mC1ov0ozpH5h2Lk8OKzE',
+      distributionContract: 'WysKExOUoAhMuclQsmd46_D8AtxzkhYhTMdeGZ8JwLY',
       phase: 'dev'
     },
   },

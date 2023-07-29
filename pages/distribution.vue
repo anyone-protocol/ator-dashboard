@@ -5,7 +5,7 @@
         <div v-if="!pending && data">
           <h2>
             Current Distribution Rate:
-            <code>{{ data.distributionRate }} tokens per 24 hours</code>
+            <code>{{ data.distributionRate }} $ATOR / day</code>
           </h2>
           <v-table>
             <thead>
@@ -15,16 +15,22 @@
                 <th class="font-weight-black basic-text">Time Elapsed</th>
                 <th class="font-weight-black basic-text">Distribution Rate</th>
                 <th class="font-weight-black basic-text">Total Score</th>
-                <th class="font-weight-black basic-text">Total Distributed</th>
+                <th class="font-weight-black basic-text">Tokens Distributed</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="pd in data.previousDistributions" :key="pd.timestamp">
                 <td><code>{{ pd.date.toUTCString() }}</code></td>
                 <td><code>{{ pd.timeElapsed }}</code></td>
-                <td><code>{{ pd.tokensDistributedPerSecond }}</code></td>
-                <td><code>{{ pd.totalScore }}</code></td>
-                <td><code>{{ pd.totalDistributed }}</code></td>
+                <td class="text-right">
+                  <code>{{ pd.tokensDistributedPerDay }} $ATOR / day</code>
+                </td>
+                <td class="text-right">
+                  <code>{{ pd.totalScore }}</code>
+                </td>
+                <td class="text-right">
+                  <code>{{ pd.totalDistributed }} $ATOR</code>
+                </td>
               </tr>
 
               <tr v-if="data.previousDistributions.length < 1">
@@ -57,7 +63,9 @@ import { useDistribution } from '~/composables'
 useHead({ title: 'Distribution' })
 
 const {
-  pending, data, refresh
+  pending,
+  data,
+  refresh
 } = useLazyAsyncData('distribution', async () => {
   const distribution = await useDistribution()
   if (!distribution) { return null }

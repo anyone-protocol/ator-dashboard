@@ -32,7 +32,9 @@
             <tr v-for="relay in myRelays.verified" :key="relay.fingerprint">
               <td><code>{{ relay.fingerprint }}</code></td>
               <td>Verified</td>
-              <td class="text-end">{{ (relay as ValidatedRelay).consensus_weight }}</td>
+              <td class="text-end">
+                {{ BigNumber((relay as ValidatedRelay).consensus_weight).toFormat() }}
+              </td>
               <td>{{
                 (relay as ValidatedRelay).observed_bandwidth
                   ? ((relay as ValidatedRelay).observed_bandwidth / Math.pow(1024, 2)).toFixed(3) + ' MiB/s'
@@ -100,6 +102,8 @@
 </template>
 
 <script setup lang="ts">
+import BigNumber from 'bignumber.js'
+
 import { useRelayRegistry } from '~~/composables'
 import { ValidatedRelay } from '~~/composables/metrics'
 
@@ -119,8 +123,11 @@ const {
 
   if (registry && signer) {
     try {
-      const claimable = await registry.claimable(signer.address)
-      const verifiedRelays = await registry.verified(signer.address)
+      // TODO -> use signer.address
+      // const address = signer.address
+      const address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+      const claimable = await registry.claimable(address)
+      const verifiedRelays = await registry.verified(address)
 
       const verified = verifiedRelays
         .map(

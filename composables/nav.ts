@@ -10,7 +10,7 @@ export const navItems = ref([
   },
   {
     label: 'Distribution',
-    icon: 'mdi-bank',
+    icon: 'mdi-network-pos',
     to: '/distribution'
   },
   {
@@ -18,6 +18,11 @@ export const navItems = ref([
     icon: 'mdi-lifebuoy',
     to: '/my-relays'
   },
+  {
+    label: 'My Tokens',
+    icon: 'mdi-bank',
+    to: '/my-tokens'
+  }
 ])
 
 export const currentPageTitle = computed(() => {

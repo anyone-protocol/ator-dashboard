@@ -1,5 +1,6 @@
 import { Contract, SigningFunction } from 'warp-contracts'
 import BigNumber from 'bignumber.js'
+import moment from 'moment'
 
 import { Claimable } from '~~/utils/contracts'
 import { DistributionState } from './contract'
@@ -8,7 +9,7 @@ export type PreviousDistribution = {
   timestamp: string,
   date: Date,
   timeElapsed: string,
-  tokensDistributedPerSecond: string,
+  tokensDistributedPerDay: string,
   totalScore: string,
   totalDistributed: string
 }
@@ -43,31 +44,44 @@ export class Distribution {
       .keys(state.previousDistributions)
       .reverse()
       .map<PreviousDistribution>(timestamp => {
-        const totalDistributed = state
-          .previousDistributions[timestamp]
-          .totalDistributed
+        const {
+          totalScore,
+          totalDistributed,
+          timeElapsed,
+          tokensDistributedPerSecond
+        } = state.previousDistributions[timestamp]
 
         return {
           timestamp,
           date: new Date(Number.parseInt(timestamp)),
-          ...state.previousDistributions[timestamp],
+          totalScore: BigNumber(totalScore).toFormat(),
+          timeElapsed: moment.duration(timeElapsed).humanize(),
           totalDistributed: BigNumber(totalDistributed)
             .dividedBy(10e18)
-            .toString()
+            .toFormat(2),
+          tokensDistributedPerDay: BigNumber(tokensDistributedPerSecond)
+            .dividedBy(10e18)
+            .times(24 * 60 * 60)
+            .toFormat(2)
         }
       })
   }
 
-  async claimable(address: string) {
+  async claimable(address: string, humanize = false) {
     const { cachedValue: { state } } = await this.contract.readState()
+
     console.log('DISTRIBUTION STATE', state)
 
-    const { result } = await this.contract.viewState<Claimable, any>({
+    const {
+      result: claimable
+    } = await this.contract.viewState<Claimable, string>({
       function: 'claimable',
       address
     })
 
-    return result
+    return humanize
+      ? BigNumber(claimable).dividedBy(10e18).toFormat(4)
+      : claimable
   }
 }
 
