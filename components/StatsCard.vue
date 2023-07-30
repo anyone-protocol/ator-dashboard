@@ -1,18 +1,15 @@
 <template>
-  <v-card class="v-card-ator" @click="onClick">
+  <v-card class="v-card-ator">
     <v-container>
       <v-row align="center">
         <v-col cols="7">
-          <div class="text-subitle-2 basic-text">
+          <div :class="labelClass">
             {{ label }}
           </div>
-          <div v-if="!value" class="mt-3">
-            <ConnectButton v-if="requiresAuth && !auth" />
-            <LoadingBreeze v-else :dots="11" />
-          </div>
-          <div v-else :class="'text-h5 font-weight-black basic-text'">
+          <div v-if="value" :class="valueClass">
             <code>{{ value }}</code>
           </div>
+          <LoadingBreeze v-else :dots="11" />
         </v-col>
         <v-col cols="5" class="text-right">
           <v-icon :icon="icon" class="icon-ator"></v-icon>
@@ -23,20 +20,16 @@
 </template>
 
 <script setup lang="ts">
-const { click, requiresAuth, value } = defineProps<{
+export interface StatsCardProps {
   label: string
   icon: string
   value?: string | number
-  requiresAuth?: boolean
+  labelClass?: string
   valueClass?: string
-  click?: Function
-}>()
-
-const auth = useAuth()
-
-const onClick = () => {
-  if (click) {
-    click()
-  }
 }
+
+withDefaults(defineProps<StatsCardProps>(), {
+  labelClass: 'text-h6 text-lg-h5 basic-text font-weight-bold',
+  valueClass: 'text-h5 font-weight-black basic-text'
+})
 </script>

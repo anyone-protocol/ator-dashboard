@@ -2,31 +2,14 @@
   <div class="index-page">
     <v-container>
       <v-row>
-        <v-col
-          v-for="{ key, label, value, icon, click } in myTokensCards"
-          :key="key"
-          cols="12"
-          sm="4"
-          md="4"
-          lg="4"
-          xl="4"
-          xxl="4"
-        >
-          <StatsCard
-            :label="label"
-            :value="value"
-            :icon="icon"
-            requires-auth
-            :click="click"
-          />
-        </v-col>
+        <MyTokenStats />
       </v-row>
 
-      <v-row v-if="myTokensData && myTokensData.timestamp">
+      <br /><br />
+
+      <v-row>
         <v-col cols="12">
-          <span class="text-caption">
-            Last Updated: {{ myTokensData.timestamp }}
-          </span>
+          <h1>Network Stats</h1>
         </v-col>
       </v-row>
 
@@ -58,77 +41,9 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useDistribution, useRelayRegistry } from '~/composables'
+import { useRelayRegistry } from '~/composables'
 
 useHead({ title: 'Dashboard' })
-
-type StatsCard = {
-  label: string
-  icon: string
-  value?: string | number
-}
-
-const {
-  pending: myTokensPending,
-  data: myTokensData,
-  refresh: myTokensRefresh
-} = useLazyAsyncData('my-tokens', async () => {
-  const provider = useProvider()
-  const auth = useAuth()
-  console.log('index.vue auth', auth.value)
-  if (!auth.value) { return null }
-
-  const distribution = await useDistribution()
-  
-  // TODO -> use signer.address
-  let address = auth.value.address
-  address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
-  const humanizedClaimableTokens = await distribution.claimable(address, true)
-  const claimableAtomicTokens = await distribution.claimable(address)
-  const evmClaimedAtomicTokens = '0' // TODO -> from Facilit-ator :)
-
-  return {
-    totalLifetimeRewards: `${humanizedClaimableTokens} $ATOR`,
-    currentlyClaimableTokens: BigNumber(claimableAtomicTokens)
-      .minus(evmClaimedAtomicTokens)
-      .dividedBy(10e18)
-      .toFormat(4) + ' $ATOR',
-    previouslyClaimedTokens: BigNumber(evmClaimedAtomicTokens)
-      .dividedBy(10e18)
-      .toFormat(4) + ' $ATOR',
-    timestamp: new Date().toUTCString()
-  }
-})
-const auth = useAuth()
-watch(auth, () => myTokensRefresh())
-type TokenCards = (StatsCard & { key: string, click?: Function })[]
-const myTokensCards = computed((): TokenCards => {
-  const auth = useAuth()
-
-  return [
-    {
-      key: 'lifetime-rewards',
-      label: 'Lifetime Rewards',
-      icon: 'mdi-bank',
-      value: auth.value && myTokensData.value?.totalLifetimeRewards,
-      click: () => navigateTo('distribution')
-    },
-    {
-      key: 'claimable-rewards',
-      label: 'Claimable Rewards',
-      icon: 'mdi-bank',
-      value: auth.value && myTokensData.value?.currentlyClaimableTokens,
-      click: () => navigateTo('distribution')
-    },
-    {
-      key: 'previously-claimed',
-      label: 'Previously Claimed',
-      icon: 'mdi-bank',
-      value: auth.value && myTokensData.value?.previouslyClaimedTokens,
-      click: () => navigateTo('distribution')
-    },
-  ]
-})
 
 const {
   pending,

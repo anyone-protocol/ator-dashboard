@@ -1,7 +1,7 @@
 <template>
   <v-container class="my-relays-page h-100">
     <v-row>
-      <v-col cols="6">
+      <v-col cols="12">
         <StatsCard
           label="Current Distribution Rate"
           icon="mdi-bank"
@@ -19,9 +19,15 @@
               <tr>
                 <th class="font-weight-black basic-text">Timestamp</th>
                 <th class="font-weight-black basic-text">Time Elapsed</th>
-                <th class="font-weight-black basic-text">Distribution Rate</th>
-                <th class="font-weight-black basic-text">Total Score</th>
-                <th class="font-weight-black basic-text">Tokens Distributed</th>
+                <th class="font-weight-black basic-text text-right">
+                  Distribution Rate
+                </th>
+                <th class="font-weight-black basic-text text-right">
+                  Total Score
+                </th>
+                <th class="font-weight-black basic-text text-right">
+                  Tokens Distributed
+                </th>
               </tr>
             </thead>
             <tbody>

@@ -7,9 +7,13 @@
             <tr>
               <th class="font-weight-black basic-text">Relay Fingerprint</th>
               <th class="font-weight-black basic-text">Status</th>
-              <th class="font-weight-black basic-text">Consensus Weight</th>
-              <th class="font-weight-black basic-text">Observed Bandwidth</th>
-              <th class="font-weight-black basic-text">Active</th>
+              <th class="font-weight-black basic-text text-right">
+                Consensus Weight
+              </th>
+              <th class="font-weight-black basic-text text-right">
+                Observed Bandwidth
+              </th>
+              <th class="font-weight-black basic-text text-right">Active</th>
               <th></th>
             </tr>
           </thead>
@@ -29,29 +33,22 @@
                 >Claim</v-btn>
               </td>
             </tr>
+
             <tr v-for="relay in myRelays.verified" :key="relay.fingerprint">
               <td><code>{{ relay.fingerprint }}</code></td>
               <td>Verified</td>
               <td class="text-end">
-                {{ BigNumber((relay as ValidatedRelay).consensus_weight).toFormat() }}
+                {{ relay.consensus_weight ? relay.consensus_weight : '--' }}
               </td>
-              <td>{{
-                (relay as ValidatedRelay).observed_bandwidth
-                  ? ((relay as ValidatedRelay).observed_bandwidth / Math.pow(1024, 2)).toFixed(3) + ' MiB/s'
-                  : ''
-              }}</td>
-              <td>
-                <v-icon
-                  :color="(relay as ValidatedRelay).running ? 'green' : 'red'"
-                >
-                  {{
-                    (relay as ValidatedRelay).running
-                      ? 'mdi-lan-check'
-                      : 'mdi-lan-disconnect'
-                  }}
+              <td class="text-end">
+                {{ relay.observed_bandwidth ? relay.observed_bandwidth : '--' }}
+              </td>
+              <td class="text-end">
+                <v-icon :color="relay.running ? 'green' : 'red'">
+                  {{ relay.running ? 'mdi-lan-check' : 'mdi-lan-disconnect' }}
                 </v-icon>
               </td>
-              <td>
+              <td class="text-end">
                 <v-btn
                   @click="openRenounceDialog(relay.fingerprint)"
                   class="danger-background"
@@ -131,6 +128,11 @@ const {
   const signer = await useSigner()
   const metrics = await useRelayMetrics()
 
+  interface HumanizedValidatedRelay extends Omit<ValidatedRelay, 'consensus_weight' | 'observed_bandwidth'> {
+    consensus_weight: string
+    observed_bandwidth: string
+  }
+
   if (registry && signer) {
     try {
       // TODO -> use signer.address
@@ -140,14 +142,23 @@ const {
       const verifiedRelays = await registry.verified(address)
 
       const verified = verifiedRelays
-        .map(
+        .map<Partial<HumanizedValidatedRelay>>(
           fp => {
             const myMetrics = metrics
               .relayMetrics
               .find(({ relay }) => fp === relay.fingerprint)
+            const relay = myMetrics ? myMetrics.relay : null
 
-            return myMetrics
-              ? myMetrics.relay
+            return relay
+              ?
+              {
+                ...relay,
+                consensus_weight: BigNumber(relay.consensus_weight)
+                  .toFormat(),
+                observed_bandwidth: BigNumber(relay.observed_bandwidth)
+                  .dividedBy(Math.pow(1024, 2))
+                  .toFormat(3) + ' MiB/s'
+              }
               : { fingerprint: fp }
           }
         )

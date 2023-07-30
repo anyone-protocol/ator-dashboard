@@ -68,10 +68,6 @@ export class Distribution {
   }
 
   async claimable(address: string, humanize = false) {
-    const { cachedValue: { state } } = await this.contract.readState()
-
-    console.log('DISTRIBUTION STATE', state)
-
     const {
       result: claimable
     } = await this.contract.viewState<Claimable, string>({
