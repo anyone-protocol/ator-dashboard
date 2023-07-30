@@ -3,6 +3,29 @@
     <v-container>
       <v-row>
         <v-col
+          v-for="{ key, label, value, icon } in myTokensCards"
+          :key="key"
+          cols="12"
+          sm="4"
+          md="4"
+          lg="4"
+          xl="4"
+          xxl="4"
+        >
+          <StatsCard :label="label" :value="value" :icon="icon" requires-auth />
+        </v-col>
+      </v-row>
+
+      <v-row v-if="myTokensData && myTokensData.timestamp">
+        <v-col cols="12">
+          <span class="text-caption">
+            Last Updated: {{ myTokensData.timestamp }}
+          </span>
+        </v-col>
+      </v-row>
+
+      <v-row>
+        <v-col
           v-for="{ key, label, value, icon } in topCards"
           :key="key"
           cols="12"
@@ -12,31 +35,14 @@
           xl="6"
           xxl="3"
         >
-          <v-card class="v-card-ator">
-            <v-container>
-              <v-row align="center">
-                <v-col cols="7">
-                  <div class="text-subitle-2 basic-text">
-                    {{ label }}
-                  </div>
-                  <div v-if="!value" class="mt-3">
-                    <LoadingBreeze :dots="11" />
-                  </div>
-                  <div v-else class="text-h5 font-weight-black basic-text">
-                    {{ value }}
-                  </div>
-                </v-col>
-                <v-col cols="5" class="text-right">
-                  <v-icon :icon="icon" class="icon-ator"></v-icon>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card>
+          <StatsCard :label="label" :value="value" :icon="icon" />
         </v-col>
       </v-row>
       <v-row v-if="stats && stats.timestamp">
         <v-col cols="12">
-          <span class="text-caption">Last Updated: {{ stats.timestamp.toUTCString() }}</span>
+          <span class="text-caption">
+            Last Updated: {{ stats.timestamp.toUTCString() }}
+          </span>
         </v-col>
       </v-row>
     </v-container>
@@ -44,11 +50,81 @@
 </template>
 
 <script setup lang="ts">
-import { useRelayRegistry } from '~~/composables'
+import BigNumber from 'bignumber.js'
+
+import { useDistribution, useRelayRegistry } from '~/composables'
 
 useHead({ title: 'Dashboard' })
 
-const { data: stats } = useLazyAsyncData('ator-stats', async () => {
+type StatsCard = {
+  label: string
+  icon: string
+  value?: string | number
+}
+
+const {
+  pending: myTokensPending,
+  data: myTokensData,
+  refresh: myTokensRefresh
+} = useLazyAsyncData('my-tokens', async () => {
+  const provider = useProvider()
+  const auth = useAuth()
+  console.log('index.vue auth', auth.value)
+  if (!auth.value) { return null }
+
+  const distribution = await useDistribution()
+  
+  // TODO -> use signer.address
+  let address = auth.value.address
+  address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+  const humanizedClaimableTokens = await distribution.claimable(address, true)
+  const claimableAtomicTokens = await distribution.claimable(address)
+  const evmClaimedAtomicTokens = '0' // TODO -> from Facilit-ator :)
+
+  return {
+    totalLifetimeRewards: `${humanizedClaimableTokens} $ATOR`,
+    currentlyClaimableTokens: BigNumber(claimableAtomicTokens)
+      .minus(evmClaimedAtomicTokens)
+      .dividedBy(10e18)
+      .toFormat(4) + ' $ATOR',
+    previouslyClaimedTokens: BigNumber(evmClaimedAtomicTokens)
+      .dividedBy(10e18)
+      .toFormat(4) + ' $ATOR',
+    timestamp: new Date().toUTCString()
+  }
+})
+const auth = useAuth()
+watch(auth, () => myTokensRefresh())
+const myTokensCards = computed((): (StatsCard & { key: string })[] => {
+  const auth = useAuth()
+
+  return [
+    {
+      key: 'lifetime-rewards',
+      label: 'Lifetime Rewards',
+      icon: 'mdi-bank',
+      value: auth.value && myTokensData.value?.totalLifetimeRewards
+    },
+    {
+      key: 'claimable-rewards',
+      label: 'Claimable Rewards',
+      icon: 'mdi-bank',
+      value: auth.value && myTokensData.value?.currentlyClaimableTokens
+    },
+    {
+      key: 'previously-claimed',
+      label: 'Previously Claimed',
+      icon: 'mdi-bank',
+      value: auth.value && myTokensData.value?.previouslyClaimedTokens
+    },
+  ]
+})
+
+const {
+  pending,
+  data: stats,
+  refresh
+} = useLazyAsyncData('ator-stats', async () => {
   const registry = await useRelayRegistry()
   const relays = await registry.verified()
   const relayMetrics = await useRelayMetrics()
@@ -63,15 +139,14 @@ const { data: stats } = useLazyAsyncData('ator-stats', async () => {
 
   return { relays, users, verified, validationStats, timestamp }
 })
-
 const topCards = computed(() => {
   const atorRunningObservedBandwidth =
-  stats.value?.validationStats?.verified_and_running.observed_bandwidth
-  ? (
-      stats.value.validationStats.verified_and_running.observed_bandwidth
-      / Math.pow(1024, 2)
-    ).toFixed(3)
-  : ''
+    stats.value?.validationStats?.verified_and_running.observed_bandwidth
+    ? (
+        stats.value?.validationStats.verified_and_running.observed_bandwidth
+        / Math.pow(1024, 2)
+      ).toFixed(3)
+    : ''
 
   return [
     {
@@ -95,7 +170,9 @@ const topCards = computed(() => {
     {
       key: 'observed-bandwidth',
       label: 'Observed Bandwidth',
-      value: atorRunningObservedBandwidth ? atorRunningObservedBandwidth + ' MiB/s' : '',
+      value: atorRunningObservedBandwidth
+        ? BigNumber(atorRunningObservedBandwidth).toFormat(3) + ' MiB/s'
+        : '',
       icon: 'mdi-speedometer'
     }
   ]

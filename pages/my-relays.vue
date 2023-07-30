@@ -40,7 +40,17 @@
                   ? ((relay as ValidatedRelay).observed_bandwidth / Math.pow(1024, 2)).toFixed(3) + ' MiB/s'
                   : ''
               }}</td>
-              <td><v-icon>{{ (relay as ValidatedRelay).running ? 'mdi-check' : 'mdi-close' }}</v-icon></td>
+              <td>
+                <v-icon
+                  :color="(relay as ValidatedRelay).running ? 'green' : 'red'"
+                >
+                  {{
+                    (relay as ValidatedRelay).running
+                      ? 'mdi-lan-check'
+                      : 'mdi-lan-disconnect'
+                  }}
+                </v-icon>
+              </td>
               <td>
                 <v-btn
                   @click="openRenounceDialog(relay.fingerprint)"

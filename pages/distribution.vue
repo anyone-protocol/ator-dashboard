@@ -1,12 +1,18 @@
 <template>
   <v-container class="my-relays-page h-100">
+    <v-row>
+      <v-col cols="6">
+        <StatsCard
+          label="Current Distribution Rate"
+          icon="mdi-bank"
+          :value="data ? `${data.distributionRate} $ATOR / day` : undefined"
+        />
+      </v-col>
+    </v-row>
+
     <v-row class="h-100">
       <v-col cols="12" class="h-100">
         <div v-if="!pending && data">
-          <h2>
-            Current Distribution Rate:
-            <code>{{ data.distributionRate }} $ATOR / day</code>
-          </h2>
           <v-table>
             <thead>
               <!-- <tr><strong>Previous Distributions</strong></tr> -->
@@ -76,7 +82,7 @@ const {
     const latestTimestamp = previousDistributions[0].date
 
     return {
-      distributionRate,
+      distributionRate: distributionRate.toFormat(3),
       previousDistributions,
       timestamp: latestTimestamp
     }

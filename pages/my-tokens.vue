@@ -7,7 +7,7 @@
             <thead>
               <tr>
                 <th class="font-weight-black basic-text">
-                  Total Lifetime Rewards
+                  Lifetime Rewards
                 </th>
                 <th class="font-weight-black basic-text">
                   Claimable Tokens
@@ -25,7 +25,7 @@
                 <td><code>{{ data.previouslyClaimedTokens }} $ATOR</code></td>
               </tr>
             </tbody>
-          </v-table>          
+          </v-table>
         </div>
 
         <div v-else class="center-loading-splash">
