@@ -1,5 +1,5 @@
 <template>
-  <v-card class="v-card-ator">
+  <v-card class="v-card-ator" @click="onClick">
     <v-container>
       <v-row align="center">
         <v-col cols="7">
@@ -23,17 +23,20 @@
 </template>
 
 <script setup lang="ts">
-const { requiresAuth, value } = defineProps<{
+const { click, requiresAuth, value } = defineProps<{
   label: string
   icon: string
   value?: string | number
   requiresAuth?: boolean
   valueClass?: string
+  click?: Function
 }>()
 
-if (requiresAuth) {
-
-}
-
 const auth = useAuth()
+
+const onClick = () => {
+  if (click) {
+    click()
+  }
+}
 </script>

@@ -3,7 +3,7 @@
     <v-container>
       <v-row>
         <v-col
-          v-for="{ key, label, value, icon } in myTokensCards"
+          v-for="{ key, label, value, icon, click } in myTokensCards"
           :key="key"
           cols="12"
           sm="4"
@@ -12,7 +12,13 @@
           xl="4"
           xxl="4"
         >
-          <StatsCard :label="label" :value="value" :icon="icon" requires-auth />
+          <StatsCard
+            :label="label"
+            :value="value"
+            :icon="icon"
+            requires-auth
+            :click="click"
+          />
         </v-col>
       </v-row>
 
@@ -95,7 +101,8 @@ const {
 })
 const auth = useAuth()
 watch(auth, () => myTokensRefresh())
-const myTokensCards = computed((): (StatsCard & { key: string })[] => {
+type TokenCards = (StatsCard & { key: string, click?: Function })[]
+const myTokensCards = computed((): TokenCards => {
   const auth = useAuth()
 
   return [
@@ -103,19 +110,22 @@ const myTokensCards = computed((): (StatsCard & { key: string })[] => {
       key: 'lifetime-rewards',
       label: 'Lifetime Rewards',
       icon: 'mdi-bank',
-      value: auth.value && myTokensData.value?.totalLifetimeRewards
+      value: auth.value && myTokensData.value?.totalLifetimeRewards,
+      click: () => navigateTo('distribution')
     },
     {
       key: 'claimable-rewards',
       label: 'Claimable Rewards',
       icon: 'mdi-bank',
-      value: auth.value && myTokensData.value?.currentlyClaimableTokens
+      value: auth.value && myTokensData.value?.currentlyClaimableTokens,
+      click: () => navigateTo('distribution')
     },
     {
       key: 'previously-claimed',
       label: 'Previously Claimed',
       icon: 'mdi-bank',
-      value: auth.value && myTokensData.value?.previouslyClaimedTokens
+      value: auth.value && myTokensData.value?.previouslyClaimedTokens,
+      click: () => navigateTo('distribution')
     },
   ]
 })
