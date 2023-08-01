@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useDistribution } from '~/composables'
+import { useAtorToken, useDistribution, useFacilitator } from '~/composables'
 
 type StatsCard = {
   label: string
@@ -80,6 +80,10 @@ const {
 } = useLazyAsyncData('my-tokens', async () => {
   const auth = useAuth()
   if (!auth.value) { return null }
+  const facilitator = await useFacilitator()
+  if (!facilitator) { return null }
+  const atorToken = await useAtorToken()
+  if (!atorToken) { return null }
 
   const distribution = await useDistribution()
   
@@ -88,7 +92,13 @@ const {
   address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
   const humanizedClaimableTokens = await distribution.claimable(address, true)
   const claimableAtomicTokens = await distribution.claimable(address)
-  const evmClaimedAtomicTokens = '0' // TODO -> from Facilit-ator :)
+  const evmClaimedAtomicTokens = await facilitator
+    .getAlreadyClaimedTokens(address)
+  const atorTokenBalance = await atorToken.getBalance(address)
+  const gasAvailable = await facilitator.getGasAvailable(address)
+  console.log('evmClaimedAtomicTokens', evmClaimedAtomicTokens.toString())
+  console.log('atorTokenBalance', atorTokenBalance.toString())
+  console.log('gasAvailable', gasAvailable.toString())
 
   return {
     totalLifetimeRewards: `${humanizedClaimableTokens} $ATOR`,
@@ -96,7 +106,7 @@ const {
       .minus(evmClaimedAtomicTokens)
       .dividedBy(10e18)
       .toFormat(4) + ' $ATOR',
-    previouslyClaimedTokens: BigNumber(evmClaimedAtomicTokens)
+    previouslyClaimedTokens: evmClaimedAtomicTokens
       .dividedBy(10e18)
       .toFormat(4) + ' $ATOR',
     timestamp: new Date().toUTCString()
