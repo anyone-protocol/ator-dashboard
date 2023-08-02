@@ -5,14 +5,14 @@
         <StatsCard
           label="Current Distribution Rate"
           icon="mdi-bank"
-          :value="data ? `${data.distributionRate} $ATOR / day` : undefined"
+          :value="distributionRate ? `${distributionRate} $ATOR / day` : distributionRate"
         />
       </v-col>
     </v-row>
 
     <v-row class="h-100">
       <v-col cols="12" class="h-100">
-        <div v-if="!pending && data">
+        <div v-if="previousDistributions">
           <v-table>
             <thead>
               <!-- <tr><strong>Previous Distributions</strong></tr> -->
@@ -31,7 +31,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="pd in data.previousDistributions" :key="pd.timestamp">
+              <tr
+                v-if="previousDistributions"
+                v-for="pd in previousDistributions"
+                :key="pd.timestamp"
+              >
                 <td><code>{{ pd.date.toUTCString() }}</code></td>
                 <td><code>{{ pd.timeElapsed }}</code></td>
                 <td class="text-right">
@@ -45,7 +49,7 @@
                 </td>
               </tr>
 
-              <tr v-if="data.previousDistributions.length < 1">
+              <tr v-else="previousDistributions.length < 1">
                 <td>No distributions yet!</td>
               </tr>
             </tbody>
@@ -53,7 +57,7 @@
               <tr>
                 <td colspan="6">
                   <span class="text-caption">
-                    Last Updated: {{ data.timestamp.toUTCString() }}
+                    Last Updated: {{ latestTimestamp }}
                   </span>
                 </td>
               </tr>
@@ -70,30 +74,29 @@
 </template>
 
 <script setup lang="ts">
-import { useDistribution } from '~/composables'
+import BigNumber from 'bignumber.js'
+
+import { PreviousDistribution } from '~/composables'
 
 useHead({ title: 'Distribution' })
 
-const {
-  pending,
-  data,
-  refresh
-} = useLazyAsyncData('distribution', async () => {
-  const distribution = await useDistribution()
-  if (!distribution) { return null }
-
-  try {
-    const distributionRate = await distribution.getDistributionRatePer('day')
-    const previousDistributions = await distribution.getPreviousDistributions()
-    const latestTimestamp = previousDistributions[0].date
-
-    return {
-      distributionRate: distributionRate.toFormat(3),
-      previousDistributions,
-      timestamp: latestTimestamp
-    }
-  } catch (error) {
-    console.error('Error reading distribution contract', error)
+const previousDistributions = useState<PreviousDistribution[]>(
+  'previousDistributions'
+)
+const latestTimestamp = computed(() => {
+  return previousDistributions.value && previousDistributions.value[0]
+    ? previousDistributions.value[0].date.toUTCString()
+    : ''
+})
+const distributionRatePerDay = useState<string | null>(
+  'distributionRatePerDay',
+  () => null
+)
+const distributionRate = computed(() => {
+  if (distributionRatePerDay.value) {
+    return BigNumber(distributionRatePerDay.value).toFormat(3)
   }
+
+  return null
 })
 </script>

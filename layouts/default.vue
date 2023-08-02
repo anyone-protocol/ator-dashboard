@@ -8,7 +8,7 @@
       :permanent="!smallScreen"
     >
       <v-list v-click-outside="{ handler: closeNavIfSmall, include }">
-        <template v-for="{ label, icon, pathToLogo, to, href } in navItems" :key="label">
+        <template v-for="{ label, icon, to } in navItems" :key="label">
           <template v-if="to">
             <v-list-item
               class="nav-drawer-list-item"
@@ -16,19 +16,19 @@
               :active-class="navDrawerListItemActive"
             >
               <div class="list-item-row-container">
-                <VIconOrImg :icon="icon" :pathToImg="pathToLogo" />
+                <VIconOrImg :icon="icon" />
                 <div class="list-item-row-text">{{ label }}</div>
               </div>
             </v-list-item>
           </template>
-          <template v-else-if="href">
+          <!-- <template v-else-if="href">
             <v-list-item
               class="nav-drawer-list-item"
               :href="href"
               target="_blank"
             >
               <div class="list-item-row-container">
-                <VIconOrImg :icon="icon" :pathToImg="pathToLogo" />
+                <VIconOrImg :icon="icon" />
                 <div class="list-item-row-text">{{ label }}</div>
                 <v-icon
                   size="x-small"
@@ -36,7 +36,7 @@
                 >mdi-open-in-new</v-icon>
               </div>
             </v-list-item>
-          </template>
+          </template> -->
         </template>
       </v-list>
     </v-navigation-drawer>
@@ -59,6 +59,8 @@
 </style>
 
 <script setup lang="ts">
+import { useAtorToken, useDistribution, useFacilitator } from '~/composables'
+
 const navDrawerOpen = useNavDrawerOpen()
 
 /*
@@ -76,4 +78,14 @@ const include = () => [
   document.getElementById('burger'),
   document.getElementById('nav-drawer')
 ]
+
+// Hacks to get data fresh on load
+useDistribution()
+useAtorToken()
+const auth = useAuth()
+watch(auth, () => {
+  useDistribution()
+  useAtorToken()
+  useFacilitator()
+})
 </script>

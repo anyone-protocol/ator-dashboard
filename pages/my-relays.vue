@@ -2,7 +2,7 @@
   <v-container class="my-relays-page h-100">
     <v-row class="h-100">
       <v-col cols="12" class="h-100">
-        <v-table v-if="!pending && myRelays">
+        <v-table>
           <thead>
             <tr>
               <th class="font-weight-black basic-text">Relay Fingerprint</th>
@@ -18,7 +18,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="fingerprint in myRelays.claimable" :key="fingerprint">
+            <tr
+              v-if="!pending && myRelays"
+              v-for="fingerprint in myRelays.claimable"
+              :key="fingerprint"
+            >
               <td><code>{{ fingerprint }}</code></td>
               <td>Claimable</td>
               <td></td>
@@ -34,7 +38,11 @@
               </td>
             </tr>
 
-            <tr v-for="relay in myRelays.verified" :key="relay.fingerprint">
+            <tr
+              v-if="!pending && myRelays"
+              v-for="relay in myRelays.verified"
+              :key="relay.fingerprint"
+            >
               <td><code>{{ relay.fingerprint }}</code></td>
               <td>Verified</td>
               <td class="text-end">
@@ -57,12 +65,16 @@
                 >Renounce</v-btn>
               </td>
             </tr>
-            <tr v-if="noRelays">
+            <tr v-if="!pending && noRelays">
               <td>No pending claimable or verified relays!</td>
             </tr>
+
+            <div v-if="pending" class="center-loading-splash">
+              <LoadingBreeze :dots="7" size="large" />
+            </div>
           </tbody>
           <tfoot>
-            <tr>
+            <tr v-if="!pending && myRelays">
               <td colspan="6">
                 <span class="text-caption">
                   Last Updated: {{ myRelays.timestamp?.toUTCString() }}
@@ -71,9 +83,6 @@
             </tr>
           </tfoot>
         </v-table>
-        <div v-else class="center-loading-splash">
-          <LoadingBreeze :dots="7" size="large" />
-        </div>
       </v-col>
     </v-row>
 
@@ -125,19 +134,17 @@ const {
   refresh
 } = useLazyAsyncData('my-relays', async () => {
   const registry = await useRelayRegistry()
-  const signer = await useSigner()
   const metrics = await useRelayMetrics()
+  const auth = useAuth()
 
   interface HumanizedValidatedRelay extends Omit<ValidatedRelay, 'consensus_weight' | 'observed_bandwidth'> {
     consensus_weight: string
     observed_bandwidth: string
   }
 
-  if (registry && signer) {
+  if (registry && auth.value) {
     try {
-      // TODO -> use signer.address
-      // const address = signer.address
-      const address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+      const address = auth.value.address
       const claimable = await registry.claimable(address)
       const verifiedRelays = await registry.verified(address)
 

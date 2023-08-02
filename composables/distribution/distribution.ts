@@ -15,10 +15,38 @@ export type PreviousDistribution = {
 }
 
 export class Distribution {
+  private _refreshing: boolean = false
+
   constructor(
     private contract: Contract<DistributionState>,
     private sign: SigningFunction
   ) {}
+
+  async refresh(): Promise<void> {
+    console.log('distribution.refresh()')
+    try {
+      if (this._refreshing) { return }
+
+      this._refreshing = true
+      let claimableAtomicTokens = null
+      const auth = useAuth()
+      console.log('auth.value in refresh()', auth.value)
+      if (auth.value) {
+        console.log('Refreshing claimable tokens for', auth.value.address)
+        claimableAtomicTokens = await this.claimable(auth.value.address.toString())
+      }
+      const previousDistributions = await this.getPreviousDistributions()
+      const distributionRatePerDay = await this.getDistributionRatePer('day')
+      console.log('Distribution refreshed', {
+        claimableAtomicTokens,
+        previousDistributions,
+        distributionRatePerDay: distributionRatePerDay.toString()
+      })
+      this._refreshing = false
+    } catch (error) {
+      console.error('ERROR REFRESHING DISTRIBUTION')
+    }
+  }
 
   async getDistributionRatePer(period: 'second' | 'hour' | 'day' = 'day') {
     const { cachedValue: { state } } = await this.contract.readState()
@@ -32,15 +60,16 @@ export class Distribution {
       case 'hour':
         return wholeTokensPerSecond.times(24 * 60)
       case 'day':
-      default:
-        return wholeTokensPerSecond.times(24 * 60 * 60)
+        const rate = wholeTokensPerSecond.times(24 * 60 * 60)
+        useState<string>('distributionRatePerDay').value = rate.toString()
+        return rate
     }
   }
 
   async getPreviousDistributions(): Promise<PreviousDistribution[]> {
     const { cachedValue: { state } } = await this.contract.readState()
 
-    return Object
+    const previousDistributions = Object
       .keys(state.previousDistributions)
       .reverse()
       .map<PreviousDistribution>(timestamp => {
@@ -65,19 +94,38 @@ export class Distribution {
             .toFormat(2)
         }
       })
+
+    useState<PreviousDistribution[]>('previousDistributions').value =
+      previousDistributions
+
+    return previousDistributions
   }
 
   async claimable(address: string, humanize = false) {
-    const {
-      result: claimable
-    } = await this.contract.viewState<Claimable, string>({
-      function: 'claimable',
-      address
-    })
+    console.log('claimable()', address, typeof address)
+    try {
+      const {
+        result: claimable
+      } = await this.contract.viewState<Claimable, string>({
+        function: 'claimable',
+        address
+      })
 
-    return humanize
-      ? BigNumber(claimable).dividedBy(10e18).toFormat(4)
-      : claimable
+      const auth = useAuth()
+      if (auth.value && address === auth.value.address) {
+        useState<string>('claimableAtomicTokens').value = claimable
+      }
+
+      return humanize
+        ? BigNumber(claimable).dividedBy(10e18).toFormat(4)
+        : claimable
+    } catch (error) {
+      console.error(
+        'Error in Distribution when checking claimable tokens for',
+        address,
+        error
+      )
+    }
   }
 }
 
@@ -88,5 +136,12 @@ export const useDistribution = async () => {
     config.public.distributionContract
   )
 
-  return new Distribution(contract, await createWarpSigningFunction())
+  const distribution = new Distribution(
+    contract,
+    await createWarpSigningFunction()
+  )
+
+  await distribution.refresh()
+
+  return distribution
 }

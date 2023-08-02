@@ -30,11 +30,16 @@ const claimTokens = debounce(async () => {
   if (!facilitator) { loading.value = false; return null }
 
   try {
-    await facilitator.claim()
+    const success = await facilitator.claim()
+    
   } catch (error) {
     console.error('There was an unexpected error while claiming tokens', error)
+    loading.value = false
   }
-
-  loading.value = false
 })
+
+useNuxtApp().$eventBus.on('AllocationUpdated', () => {
+  if (loading.value) { loading.value = false }
+})
+
 </script>

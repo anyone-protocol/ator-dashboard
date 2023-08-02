@@ -1,4 +1,4 @@
-import { BrowserProvider } from 'ethers'
+import { BrowserProvider, ethers } from 'ethers'
 // import { BrowserProvider, getDefaultProvider } from 'ethers'
 
 const NETWORKS = {
@@ -27,12 +27,10 @@ export const useProvider = () => {
 
     // @ts-ignore
     window.ethereum.on('accountsChanged', (accounts: string[]) => {
-      const auth = useAuth()
-
       if (accounts.length > 0) {
-        auth.value = { address: accounts[0] }
+        setAuth(accounts[0])
       } else {
-        auth.value = undefined
+        setAuth(undefined)
       }
     })
 

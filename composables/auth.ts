@@ -1,4 +1,4 @@
-import { BrowserProvider } from 'ethers'
+import { BrowserProvider, ethers } from 'ethers'
 
 interface Auth {
   address: string
@@ -12,7 +12,7 @@ export const setupAuth = async () => {
     const accounts = await provider.listAccounts()
 
     if (accounts.length > 0) {
-      auth.value = { address: accounts[0].address }
+      setAuth(accounts[0].address)
     }
   }
 
@@ -20,3 +20,15 @@ export const setupAuth = async () => {
 }
 
 export const useAuth = () => useState<Auth | undefined>('auth', () => undefined)
+export const setAuth = (address?: string) => {
+  const auth = useAuth()
+
+  // TODO -> use actual authed address
+  // address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+
+  if (address) {
+    auth.value = { address: ethers.getAddress(address) }
+  } else {
+    auth.value = undefined
+  }
+}

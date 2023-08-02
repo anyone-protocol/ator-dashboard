@@ -8,6 +8,7 @@
               <v-col cols="12">
                 <v-container>
                   <v-row align="center" justify="space-around">
+                    <!-- act {{ alreadyClaimedTokens }} | cat {{ claimableAtomicTokens }} -->
                     <v-col
                       v-for="{ key, label, value, icon } in myTokensCards"
                       :key="key"
@@ -53,7 +54,7 @@
 
           <!-- <v-card-subtitle v-if="myTokensData">
             <code class="text-caption text-white">
-              Last Updated: {{ myTokensData.timestamp }}
+              Last Updated: {{ timestamp }}
             </code>
           </v-card-subtitle> -->
         </v-card>
@@ -65,89 +66,82 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useAtorToken, useDistribution, useFacilitator } from '~/composables'
+import { useFacilitator } from '~/composables'
 
-type StatsCard = {
+const timestamp = new Date().toUTCString()
+
+const auth = useAuth()
+
+const alreadyClaimedTokens = useState<string | null>(
+  'alreadyClaimedTokens',
+  () => null
+)
+const claimableAtomicTokens = useState<string | null>(
+  'claimableAtomicTokens',
+  () => null
+)
+
+const previouslyClaimedTokens = computed(() => {
+  if (!alreadyClaimedTokens.value) { return null }
+  
+  return BigNumber(alreadyClaimedTokens.value)
+    .dividedBy(10e18)
+    .toFormat(4) + ' $ATOR'
+})
+
+const currentlyClaimableTokens = computed(() => {
+  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value) {
+    return null
+  }
+
+  return BigNumber(claimableAtomicTokens.value)
+    .minus(alreadyClaimedTokens.value)
+    .dividedBy(10e18)
+    .toFormat(4) + ' $ATOR'
+})
+
+const totalLifetimeRewards = computed(() => {
+  if (!claimableAtomicTokens.value) {
+    return null
+  }
+
+  return BigNumber(claimableAtomicTokens.value)
+    .dividedBy(10e18)
+    .toFormat(4) + ' $ATOR'
+})
+
+type TokenCards = {
   label: string
   icon: string
-  value?: string | number
-}
-
-const {
-  pending: myTokensPending,
-  data: myTokensData,
-  refresh: myTokensRefresh
-} = useLazyAsyncData('my-tokens', async () => {
-  const auth = useAuth()
-  if (!auth.value) { return null }
-  const facilitator = await useFacilitator()
-  if (!facilitator) { return null }
-  const atorToken = await useAtorToken()
-  if (!atorToken) { return null }
-
-  const distribution = await useDistribution()
-  
-  // TODO -> use signer.address
-  let address = auth.value.address
-  address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
-  const humanizedClaimableTokens = await distribution.claimable(address, true)
-  const claimableAtomicTokens = await distribution.claimable(address)
-  const evmClaimedAtomicTokens = await facilitator
-    .getAlreadyClaimedTokens(address)
-  const atorTokenBalance = await atorToken.getBalance(address)
-  const gasAvailable = await facilitator.getGasAvailable(address)
-  console.log('evmClaimedAtomicTokens', evmClaimedAtomicTokens.toString())
-  console.log('atorTokenBalance', atorTokenBalance.toString())
-  console.log('gasAvailable', gasAvailable.toString())
-
-  return {
-    totalLifetimeRewards: `${humanizedClaimableTokens} $ATOR`,
-    currentlyClaimableTokens: BigNumber(claimableAtomicTokens)
-      .minus(evmClaimedAtomicTokens)
-      .dividedBy(10e18)
-      .toFormat(4) + ' $ATOR',
-    previouslyClaimedTokens: evmClaimedAtomicTokens
-      .dividedBy(10e18)
-      .toFormat(4) + ' $ATOR',
-    timestamp: new Date().toUTCString()
-  }
-})
-const auth = useAuth()
-watch(auth, () => myTokensRefresh())
-type TokenCards = (StatsCard & { key: string, click?: Function })[]
+  value?: string | number | null
+  key: string,
+  click?: Function
+}[]
 const myTokensCards = computed((): TokenCards => {
-  const auth = useAuth()
-
   return [
     {
       key: 'lifetime-rewards',
       label: 'My Lifetime Rewards',
       icon: 'mdi-bank',
-      value: auth.value && myTokensData.value
-        ? myTokensData.value.totalLifetimeRewards
-        : auth.value
-          ? undefined
-          : '--'
+      value: auth.value
+        ? totalLifetimeRewards.value
+        : '--'
     },
     {
       key: 'claimable-rewards',
       label: 'My Claimable Rewards',
       icon: 'mdi-bank',
-      value: auth.value && myTokensData.value
-        ? myTokensData.value.currentlyClaimableTokens
-        : auth.value
-          ? undefined
-          : '--'
+      value: auth.value
+        ? currentlyClaimableTokens.value
+        : '--'
     },
     {
       key: 'previously-claimed',
-      label: 'My Previously Claimed',
+      label: 'My Claimed Rewards',
       icon: 'mdi-bank',
-      value: auth.value && myTokensData.value
-        ? myTokensData.value.previouslyClaimedTokens
-        : auth.value
-          ? undefined
-          : '--'
+      value: auth.value
+        ? previouslyClaimedTokens.value
+        : '--'
     },
   ]
 })
