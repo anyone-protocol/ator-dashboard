@@ -10,6 +10,18 @@
           :loading="loading"
           @click="claimTokens"
         >Claim Tokens</v-btn>
+
+        <v-btn
+          class="primary-background"
+          :loading="loading"
+          @click="requestUpdate"
+        >Request Update</v-btn>
+
+        <v-btn
+          class="primary-background"
+          :loading="loading"
+          @click="fundOracle"
+        >Fund Oracle</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -22,20 +34,48 @@ definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Tokens' })
 
 const loading = ref<boolean>(false)
+const facilitator = useFacilitator()
+
+const fundOracle = debounce(async () => {
+  loading.value = true
+
+  try {
+    const success = await facilitator.fundOracle()
+    console.log('facilitator fundOracle success', success)
+    // TODO -> handle success / failure
+  } catch (error) {
+    console.error('There was an error while funding oracle', error)
+  }
+
+  loading.value = false
+})
+
+const requestUpdate = debounce(async () => {
+  loading.value = true
+
+  try {
+    const success = await facilitator.requestUpdate()
+    console.log('facilitator requestUpdate success', success)
+    // TODO -> handle success / failure
+  } catch (error) {
+    console.error('There was an error while requesting update', error)
+  }
+
+  loading.value = false
+})
 
 const claimTokens = debounce(async () => {
   loading.value = true
 
-  const facilitator = await useFacilitator()
-  if (!facilitator) { loading.value = false; return null }
-
   try {
     const success = await facilitator.claim()
-    
+    console.log('facilitator claimTokens success', success)
+    // TODO -> handle success / failure   
   } catch (error) {
-    console.error('There was an unexpected error while claiming tokens', error)
-    loading.value = false
+    console.error('There was an error while claiming tokens', error)
   }
+
+  loading.value = false
 })
 
 useNuxtApp().$eventBus.on('AllocationUpdated', () => {

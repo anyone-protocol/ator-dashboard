@@ -4,7 +4,7 @@ interface Auth {
   address: string
 }
 
-export const setupAuth = async () => {
+export const initializeAuth = async () => {
   const provider = useProvider()
 
   if (provider && provider instanceof BrowserProvider) {

@@ -60,10 +60,13 @@
 
 
 <script setup lang="ts">
+import {
+  useAtorToken,
+  useDistribution,
+  useFacilitator,
+  useRelayRegistry
+} from '~/composables'
 import { initializeDashboard } from '~/lib'
-
-// NB: hack to setup auth and data providers
-initializeDashboard()
 
 const navDrawerOpen = useNavDrawerOpen()
 
@@ -82,4 +85,26 @@ const include = () => [
   document.getElementById('burger'),
   document.getElementById('nav-drawer')
 ]
+
+// NB: hack to setup auth and data providers
+await initializeDashboard()
+
+const auth = useAuth()
+const atorToken = useAtorToken()
+const facilitator = useFacilitator()
+const distribution = useDistribution()
+const relayRegistry = useRelayRegistry()
+watch(auth, async () => {
+  console.log('auth watch', auth.value)
+
+  if (auth.value) {
+    distribution.refresh()
+    relayRegistry.refresh()
+    const signer = await useSigner()
+    if (signer) {
+      atorToken.setSigner(signer)
+      facilitator.setSigner(signer)
+    }
+  }
+})
 </script>

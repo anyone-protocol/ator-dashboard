@@ -14,8 +14,10 @@ export type TokenBalanceUpdatedEvent = {
   balance: BigNumber
 }
 
+const $eventBus = useNuxtApp().$eventBus
+
 export class AtorToken {
-  private $eventBus = useNuxtApp().$eventBus
+  private $eventBus = $eventBus
   private _refreshing: boolean = false
   private contract: Contract | null = null
   private signer: JsonRpcSigner | null = null
