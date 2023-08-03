@@ -66,8 +66,6 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useFacilitator } from '~/composables'
-
 const timestamp = new Date().toUTCString()
 
 const auth = useAuth()

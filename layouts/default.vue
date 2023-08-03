@@ -58,8 +58,12 @@
 @import "@/assets/styles/main.css";
 </style>
 
+
 <script setup lang="ts">
-import { useAtorToken, useDistribution, useFacilitator } from '~/composables'
+import { initializeDashboard } from '~/lib'
+
+// NB: hack to setup auth and data providers
+initializeDashboard()
 
 const navDrawerOpen = useNavDrawerOpen()
 
@@ -78,14 +82,4 @@ const include = () => [
   document.getElementById('burger'),
   document.getElementById('nav-drawer')
 ]
-
-// Hacks to get data fresh on load
-useDistribution()
-useAtorToken()
-const auth = useAuth()
-watch(auth, () => {
-  useDistribution()
-  useAtorToken()
-  useFacilitator()
-})
 </script>

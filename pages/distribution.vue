@@ -5,14 +5,18 @@
         <StatsCard
           label="Current Distribution Rate"
           icon="mdi-bank"
-          :value="distributionRate ? `${distributionRate} $ATOR / day` : distributionRate"
+          :value="
+            distributionRate
+              ? `${distributionRate} $ATOR / day`
+              : distributionRate
+          "
         />
       </v-col>
     </v-row>
 
     <v-row class="h-100">
       <v-col cols="12" class="h-100">
-        <div v-if="previousDistributions">
+        <div>
           <v-table>
             <thead>
               <!-- <tr><strong>Previous Distributions</strong></tr> -->
@@ -32,7 +36,7 @@
             </thead>
             <tbody>
               <tr
-                v-if="previousDistributions"
+                v-if="previousDistributions && previousDistributions.length > 0"
                 v-for="pd in previousDistributions"
                 :key="pd.timestamp"
               >
@@ -49,13 +53,19 @@
                 </td>
               </tr>
 
-              <tr v-else="previousDistributions.length < 1">
+              <tr v-else-if="!previousDistributions">
+                <td width="100%" colspan="5">
+                  <LoadingBreeze :dots="7" size="large" />
+                </td>
+              </tr>
+
+              <tr v-else>
                 <td>No distributions yet!</td>
               </tr>
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="6">
+                <td colspan="6" v-if="latestTimestamp">
                   <span class="text-caption">
                     Last Updated: {{ latestTimestamp }}
                   </span>
@@ -63,10 +73,6 @@
               </tr>
             </tfoot>
           </v-table>
-        </div>
-
-        <div v-else class="center-loading-splash">
-          <LoadingBreeze :dots="7" size="large" />
         </div>
       </v-col>
     </v-row>

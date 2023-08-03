@@ -16,6 +16,7 @@ export type AllocationUpdatedEvent = {
 }
 
 const ERRORS = {
+  NOT_INITIALIZED: 'Facilitator is not initialized!',
   CONNECTING_CONTRACT:
     'There was an error connecting to the Facilitator Contract',
   CLAIMING_TOKENS: 'Error claiming tokens',
@@ -29,33 +30,60 @@ const ERRORS = {
 export class Facilitator {
   private $eventBus = useNuxtApp().$eventBus
   private _refreshing: boolean = false
+  private contract: Contract | null = null
+  private _isInitialized: boolean = false
 
-  constructor(
-    private contract: Contract,
-    // private signer: JsonRpcSigner
-  ) {
+  get isInitialized() { return this._isInitialized }
+
+  initialize(contract: Contract, signer?: JsonRpcSigner) {
+    if (this._isInitialized) { return }
+
+    this.contract = contract
+    if (signer) { this.setSigner(signer) }
+    this._isInitialized = true
+
+    this.refresh()
+  }
+
+  setSigner(signer: JsonRpcSigner) {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
+    this.contract.connect(signer)
+    this.refresh()
+  }
+
+  private setRefreshing(refreshing: boolean) {
+    useState<boolean>('facilitator-refreshing').value = refreshing
+    this._refreshing = refreshing
   }
 
   async refresh(): Promise<void> {
     if (this._refreshing) { return }
 
-    this._refreshing = true
+    this.setRefreshing(true)
     const auth = useAuth()
-    if (!auth.value) { return }
-    const address = auth.value.address
-    console.log('Refreshing Facilitator for address', address)
-    const tokenAllocation = await this.getTokenAllocation(address)
-    const alreadyClaimed = await this.getAlreadyClaimedTokens(address)
-    const gasAvailable = await this.getGasAvailable(address)
-    console.log('Facilitator refreshed', {
-      tokenAllocation: tokenAllocation.toString(),
-      alreadyClaimed: alreadyClaimed.toString(),
-      gasAvailable: gasAvailable.toString()
-    })
-    this._refreshing = false
+    // console.log('Refreshing Facilitator for address', auth.value?.address)
+    console.time('facilitator')
+
+    let tokenAllocation = null, alreadyClaimed = null, gasAvailable = null
+
+    if (auth.value) {
+      tokenAllocation = await this.getTokenAllocation(auth.value.address)
+      alreadyClaimed = await this.getAlreadyClaimedTokens(auth.value.address)
+      gasAvailable = await this.getGasAvailable(auth.value.address)
+    }
+    console.timeEnd('facilitator')
+    // console.log('Facilitator refreshed', {
+    //   tokenAllocation: tokenAllocation.toString(),
+    //   alreadyClaimed: alreadyClaimed.toString(),
+    //   gasAvailable: gasAvailable.toString()
+    // })
+    this.setRefreshing(false)
   }
 
   async getTokenAllocation(address: string): Promise<BigNumber> {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
     const tokenAllocation = await this.contract.tokenAllocation(address)
 
     if (address === useAuth().value?.address) {
@@ -66,6 +94,8 @@ export class Facilitator {
   }
 
   async getAlreadyClaimedTokens(address: string): Promise<BigNumber> {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
     const alreadyClaimedTokens = await this.contract.tokenClaimed(address)
 
     if (address === useAuth().value?.address) {
@@ -77,6 +107,8 @@ export class Facilitator {
   }
 
   async getGasAvailable(address: string): Promise<BigNumber> {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
     const gasAvailable = await this.contract.gasAvailable(address)
 
     if (address === useAuth().value?.address) {
@@ -87,6 +119,8 @@ export class Facilitator {
   }
 
   async fundOracle(amount: BigNumber = ESTIMATED_ORACLE_GAS): Promise<boolean> {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
     try {
       await this.contract.receive({ value: amount })
 
@@ -99,6 +133,8 @@ export class Facilitator {
   }
 
   async requestUpdate(): Promise<boolean> {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
     try {
       await this.contract.requestUpdate()
 
@@ -128,6 +164,8 @@ export class Facilitator {
   }
 
   async claim(): Promise<boolean> {
+    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+
     try {
       const auth = useAuth()
       if (!auth.value) { return false }
@@ -161,30 +199,34 @@ export class Facilitator {
   }
 }
 
-export const useFacilitator = async () => {
-  const config = useRuntimeConfig()
+const facilitator = new Facilitator()
+export const initFacilitator = async () => {
+  if (facilitator.isInitialized) { return }
+
   const provider = useProvider()
+  if (!provider) { return }
+
+  const config = useRuntimeConfig()
   const auth = useAuth()
 
-  let signer: JsonRpcSigner | null = null
+  let signer: JsonRpcSigner | undefined
   if (auth.value) {
-    signer = await useSigner()
+    const _signer = await useSigner()
+    if (_signer) {
+      signer = _signer
+    }
   }
+
   try {
     const contract = new Contract(
       config.public.facilitatorContract,
       abi,
-      signer || provider
+      provider
     )
 
-    const facilitator = new Facilitator(contract)
-
-    await facilitator.refresh()
-
-    return facilitator
+    facilitator.initialize(contract, signer)
   } catch (error) {
     console.error(ERRORS.CONNECTING_CONTRACT, error)
-
-    return null
   }
 }
+export const useFacilitator = () => facilitator

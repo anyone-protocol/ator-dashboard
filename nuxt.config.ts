@@ -33,8 +33,7 @@ export default defineNuxtConfig({
    */
   runtimeConfig: {
     public: {
-      // TODO -> relayRegistryAddress: 'R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w',
-      relayRegistryAddress: 'LYtr_ztHqd4nFFSZyYN9_BWIinESJNBVzOJwo1u5dU0',
+      relayRegistryAddress: 'R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w',
       
       // Validator Public Key
       metricsDeployer: 'guDw5nBzO2zTpuYMnxkSpQ2qCQjL8gxB34GjPpZ2qpY',

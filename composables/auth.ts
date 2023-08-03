@@ -5,7 +5,6 @@ interface Auth {
 }
 
 export const setupAuth = async () => {
-  const auth = useAuth()
   const provider = useProvider()
 
   if (provider && provider instanceof BrowserProvider) {
@@ -15,8 +14,6 @@ export const setupAuth = async () => {
       setAuth(accounts[0].address)
     }
   }
-
-  return auth
 }
 
 export const useAuth = () => useState<Auth | undefined>('auth', () => undefined)
@@ -24,7 +21,7 @@ export const setAuth = (address?: string) => {
   const auth = useAuth()
 
   // TODO -> use actual authed address
-  // address = '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+  address = address ? '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996' : undefined
 
   if (address) {
     auth.value = { address: ethers.getAddress(address) }

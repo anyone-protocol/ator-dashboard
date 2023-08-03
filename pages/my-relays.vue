@@ -19,8 +19,8 @@
           </thead>
           <tbody>
             <tr
-              v-if="!pending && myRelays"
-              v-for="fingerprint in myRelays.claimable"
+              v-if="!relayRegistryRefreshing && claimable"
+              v-for="fingerprint in claimable"
               :key="fingerprint"
             >
               <td><code>{{ fingerprint }}</code></td>
@@ -39,8 +39,8 @@
             </tr>
 
             <tr
-              v-if="!pending && myRelays"
-              v-for="relay in myRelays.verified"
+              v-if="!relayRegistryRefreshing && verified"
+              v-for="relay in verified"
               :key="relay.fingerprint"
             >
               <td><code>{{ relay.fingerprint }}</code></td>
@@ -65,19 +65,19 @@
                 >Renounce</v-btn>
               </td>
             </tr>
-            <tr v-if="!pending && noRelays">
+            <tr v-if="!relayRegistryRefreshing && !hasRelays">
               <td>No pending claimable or verified relays!</td>
             </tr>
 
-            <div v-if="pending" class="center-loading-splash">
+            <div v-if="relayRegistryRefreshing" class="center-loading-splash">
               <LoadingBreeze :dots="7" size="large" />
             </div>
           </tbody>
           <tfoot>
-            <tr v-if="!pending && myRelays">
+            <tr v-if="timestamp">
               <td colspan="6">
                 <span class="text-caption">
-                  Last Updated: {{ myRelays.timestamp?.toUTCString() }}
+                  Last Updated: {{ timestamp.toUTCString() }}
                 </span>
               </td>
             </tr>
@@ -120,78 +120,86 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useRelayRegistry } from '~~/composables'
-import { ValidatedRelay } from '~~/composables/metrics'
+import { useRelayRegistry } from '~/composables'
+import { ValidatedRelay, VerificationResultDto } from '~/composables/metrics'
+import { Fingerprint } from '~/utils/contracts'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Relays' })
 
 const loading = ref<boolean>(false)
+const relayRegistryRefreshing = useState<boolean>(
+  'relay-registry-refreshing',
+  () => true
+)
 
-const {
-  pending,
-  data: myRelays,
-  refresh
-} = useLazyAsyncData('my-relays', async () => {
-  const registry = await useRelayRegistry()
-  const metrics = await useRelayMetrics()
-  const auth = useAuth()
+const auth = useAuth()
+const claimable = useState<Fingerprint[] | null>('claimableRelays', () => null)
+const verifiedRelays = useState<Fingerprint[] | null>(
+  'verifiedRelays',
+  () => null
+)
 
-  interface HumanizedValidatedRelay extends Omit<ValidatedRelay, 'consensus_weight' | 'observed_bandwidth'> {
-    consensus_weight: string
-    observed_bandwidth: string
-  }
+const relayMetrics = useState<VerificationResultDto[] | null>(
+  'relayMetrics',
+  () => null
+)
+const relayMetricsTimestamp = useState<number | null>(
+  'relayMetricsTimestamp',
+  () => null
+)
+const timestamp = computed(
+  () => relayMetricsTimestamp.value
+    && new Date(relayMetricsTimestamp.value)
+)
 
-  if (registry && auth.value) {
-    try {
-      const address = auth.value.address
-      const claimable = await registry.claimable(address)
-      const verifiedRelays = await registry.verified(address)
+interface HumanizedValidatedRelay
+  extends Omit<ValidatedRelay, 'consensus_weight' | 'observed_bandwidth'>
+{
+  consensus_weight: string
+  observed_bandwidth: string
+}
 
-      const verified = verifiedRelays
-        .map<Partial<HumanizedValidatedRelay>>(
-          fp => {
-            const myMetrics = metrics
-              .relayMetrics
-              .find(({ relay }) => fp === relay.fingerprint)
-            const relay = myMetrics ? myMetrics.relay : null
+const verified = computed(() => {
+  if (!auth.value) { return null }
+  if (!verifiedRelays.value) { return null }
+  if (!relayMetrics.value) { return null }
 
-            return relay
-              ?
-              {
-                ...relay,
-                consensus_weight: BigNumber(relay.consensus_weight)
-                  .toFormat(),
-                observed_bandwidth: BigNumber(relay.observed_bandwidth)
-                  .dividedBy(Math.pow(1024, 2))
-                  .toFormat(3) + ' MiB/s'
-              }
-              : { fingerprint: fp }
+  return verifiedRelays.value
+    .map<Partial<HumanizedValidatedRelay>>(
+      fp => {
+        const myMetrics = relayMetrics
+          .value!
+          .find(({ relay }) => fp === relay.fingerprint)
+        const relay = myMetrics ? myMetrics.relay : null
+
+        return relay
+          ? {
+            ...relay,
+            consensus_weight: BigNumber(relay.consensus_weight)
+              .toFormat(),
+            observed_bandwidth: BigNumber(relay.observed_bandwidth)
+              .dividedBy(Math.pow(1024, 2))
+              .toFormat(3) + ' MiB/s'
           }
-        )
-
-      return { claimable, verified, timestamp: metrics.relayMetricsTimestamp }
-    } catch (error) {
-      console.error('Error reading relay registry contract', error)
-    }
-  }
-
-  return null
+          : { fingerprint: fp }
+      }
+    )
 })
 
-const noRelays = computed(() => {
-  if (myRelays.value) {
-    return myRelays.value.claimable.length === 0
-      && myRelays.value.verified.length === 0
-  }
+const hasRelays = computed(() => {
+  const hasClaimableRelays = claimable.value
+    && claimable.value.length > 0
+  const hasVerifiedRelays = verifiedRelays.value
+    && verifiedRelays.value.length > 0
 
-  return true
+  return hasClaimableRelays || hasVerifiedRelays
 })
 
 const claim = debounce(async (fingerprint: string) => {
   loading.value = true
 
-  const registry = await useRelayRegistry()
+  const registry = useRelayRegistry()
 
   try {
     const success = await registry.claim(fingerprint)
@@ -199,7 +207,7 @@ const claim = debounce(async (fingerprint: string) => {
     // TODO -> inform user of success, contract state update may be delayed
 
     if (success) {
-      await refresh()  
+      await registry.refresh()
     } else {
       console.error('Unknown error interacting with registry contract')
     }
@@ -228,7 +236,7 @@ const cancelRenounce = () => {
 const renounce = debounce(async (fingerprint: string) => {
   loading.value = true
 
-  const registry = await useRelayRegistry()
+  const registry = useRelayRegistry()
 
   try {
     const success = await registry.renounce(fingerprint)
@@ -236,7 +244,7 @@ const renounce = debounce(async (fingerprint: string) => {
     // TODO -> inform user of success, contract state update may be delayed
 
     if (success) {
-      await refresh()
+      await registry.refresh()
       isRenounceDialogOpen.value = false
     } else {
       console.error('Unknown error interacting with registry contract')

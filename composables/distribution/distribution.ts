@@ -16,39 +16,61 @@ export type PreviousDistribution = {
 
 export class Distribution {
   private _refreshing: boolean = false
+  private contract: Contract<DistributionState> | null = null
+  private sign: SigningFunction | null = null
+  private _isInitialized: boolean = false
 
-  constructor(
-    private contract: Contract<DistributionState>,
-    private sign: SigningFunction
-  ) {}
+  get isInitialized() { return this._isInitialized }
+
+  initialize(contract: Contract<DistributionState>, sign: SigningFunction) {
+    if (this._isInitialized) { return }
+
+    this.contract = contract
+    this.sign = sign
+    this._isInitialized = true
+
+    this.refresh()
+  }
+
+  private setRefreshing(refreshing: boolean) {
+    useState<boolean>('distribution-refreshing').value = refreshing
+    this._refreshing = refreshing
+  }
 
   async refresh(): Promise<void> {
-    console.log('distribution.refresh()')
     try {
       if (this._refreshing) { return }
 
-      this._refreshing = true
-      let claimableAtomicTokens = null
+      this.setRefreshing(true)
       const auth = useAuth()
-      console.log('auth.value in refresh()', auth.value)
+      // console.log('Distribution refreshing for', auth.value?.address)
+      console.time('distribution')
+
+      let claimableAtomicTokens = null
       if (auth.value) {
-        console.log('Refreshing claimable tokens for', auth.value.address)
-        claimableAtomicTokens = await this.claimable(auth.value.address.toString())
+        claimableAtomicTokens = await this.claimable(
+          auth.value.address.toString()
+        )
       }
       const previousDistributions = await this.getPreviousDistributions()
       const distributionRatePerDay = await this.getDistributionRatePer('day')
-      console.log('Distribution refreshed', {
-        claimableAtomicTokens,
-        previousDistributions,
-        distributionRatePerDay: distributionRatePerDay.toString()
-      })
-      this._refreshing = false
+      console.timeEnd('distribution')
+      // console.log('Distribution refreshed', {
+      //   claimableAtomicTokens,
+      //   previousDistributions,
+      //   distributionRatePerDay: distributionRatePerDay.toString()
+      // })
+      this.setRefreshing(false)
     } catch (error) {
-      console.error('ERROR REFRESHING DISTRIBUTION')
+      console.error('ERROR REFRESHING DISTRIBUTION', error)
     }
   }
 
   async getDistributionRatePer(period: 'second' | 'hour' | 'day' = 'day') {
+    if (!this.contract) {
+      throw new Error('Distribution Contract not initialized!')
+    }
+
     const { cachedValue: { state } } = await this.contract.readState()
 
     const wholeTokensPerSecond = BigNumber(state.tokensDistributedPerSecond)
@@ -67,6 +89,10 @@ export class Distribution {
   }
 
   async getPreviousDistributions(): Promise<PreviousDistribution[]> {
+    if (!this.contract) {
+      throw new Error('Distribution Contract not initialized!')
+    }
+
     const { cachedValue: { state } } = await this.contract.readState()
 
     const previousDistributions = Object
@@ -102,7 +128,10 @@ export class Distribution {
   }
 
   async claimable(address: string, humanize = false) {
-    console.log('claimable()', address, typeof address)
+    if (!this.contract) {
+      throw new Error('Distribution Contract not initialized!')
+    }
+
     try {
       const {
         result: claimable
@@ -129,19 +158,16 @@ export class Distribution {
   }
 }
 
-export const useDistribution = async () => {
+const distribution = new Distribution()
+export const initDistribution = async () => {
+  if (distribution.isInitialized) { return }
+
   const config = useRuntimeConfig()
   const warp = await useWarp()
   const contract = warp.contract<DistributionState>(
     config.public.distributionContract
   )
 
-  const distribution = new Distribution(
-    contract,
-    await createWarpSigningFunction()
-  )
-
-  await distribution.refresh()
-
-  return distribution
+  distribution.initialize(contract, await createWarpSigningFunction())
 }
+export const useDistribution = () => distribution

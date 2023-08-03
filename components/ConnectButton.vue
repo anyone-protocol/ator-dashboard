@@ -54,7 +54,7 @@
 </style>
 
 <script setup lang="ts">
-const auth = await setupAuth()
+const auth = useAuth()
 
 const connect = async () => {
   const signer = await useSigner()

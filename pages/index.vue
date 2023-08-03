@@ -15,7 +15,7 @@
 
       <v-row>
         <v-col
-          v-for="{ key, label, value, icon } in topCards"
+          v-for="{ key, label, value, icon } in networkStatsCards"
           :key="key"
           cols="12"
           sm="6"
@@ -27,10 +27,10 @@
           <StatsCard :label="label" :value="value" :icon="icon" />
         </v-col>
       </v-row>
-      <v-row v-if="stats && stats.timestamp">
+      <v-row v-if="timestamp">
         <v-col cols="12">
           <span class="text-caption">
-            Last Updated: {{ stats.timestamp.toUTCString() }}
+            Last Updated: {{ timestamp.toUTCString() }}
           </span>
         </v-col>
       </v-row>
@@ -41,65 +41,75 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useRelayRegistry } from '~/composables'
+import { RelayRegistryState, ValidationStats } from '~/composables'
 
 useHead({ title: 'Dashboard' })
 
-const {
-  pending,
-  data: stats,
-  refresh
-} = useLazyAsyncData('ator-stats', async () => {
-  const registry = await useRelayRegistry()
-  const relays = await registry.verified()
-  const relayMetrics = await useRelayMetrics()
+const totalVerifiedRelays = useState<RelayRegistryState['verified'] | null>(
+  'totalVerifiedRelays',
+  () => null
+)
+const users = computed(() => {
+  if (!totalVerifiedRelays.value) { return [] }
 
-  const { validationStats, validationStatsTimestamp: timestamp } = relayMetrics
-  const verified = Object.keys(relays)
-  const users = verified
+  return verified.value
     // reduce to relay owner addresses
-    .map(fp => relays[fp])
+    .map(fp => totalVerifiedRelays.value![fp])
     // ensure user address list is unique
     .filter((addr, i, addrs) => addrs.indexOf(addr) === i)
-
-  return { relays, users, verified, validationStats, timestamp }
 })
-const topCards = computed(() => {
-  const atorRunningObservedBandwidth =
-    stats.value?.validationStats?.verified_and_running.observed_bandwidth
-    ? (
-        stats.value?.validationStats.verified_and_running.observed_bandwidth
-        / Math.pow(1024, 2)
-      ).toFixed(3)
-    : ''
-
-  return [
-    {
-      key: 'total-users',
-      label: 'Total Users',
-      value: stats.value?.users?.length || '',
-      icon: 'mdi-crowd'
-    },
-    {
-      key: 'verified-relays',
-      label: 'Verified Relays',
-      value: stats.value?.verified?.length || '',
-      icon: 'mdi-lifebuoy'
-    },
-    {
-      key: 'active-relays',
-      label: 'Active Relays',
-      value: stats.value?.validationStats?.verification.running || '',
-      icon: 'mdi-transit-connection'
-    },
-    {
-      key: 'observed-bandwidth',
-      label: 'Observed Bandwidth',
-      value: atorRunningObservedBandwidth
-        ? BigNumber(atorRunningObservedBandwidth).toFormat(3) + ' MiB/s'
-        : '',
-      icon: 'mdi-speedometer'
-    }
-  ]
+const verified = computed(() => {
+  if (!totalVerifiedRelays.value) { return [] }
+  
+  return Object.keys(totalVerifiedRelays.value)
 })
+const validationStats = useState<ValidationStats | null>(
+  'validationStats',
+  () => null
+)
+const validationStatsTimestamp = useState<number | null>(
+  'validationStatsTimestamp',
+  () => null
+)
+const timestamp = computed(
+  () => validationStatsTimestamp.value
+    && new Date(validationStatsTimestamp.value)
+)
+const atorBandwidth = computed(() => {
+  if (!validationStats.value) { return null }
+
+  const bandwidth = validationStats
+    .value
+    .verified_and_running.observed_bandwidth
+
+  return BigNumber(bandwidth)
+        .dividedBy(Math.pow(1024, 2))
+        .toFormat(3) + ' MiB/s'
+})
+const networkStatsCards = computed(() => [
+  {
+    key: 'total-users',
+    label: 'Total Users',
+    value: users.value.length || '',
+    icon: 'mdi-crowd'
+  },
+  {
+    key: 'verified-relays',
+    label: 'Verified Relays',
+    value: verified.value.length || '',
+    icon: 'mdi-lifebuoy'
+  },
+  {
+    key: 'active-relays',
+    label: 'Active Relays',
+    value: validationStats.value?.verification.running || '',
+    icon: 'mdi-transit-connection'
+  },
+  {
+    key: 'observed-bandwidth',
+    label: 'Observed Bandwidth',
+    value: atorBandwidth.value || '',
+    icon: 'mdi-speedometer'
+  }
+])
 </script>
