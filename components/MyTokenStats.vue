@@ -8,20 +8,24 @@
               <v-col cols="12">
                 <v-container>
                   <v-row align="center" justify="space-around">
-                    <!-- act {{ alreadyClaimedTokens }} | cat {{ claimableAtomicTokens }} -->
                     <v-col
                       v-for="{ key, label, value, icon } in myTokensCards"
                       :key="key"
                       class="text-center"
                       cols="12"
                       sm="12"
-                      md="4"
-                      lg="4"
-                      xl="4"
-                      xxl="4"
+                      md="3"
+                      lg="3"
+                      xl="3"
+                      xxl="3"
                     >
                       <div
-                        class="text-h6 text-lg-h5 basic-text font-weight-bold"
+                        class="
+                          text-subtitle-2
+                          text-lg-h6
+                          basic-text
+                          font-weight-bold
+                        "
                       >
                         {{ label }}
                       </div>
@@ -29,7 +33,7 @@
                         v-if="value"
                         class="
                           text-subtitle-2
-                          text-lg-h5
+                          text-lg-h6
                           font-weight-black
                           basic-text
                         "
@@ -66,39 +70,19 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-const timestamp = new Date().toUTCString()
-
 const auth = useAuth()
 
-const alreadyClaimedTokens = useState<string | null>(
-  'alreadyClaimedTokens',
-  () => null
-)
-const claimableAtomicTokens = useState<string | null>(
-  'claimableAtomicTokens',
-  () => null
-)
+/**
+ * State Values
+ */
+const alreadyClaimedTokens = useState<string | null>('alreadyClaimedTokens', () => null)
+const claimableAtomicTokens = useState<string | null>('claimableAtomicTokens', () => null)
+const tokenAllocation = useState<string | null>('tokenAllocation', () => null)
 
-const previouslyClaimedTokens = computed(() => {
-  if (!alreadyClaimedTokens.value) { return null }
-  
-  return BigNumber(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
-    .toFormat(4) + ' $ATOR'
-})
-
-const currentlyClaimableTokens = computed(() => {
-  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value) {
-    return null
-  }
-
-  return BigNumber(claimableAtomicTokens.value)
-    .minus(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
-    .toFormat(4) + ' $ATOR'
-})
-
-const totalLifetimeRewards = computed(() => {
+/**
+ * Computed Values
+ */
+const lifetimeRewards = computed(() => {
   if (!claimableAtomicTokens.value) {
     return null
   }
@@ -107,7 +91,34 @@ const totalLifetimeRewards = computed(() => {
     .dividedBy(10e18)
     .toFormat(4) + ' $ATOR'
 })
+const pendingRewards = computed(() => {
+  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value || !tokenAllocation.value) {
+    return null
+  }
 
+  return BigNumber(claimableAtomicTokens.value)
+    .minus(alreadyClaimedTokens.value)
+    .minus(tokenAllocation.value)
+    .dividedBy(10e18)
+    .toFormat(4) + ' $ATOR'
+})
+const claimableRewards = computed(() => {
+  if (!tokenAllocation.value || !alreadyClaimedTokens.value) {
+    return null
+  }
+
+  return BigNumber(tokenAllocation.value)
+    .minus(alreadyClaimedTokens.value)
+    .dividedBy(10e18)
+    .toFormat(4) + ' $ATOR'
+})
+const previouslyClaimed = computed(() => {
+  if (!alreadyClaimedTokens.value) { return null }
+  
+  return BigNumber(alreadyClaimedTokens.value)
+    .dividedBy(10e18)
+    .toFormat(4) + ' $ATOR'
+})
 type TokenCards = {
   label: string
   icon: string
@@ -122,7 +133,15 @@ const myTokensCards = computed((): TokenCards => {
       label: 'My Lifetime Rewards',
       icon: 'mdi-bank',
       value: auth.value
-        ? totalLifetimeRewards.value
+        ? lifetimeRewards.value
+        : '--'
+    },
+    {
+      key: 'pending-rewards',
+      label: 'My Pending Rewards',
+      icon: 'mdi-bank',
+      value: auth.value
+        ? pendingRewards.value
         : '--'
     },
     {
@@ -130,15 +149,15 @@ const myTokensCards = computed((): TokenCards => {
       label: 'My Claimable Rewards',
       icon: 'mdi-bank',
       value: auth.value
-        ? currentlyClaimableTokens.value
+        ? claimableRewards.value
         : '--'
     },
     {
       key: 'previously-claimed',
-      label: 'My Claimed Rewards',
+      label: 'Previously Claimed',
       icon: 'mdi-bank',
       value: auth.value
-        ? previouslyClaimedTokens.value
+        ? previouslyClaimed.value
         : '--'
     },
   ]

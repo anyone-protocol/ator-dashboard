@@ -1,28 +1,31 @@
 <template>
   <v-container class="my-relays-page h-100">
     <v-row>
-      <v-col cols="12">
+      <v-col cols="7">
         <StatsCard
           label="Current Distribution Rate"
           icon="mdi-bank"
-          :value="
-            distributionRate
-              ? `${distributionRate} $ATOR / day`
-              : distributionRate
-          "
+          :value="distributionRate"
+        />
+      </v-col>
+      <v-col>
+        <StatsCard
+          label="Total Distributed"
+          icon="mdi-bank"
+          :value="totalDistributed"
         />
       </v-col>
     </v-row>
 
     <v-row class="h-100">
-      <v-col cols="12" class="h-100">
+      <v-col cols="12">
         <div>
-          <v-table>
+          <v-table height="70vh" fixed-header fixed-footer>
             <thead>
               <!-- <tr><strong>Previous Distributions</strong></tr> -->
               <tr>
-                <th class="font-weight-black basic-text">Timestamp</th>
-                <th class="font-weight-black basic-text">Time Elapsed</th>
+                <th class="font-weight-black basic-text">Time</th>
+                <th class="font-weight-black basic-text">Elapsed</th>
                 <th class="font-weight-black basic-text text-right">
                   Distribution Rate
                 </th>
@@ -40,8 +43,26 @@
                 v-for="pd in previousDistributions"
                 :key="pd.timestamp"
               >
-                <td><code>{{ pd.date.toUTCString() }}</code></td>
-                <td><code>{{ pd.timeElapsed }}</code></td>
+                <td>
+                  <v-tooltip class="v-tooltip-opaque-background">
+                    <template v-slot:activator="{ props }">
+                      <code v-bind="props">
+                        {{ pd.fromNowHumanized }}
+                      </code>
+                    </template>
+                    <code>{{ pd.date.toUTCString() }}</code>
+                  </v-tooltip>
+                </td>
+                <td>
+                  <v-tooltip class="v-tooltip-opaque-background">
+                    <template v-slot:activator="{ props }">
+                      <code v-bind="props">
+                        {{ pd.timeElapsedHumanized }}
+                      </code>
+                    </template>
+                    <code>{{ pd.timeElapsed }}</code>
+                  </v-tooltip>
+                </td>
                 <td class="text-right">
                   <code>{{ pd.tokensDistributedPerDay }} $ATOR / day</code>
                 </td>
@@ -63,11 +84,23 @@
                 <td>No distributions yet!</td>
               </tr>
             </tbody>
-            <tfoot>
+            <tfoot class="distribution-table">
               <tr>
-                <td colspan="6" v-if="latestTimestamp">
+                <td
+                  colspan="6"
+                  v-if="latestTimestamp"
+                  class="distribution-table"
+                >
                   <span class="text-caption">
-                    Last Updated: {{ latestTimestamp }}
+                    <v-tooltip class="v-tooltip-opaque-background">
+                      <template v-slot:activator="{ props }">
+                        <code v-bind="props">
+                          Last Updated:
+                          {{ latestTimestampHumanized }}
+                        </code>
+                      </template>
+                      <code>{{ latestTimestamp }}</code>
+                    </v-tooltip>
                   </span>
                 </td>
               </tr>
@@ -79,8 +112,15 @@
   </v-container>
 </template>
 
+<style scoped>
+.distribution-table {
+  background-color: rgb(var(--v-theme-surface));
+}
+</style>
+
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
+import moment from 'moment'
 
 import { PreviousDistribution } from '~/composables'
 
@@ -94,13 +134,32 @@ const latestTimestamp = computed(() => {
     ? previousDistributions.value[0].date.toUTCString()
     : ''
 })
+const latestTimestampHumanized = computed(() => {
+  return previousDistributions.value && previousDistributions.value[0]
+    ? moment(previousDistributions.value[0].date).fromNow()
+    : ''
+})
 const distributionRatePerDay = useState<string | null>(
   'distributionRatePerDay',
   () => null
 )
 const distributionRate = computed(() => {
   if (distributionRatePerDay.value) {
-    return BigNumber(distributionRatePerDay.value).toFormat(3)
+    return BigNumber(distributionRatePerDay.value)
+      .toFormat(3) +  ' $ATOR / day'
+  }
+
+  return null
+})
+const sumOfTotalDistributions = useState<string | null>(
+  'sumOfTotalDistributions',
+  () => null
+)
+const totalDistributed = computed(() => {
+  if (sumOfTotalDistributions.value) {
+    return BigNumber(sumOfTotalDistributions.value)
+      .dividedBy(10e18)
+      .toFormat(3) + ' $ATOR'
   }
 
   return null

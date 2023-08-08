@@ -14,10 +14,7 @@ export type TokenBalanceUpdatedEvent = {
   balance: BigNumber
 }
 
-const $eventBus = useNuxtApp().$eventBus
-
 export class AtorToken {
-  private $eventBus = $eventBus
   private _refreshing: boolean = false
   private contract: Contract | null = null
   private signer: JsonRpcSigner | null = null
@@ -69,11 +66,6 @@ export class AtorToken {
 
     if (address === useAuth().value?.address) {
       useState<string>('tokenBalance').value = balance.toString()
-      this.$eventBus.emit('TokenBalanceUpdated', {
-        type: 'TokenBalanceUpdated',
-        address,
-        balance
-      })
     }
 
     return BigNumber(balance.toString())

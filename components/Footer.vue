@@ -14,50 +14,40 @@
           href="https://github.com/ATOR-Development"
         >GitHub</a>
       </v-col>
-      <v-col cols="3">
+      <v-col cols="2">
         <v-btn color="primary" variant="plain" size="small">
           {{appTheme.global.name.value}}
           <v-menu activator="parent" offset-y>
             <v-list>
-              <v-list-item class="theme-menu-list-item" v-for="theme in themes" :key="theme" @click="changeTheme(theme)">
-                <div class="theme-menu-list-item-container"><v-list-item-title>{{ theme }}</v-list-item-title></div>
+              <v-list-item
+                class="theme-menu-list-item"
+                v-for="theme in themes"
+                :key="theme"
+                @click="changeTheme(theme)"
+              >
+                <div class="theme-menu-list-item-container">
+                  <v-list-item-title>{{ theme }}</v-list-item-title>
+                </div>
               </v-list-item>
             </v-list>
           </v-menu>
         </v-btn>
       </v-col>
-      <v-col cols="5" style="text-align:end">
-        <v-btn color="primary" variant="plain" size="small">
-          Relay Registry
+      <v-col cols="6" style="text-align:end">
+        <v-btn
+          v-for="{ label, address, url } in blockchainExplorerLinks"
+          :key="address"
+          color="primary"
+          variant="plain"
+          size="small"
+        >
+          {{ label }}
           <v-menu activator="parent" offset-y :close-on-content-click="false">
             <v-list>
               <v-list-item>
                 <code>          
-                  <a
-                    class="basic-text"
-                    target="_blank"
-                    :href="relayRegistrySonarUrl"
-                  >
-                    {{ runtimeCfg.public.relayRegistryAddress }}
-                  </a>
-                </code>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-        </v-btn>
-
-        <v-btn color="primary" variant="plain" size="small">
-          Distribution
-          <v-menu activator="parent" offset-y :close-on-content-click="false">
-            <v-list>
-              <v-list-item>
-                <code>          
-                  <a
-                    class="basic-text"
-                    target="_blank"
-                    :href="distributionSonarUrl"
-                  >
-                    {{ runtimeCfg.public.distributionContract }}
+                  <a class="basic-text" target="_blank" :href="url">
+                    {{ address }}
                   </a>
                 </code>
               </v-list-item>
@@ -72,13 +62,39 @@
 <script setup lang="ts">
 import { useTheme } from 'vuetify'
 
-const runtimeCfg = useRuntimeConfig()
-
 const sonarUrlBase = 'https://sonar.warp.cc/#/app/contract'
-const relayRegistrySonarUrl =
-  `${sonarUrlBase}/${runtimeCfg.public.relayRegistryAddress}`
-const distributionSonarUrl =
-  `${sonarUrlBase}/${runtimeCfg.public.distributionContract}`
+const etherscanUrlBase = 'https://goerli.etherscan.io/address'
+const {
+  public: {
+    relayRegistryAddress,
+    distributionContract,
+    facilitatorContract,
+    goerliAtorTokenContract
+  }
+} = useRuntimeConfig()
+
+const blockchainExplorerLinks = [
+  {
+    label: 'Relay Registry',
+    address: `ar://${relayRegistryAddress}`,
+    url: `${sonarUrlBase}/${relayRegistryAddress}`
+  },
+  {
+    label: 'Distribution',
+    address: `ar://${distributionContract}`,
+    url: `${sonarUrlBase}/${distributionContract}`
+  },
+  {
+    label: 'Facilitator',
+    address: `ethereum:${facilitatorContract}`,
+    url: `${etherscanUrlBase}/${facilitatorContract}`
+  },
+  {
+    label: 'Token',
+    address: `ethereum:${goerliAtorTokenContract}`,
+    url: `${etherscanUrlBase}/${goerliAtorTokenContract}`
+  }
+]
 
 const appTheme = useTheme()
 

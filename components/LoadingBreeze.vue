@@ -22,7 +22,7 @@ const sizes = {
 
 export default {
   mounted() {
-    // this.startAnimation()
+    this.startAnimation()
   },
   props: {
     dots: { type: Number, default: 10 },

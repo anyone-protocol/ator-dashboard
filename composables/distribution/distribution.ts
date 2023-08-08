@@ -9,9 +9,11 @@ export type PreviousDistribution = {
   timestamp: string,
   date: Date,
   timeElapsed: string,
+  timeElapsedHumanized: string,
   tokensDistributedPerDay: string,
   totalScore: string,
   totalDistributed: string
+  fromNowHumanized: string
 }
 
 export class Distribution {
@@ -43,7 +45,7 @@ export class Distribution {
 
       this.setRefreshing(true)
       const auth = useAuth()
-      // console.log('Distribution refreshing for', auth.value?.address)
+      console.log('Distribution refreshing for', auth.value?.address)
       console.time('distribution')
 
       let claimableAtomicTokens = null
@@ -55,11 +57,11 @@ export class Distribution {
       const previousDistributions = await this.getPreviousDistributions()
       const distributionRatePerDay = await this.getDistributionRatePer('day')
       console.timeEnd('distribution')
-      // console.log('Distribution refreshed', {
-      //   claimableAtomicTokens,
-      //   previousDistributions,
-      //   distributionRatePerDay: distributionRatePerDay.toString()
-      // })
+      console.log('Distribution refreshed', {
+        claimableAtomicTokens,
+        previousDistributions,
+        distributionRatePerDay: distributionRatePerDay.toString()
+      })
       this.setRefreshing(false)
     } catch (error) {
       console.error('ERROR REFRESHING DISTRIBUTION', error)
@@ -95,6 +97,7 @@ export class Distribution {
 
     const { cachedValue: { state } } = await this.contract.readState()
 
+    let sumOfTotalDistributions = BigNumber(0)
     const previousDistributions = Object
       .keys(state.previousDistributions)
       .reverse()
@@ -106,11 +109,26 @@ export class Distribution {
           tokensDistributedPerSecond
         } = state.previousDistributions[timestamp]
 
+        sumOfTotalDistributions = sumOfTotalDistributions.plus(totalDistributed)
+
+        const date = new Date(Number.parseInt(timestamp))
+        const formatDuration = (elapsed: string) => {
+          const duration = moment.duration(elapsed)
+          const d = duration.days()
+          const h = duration.hours()
+          const m = duration.minutes()
+          const s = duration.seconds()
+          const ms = duration.milliseconds()
+
+          return `${d}.${h}:${m}:${s}.${ms}`
+        }
         return {
           timestamp,
-          date: new Date(Number.parseInt(timestamp)),
+          date,
+          fromNowHumanized: moment(date).fromNow(),
           totalScore: BigNumber(totalScore).toFormat(),
-          timeElapsed: moment.duration(timeElapsed).humanize(),
+          timeElapsed: formatDuration(timeElapsed),
+          timeElapsedHumanized: moment.duration(timeElapsed).humanize(),
           totalDistributed: BigNumber(totalDistributed)
             .dividedBy(10e18)
             .toFormat(2),
@@ -121,6 +139,8 @@ export class Distribution {
         }
       })
 
+    useState<string>('sumOfTotalDistributions').value =
+      sumOfTotalDistributions.toString()
     useState<PreviousDistribution[]>('previousDistributions').value =
       previousDistributions
 
