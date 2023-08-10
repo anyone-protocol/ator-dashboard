@@ -92,7 +92,7 @@ export class AtorToken {
       if (!auth.value) { return }
       const authedAddress = auth.value.address
 
-      console.log('Token Contract [Transfer]')
+      // console.log('Token Contract [Transfer]')
       if (authedAddress === to && config.public.facilitatorContract === from) {
         // Refresh datas
         this.refresh()

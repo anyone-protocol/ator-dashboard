@@ -45,7 +45,7 @@ export class Distribution {
 
       this.setRefreshing(true)
       const auth = useAuth()
-      console.log('Distribution refreshing for', auth.value?.address)
+      // console.log('Distribution refreshing for', auth.value?.address)
       console.time('distribution')
 
       let claimableAtomicTokens = null
@@ -57,11 +57,11 @@ export class Distribution {
       const previousDistributions = await this.getPreviousDistributions()
       const distributionRatePerDay = await this.getDistributionRatePer('day')
       console.timeEnd('distribution')
-      console.log('Distribution refreshed', {
-        claimableAtomicTokens,
-        previousDistributions,
-        distributionRatePerDay: distributionRatePerDay.toString()
-      })
+      // console.log('Distribution refreshed', {
+      //   claimableAtomicTokens,
+      //   previousDistributions,
+      //   distributionRatePerDay: distributionRatePerDay.toString()
+      // })
       this.setRefreshing(false)
     } catch (error) {
       console.error('ERROR REFRESHING DISTRIBUTION', error)

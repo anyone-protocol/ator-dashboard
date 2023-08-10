@@ -95,8 +95,6 @@ const facilitator = useFacilitator()
 const distribution = useDistribution()
 const relayRegistry = useRelayRegistry()
 watch(auth, async () => {
-  console.log('auth watch', auth.value)
-
   if (auth.value) {
     distribution.refresh()
     relayRegistry.refresh()

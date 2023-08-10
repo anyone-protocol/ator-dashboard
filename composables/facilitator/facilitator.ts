@@ -69,7 +69,7 @@ export class Facilitator {
   }
 
   setSigner(signer: JsonRpcSigner) {
-    console.log('Facilitator setSigner', signer.address)
+    // console.log('Facilitator setSigner', signer.address)
     this.signer = signer
     this.initializeContract(signer)
     this.listenForUserEvents()
@@ -86,7 +86,7 @@ export class Facilitator {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    console.log('Refreshing Facilitator for address', auth.value?.address)
+    // console.log('Refreshing Facilitator for address', auth.value?.address)
     console.time('facilitator')
 
     let tokenAllocation = null,
@@ -110,16 +110,16 @@ export class Facilitator {
     const oracleWeiRequired = await this.getOracleWeiRequired()
 
     console.timeEnd('facilitator')
-    console.log('Facilitator refreshed', {
-      tokenAllocation: tokenAllocation?.toString(),
-      alreadyClaimed: alreadyClaimed?.toString(),
-      gasAvailable: gasAvailable?.toString(),
-      gasUsed: gasUsed?.toString(),
-      oracleWeiRequired: oracleWeiRequired.toString(),
-      requestUpdateTx,
-      allocationUpdatedTx,
-      tokensClaimedTx
-    })
+    // console.log('Facilitator refreshed', {
+    //   tokenAllocation: tokenAllocation?.toString(),
+    //   alreadyClaimed: alreadyClaimed?.toString(),
+    //   gasAvailable: gasAvailable?.toString(),
+    //   gasUsed: gasUsed?.toString(),
+    //   oracleWeiRequired: oracleWeiRequired.toString(),
+    //   requestUpdateTx,
+    //   allocationUpdatedTx,
+    //   tokensClaimedTx
+    // })
     this.setRefreshing(false)
   }
 
@@ -261,11 +261,11 @@ export class Facilitator {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
     const oracleWeiRequired = useState<string>('oracleWeiRequired').value
-    console.log(
-      'facilitator.fundOracle() oracleWeiRequired',
-      oracleWeiRequired,
-      ethers.formatEther(oracleWeiRequired)
-    )
+    // console.log(
+    //   'facilitator.fundOracle() oracleWeiRequired',
+    //   oracleWeiRequired,
+    //   ethers.formatEther(oracleWeiRequired)
+    // )
 
     try {
       // const value = ethers.parseEther(amount.toString())
@@ -466,7 +466,7 @@ export const initFacilitator = async () => {
       }
     }
 
-    console.log('initFacilitator', signer?.address)
+    // console.log('initFacilitator', signer?.address)
 
     facilitator.initialize(signer)
   } catch (error) {
