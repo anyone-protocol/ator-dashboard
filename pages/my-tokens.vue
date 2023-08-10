@@ -3,9 +3,14 @@
     <v-row>
       <MyTokenStats />
     </v-row>
-    <v-row>
+    <v-row v-if="debug">
       <v-col cols="12">
-        Remove this debugging row!
+        <p><strong>Remove this debugging row!</strong></p>
+        <p>
+          facilitatorTokenBalance:
+          {{ facilitatorTokenBalanceHumanized }}
+          $ATOR TEST
+        </p>
         <p>budget available: {{ gasAvailable }}</p>
         <p>budget used: {{ gasUsed }}</p>
         <p>budget balance: {{ gasBudgetBalance }}</p>
@@ -22,13 +27,18 @@
         </v-alert>
 
         <v-card>
+          <v-card-text v-if="hasTokensToClaim">
+            {{ tokensToClaim }} $ATOR (Goerli Test) ready to claim!
+          </v-card-text>
           <v-card-actions style="justify-content: center;">
             <v-btn
+              v-if="hasTokensToClaim"
               class="primary-background"
               :loading="loading"
               :disabled="!!requestUpdateTx"
               @click="fundAndRequest"
             >Claim Tokens</v-btn>
+            <p v-else>No tokens to claim!</p>
           </v-card-actions>
         </v-card>
 
@@ -90,7 +100,7 @@
         <v-divider v-if="requestUpdateTxReady" />
         <br />
 
-        <v-card v-if="requestUpdateTxReady">
+        <v-card v-if="debug && requestUpdateTxReady">
           <v-card-actions style="justify-content: center;">
             <v-btn class="danger-background" @click="reset">Reset</v-btn>
           </v-card-actions>
@@ -153,6 +163,7 @@ const auth = useAuth()
  */
 const loading = ref<boolean>(false)
 const hasError = ref<boolean>(false)
+const debug = ref<boolean>(false)
 
 /**
  * State Values
@@ -164,12 +175,15 @@ const gasUsed = useState<string | null>('gasUsed', () => null)
 const oracleWeiRequired = useState<string | null>('oracleWeiRequired', () => null)
 const alreadyClaimedTokens = useState<string | null>('alreadyClaimedTokens', () => null)
 const tokenAllocation = useState<string | null>('tokenAllocation', () => null)
+const facilitatorTokenBalance = useState<string | null>('facilitatorTokenBalance', () => null)
+const claimableAtomicTokens = useState<string | null>('claimableAtomicTokens', () => null)
 
 // Claim Process Statuses
 const requestUpdateTx = useState<string | null>('facilitator-request-update-tx', () => null)
 const allocationUpdatedTx = useState<string | null>('facilitator-allocation-updated-tx', () => null)
 const tokensClaimedTx = useState<string | null>('facilitator-tokens-claimed-tx', () => null)
 const requestUpdateTxReady = useState<boolean>('facilitator-request-update-tx-ready', () => false)
+// NB: For debugging, only visual
 const _resetClaimProcessStatuses = () => {
   requestUpdateTx.value = null
   allocationUpdatedTx.value = null
@@ -180,6 +194,21 @@ const _resetClaimProcessStatuses = () => {
 /**
  * Computed Values
  */
+const facilitatorTokenBalanceHumanized = computed(() => {
+  if (!facilitatorTokenBalance.value) { return null }
+  return BigNumber(facilitatorTokenBalance.value).dividedBy(10e18).toFormat(3)
+})
+const tokensToClaim = computed(() => {
+  if (!claimableAtomicTokens.value) { return null }
+  if (!alreadyClaimedTokens.value) { return null }
+
+  return BigNumber(claimableAtomicTokens.value)
+    .minus(alreadyClaimedTokens.value)
+    .dividedBy(10e18)
+})
+const hasTokensToClaim = computed(() => {
+  return tokensToClaim.value && tokensToClaim.value.gt(0)
+})
 const needsToFund = computed(() => {
   if (!gasAvailable.value) { return true }
   if (!oracleWeiRequired.value) { return true }
@@ -214,7 +243,8 @@ const refresh = debounce(async () => {
 
 const fundAndRequest = debounce(async () => {
   loading.value = true
-  const result = await facilitator.receiveAndRequestUpdate()
+  // const result = await facilitator.receiveAndRequestUpdate()
+  const result = await facilitator.fundOracle()
   loading.value = false
   if (!result) { hasError.value = true; return }
   

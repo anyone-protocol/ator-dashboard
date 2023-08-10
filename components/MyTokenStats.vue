@@ -75,9 +75,13 @@ const auth = useAuth()
 /**
  * State Values
  */
-const alreadyClaimedTokens = useState<string | null>('alreadyClaimedTokens', () => null)
+// From Distribution
 const claimableAtomicTokens = useState<string | null>('claimableAtomicTokens', () => null)
+// From Facilitator
+const alreadyClaimedTokens = useState<string | null>('alreadyClaimedTokens', () => null)
+// From Facilitator
 const tokenAllocation = useState<string | null>('tokenAllocation', () => null)
+
 
 /**
  * Computed Values
@@ -92,15 +96,16 @@ const lifetimeRewards = computed(() => {
     .toFormat(4) + ' $ATOR'
 })
 const pendingRewards = computed(() => {
-  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value || !tokenAllocation.value) {
+  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value) {
     return null
   }
 
-  return BigNumber(claimableAtomicTokens.value)
+  const pending = BigNumber(claimableAtomicTokens.value)
     .minus(alreadyClaimedTokens.value)
-    .minus(tokenAllocation.value)
     .dividedBy(10e18)
-    .toFormat(4) + ' $ATOR'
+
+  if (pending.lt(0)) { return '0.0000 $ATOR' }
+  return pending.toFormat(4) + ' $ATOR'
 })
 const claimableRewards = computed(() => {
   if (!tokenAllocation.value || !alreadyClaimedTokens.value) {
@@ -144,14 +149,14 @@ const myTokensCards = computed((): TokenCards => {
         ? pendingRewards.value
         : '--'
     },
-    {
-      key: 'claimable-rewards',
-      label: 'My Claimable Rewards',
-      icon: 'mdi-bank',
-      value: auth.value
-        ? claimableRewards.value
-        : '--'
-    },
+    // {
+    //   key: 'claimable-rewards',
+    //   label: 'My Claimable Rewards',
+    //   icon: 'mdi-bank',
+    //   value: auth.value
+    //     ? claimableRewards.value
+    //     : '--'
+    // },
     {
       key: 'previously-claimed',
       label: 'Previously Claimed',

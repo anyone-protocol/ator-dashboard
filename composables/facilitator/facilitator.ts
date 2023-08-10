@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, ContractTransactionResponse, ContractUnknownEventPayload, JsonRpcSigner, ethers } from 'ethers'
+import { BrowserProvider, Contract, ContractTransactionResponse, ContractUnknownEventPayload, JsonRpcSigner, TransactionResponse, ethers } from 'ethers'
 import BigNumber from 'bignumber.js'
 
 import { abi } from './Facility.json'
@@ -256,13 +256,13 @@ export class Facilitator {
     }
   }
 
-  async fundOracle(amount: BigNumber = ORACLE_FEE_ETH): Promise<boolean> {
+  async fundOracle(): Promise<TransactionResponse | null> {
     if (!this.signer) { throw new Error(ERRORS.NO_SIGNER) }
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
     const oracleWeiRequired = useState<string>('oracleWeiRequired').value
     console.log(
-      'receiveAndRequestUpdate() oracleWeiRequired',
+      'facilitator.fundOracle() oracleWeiRequired',
       oracleWeiRequired,
       ethers.formatEther(oracleWeiRequired)
     )
@@ -271,15 +271,19 @@ export class Facilitator {
       // const value = ethers.parseEther(amount.toString())
       const value = oracleWeiRequired
       const to = await this.contract.getAddress()
-      const tx = await this.signer.sendTransaction({ to, value })
-      await tx.wait()
+      // NB: receive() is a standard hook for when a normal tx sends value to
+      //     a contract.  There is no explicit receive() interface on the ABI.
+      //     So instead we send a normal transaction.
+      const result = await this.signer.sendTransaction({ to, value })
 
-      return true
+      this.setRequestUpdateTx(result.hash)
+
+      return result
     } catch (error) {
       console.error(ERRORS.FUNDING_ORACLE, error)
     }
 
-    return false
+    return null
   }
 
   async requestUpdate(): Promise<ContractTransactionResponse | null> {
@@ -335,7 +339,6 @@ export class Facilitator {
     amount: bigint,
     event: ContractUnknownEventPayload
   ): Promise<void> {
-    console.log('Facilitator Event [AllocationClaimed]', address, amount)
     try {
       const auth = useAuth()
       if (!auth.value) { return }
@@ -357,7 +360,6 @@ export class Facilitator {
     amount: bigint,
     event: any
   ): Promise<void> {
-    console.log('Facilitator Event [AllocationUpdated]', address, amount)
     try {
       const auth = useAuth()
       if (!auth.value) { return }
@@ -381,7 +383,6 @@ export class Facilitator {
   ): Promise<void> {}
 
   private async onRequestingUpdate(address: string, event: any): Promise<void> {
-    console.log('Facilitator Event [RequestingUpdate]', address)
     try {
       const auth = useAuth()
       if (!auth.value) { return }
@@ -413,37 +414,39 @@ export class Facilitator {
 
   async claim(): Promise<boolean> {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+    
+    throw new Error('Facilitator.claim() is currently deprecated()')
 
-    try {
-      const auth = useAuth()
-      if (!auth.value) { return false }
-      const address = auth.value.address
-      const gasAvailable = await this.getGasAvailable(address)
+    // try {
+    //   const auth = useAuth()
+    //   if (!auth.value) { return false }
+    //   const address = auth.value.address
+    //   const gasAvailable = await this.getGasAvailable(address)
 
-      let isOracleFunded: boolean
-      if (gasAvailable.lte(ESTIMATED_ORACLE_GAS)) {
-        const amountToFund = ESTIMATED_ORACLE_GAS.minus(gasAvailable)
-        isOracleFunded = await this.fundOracle(amountToFund)
-      } else {
-        isOracleFunded = true
-      }
+    //   let isOracleFunded: boolean
+    //   if (gasAvailable.lte(ESTIMATED_ORACLE_GAS)) {
+    //     const amountToFund = ESTIMATED_ORACLE_GAS.minus(gasAvailable)
+    //     isOracleFunded = await this.fundOracle(amountToFund)
+    //   } else {
+    //     isOracleFunded = true
+    //   }
 
-      if (!isOracleFunded) { throw new Error(ERRORS.COULD_NOT_FUND_ORACLE) }
+    //   if (!isOracleFunded) { throw new Error(ERRORS.COULD_NOT_FUND_ORACLE) }
 
-      const success = await this.requestUpdate()
+    //   const success = await this.requestUpdate()
 
-      if (!success) { throw new Error(ERRORS.REQUESTING_UPDATE) }
+    //   if (!success) { throw new Error(ERRORS.REQUESTING_UPDATE) }
 
-      if (success) {
-        await this.contract.claimAllocation()
+    //   if (success) {
+    //     await this.contract.claimAllocation()
 
-        return true
-      }
-    } catch (error) {
-      console.error(ERRORS.CLAIMING_TOKENS, error)
-    }
+    //     return true
+    //   }
+    // } catch (error) {
+    //   console.error(ERRORS.CLAIMING_TOKENS, error)
+    // }
 
-    return false
+    // return false
   }
 }
 
