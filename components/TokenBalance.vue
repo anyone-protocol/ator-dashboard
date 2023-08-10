@@ -1,6 +1,6 @@
 <template>
   <code v-if="auth && tokenBalance">
-    {{ BigNumber(tokenBalance).dividedBy(10e18).toFormat(3) }}
+    {{ BigNumber(tokenBalance).dividedBy(1e18).toFormat(3) }}
     $ATOR (Goerli Test)
   </code>
   <LoadingBreeze v-else-if="auth" />

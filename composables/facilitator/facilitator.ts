@@ -52,7 +52,7 @@ export class Facilitator {
     if (signer) {
       this.setSigner(signer)
     } else {
-      this.initializeContract(provider)
+      this.setSigner()
     }
     
     this._isInitialized = true
@@ -60,19 +60,27 @@ export class Facilitator {
     this.refresh()
   }
 
-  private initializeContract(signerOrProvider: JsonRpcSigner | BrowserProvider) {
+  private initializeContract(signer?: JsonRpcSigner) {
+    const provider = useProvider()
+    if (!provider) { throw new Error('Ethereum Provider not available!') }
+
     this.contract = new Contract(
       config.public.facilitatorContract,
       abi,
-      signerOrProvider
+      signer || provider
     )
+    this.listenForUserEvents()
   }
 
-  setSigner(signer: JsonRpcSigner) {
-    // console.log('Facilitator setSigner', signer.address)
-    this.signer = signer
-    this.initializeContract(signer)
-    this.listenForUserEvents()
+  setSigner(signer?: JsonRpcSigner) {
+    if (signer) {
+      this.signer = signer
+      this.initializeContract(signer)
+    } else {
+      this.signer = null
+      this.initializeContract()
+    }   
+    
     this.refresh()
   }
 
@@ -399,13 +407,15 @@ export class Facilitator {
 
   private listenForUserEvents() {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
-    const auth = useAuth()
-    if (!auth.value) { return }
 
     this.contract.off(FACILITATOR_EVENTS.AllocationClaimed)
     this.contract.off(FACILITATOR_EVENTS.AllocationUpdated)
     this.contract.off(FACILITATOR_EVENTS.GasBudgetUpdated)
     this.contract.off(FACILITATOR_EVENTS.RequestingUpdate)
+    
+    const auth = useAuth()
+    if (!auth.value) { return }
+
     this.contract.on(FACILITATOR_EVENTS.AllocationClaimed, this.onAllocationClaimed.bind(this))
     this.contract.on(FACILITATOR_EVENTS.AllocationUpdated, this.onAllocationUpdated.bind(this))
     this.contract.on(FACILITATOR_EVENTS.GasBudgetUpdated, this.onGasBudgetUpdated.bind(this))
@@ -465,8 +475,6 @@ export const initFacilitator = async () => {
         signer = _signer
       }
     }
-
-    // console.log('initFacilitator', signer?.address)
 
     facilitator.initialize(signer)
   } catch (error) {

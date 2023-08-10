@@ -76,7 +76,7 @@ export class Distribution {
     const { cachedValue: { state } } = await this.contract.readState()
 
     const wholeTokensPerSecond = BigNumber(state.tokensDistributedPerSecond)
-      .dividedBy(10e18)
+      .dividedBy(1e18)
 
     switch (period) {
       case 'second':
@@ -130,10 +130,10 @@ export class Distribution {
           timeElapsed: formatDuration(timeElapsed),
           timeElapsedHumanized: moment.duration(timeElapsed).humanize(),
           totalDistributed: BigNumber(totalDistributed)
-            .dividedBy(10e18)
+            .dividedBy(1e18)
             .toFormat(2),
           tokensDistributedPerDay: BigNumber(tokensDistributedPerSecond)
-            .dividedBy(10e18)
+            .dividedBy(1e18)
             .times(24 * 60 * 60)
             .toFormat(2)
         }
@@ -166,7 +166,7 @@ export class Distribution {
       }
 
       return humanize
-        ? BigNumber(claimable).dividedBy(10e18).toFormat(4)
+        ? BigNumber(claimable).dividedBy(1e18).toFormat(4)
         : claimable
     } catch (error) {
       console.error(

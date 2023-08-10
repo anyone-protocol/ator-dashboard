@@ -27,9 +27,6 @@
         </v-alert>
 
         <v-card>
-          <v-card-text v-if="hasTokensToClaim">
-            {{ tokensToClaim }} $ATOR (Goerli Test) ready to claim!
-          </v-card-text>
           <v-card-actions style="justify-content: center;">
             <v-btn
               v-if="hasTokensToClaim"
@@ -87,7 +84,7 @@
             <v-progress-circular v-if="!tokensClaimedTx" indeterminate />
             <template v-else>
               <v-icon color="primary">mdi-party-popper</v-icon>
-              <p>Congratulations, you've claimed your $ATOR (Goerli Test) rewards!</p>
+              <p>Congratulations, you've claimed your {{claimedAllocationCachedValueHumanized}} $ATOR (Goerli Test) rewards!</p>
               <a
                 target="_blank"
                 :href="`https://goerli.etherscan.io/tx/${allocationUpdatedTx}`"
@@ -164,6 +161,7 @@ const auth = useAuth()
 const loading = ref<boolean>(false)
 const hasError = ref<boolean>(false)
 const debug = ref<boolean>(false)
+const cachedTokensOnClaimStart = ref<number | null>(null)
 
 /**
  * State Values
@@ -183,6 +181,7 @@ const requestUpdateTx = useState<string | null>('facilitator-request-update-tx',
 const allocationUpdatedTx = useState<string | null>('facilitator-allocation-updated-tx', () => null)
 const tokensClaimedTx = useState<string | null>('facilitator-tokens-claimed-tx', () => null)
 const requestUpdateTxReady = useState<boolean>('facilitator-request-update-tx-ready', () => false)
+const claimedAllocationCachedValue = useState<string | null>('token-contract-facilitator-transfer', () => null)
 // NB: For debugging, only visual
 const _resetClaimProcessStatuses = () => {
   requestUpdateTx.value = null
@@ -194,9 +193,14 @@ const _resetClaimProcessStatuses = () => {
 /**
  * Computed Values
  */
+const claimedAllocationCachedValueHumanized = computed(() => {
+  if (!claimedAllocationCachedValue.value) { return null }
+
+  return BigNumber(claimedAllocationCachedValue.value).dividedBy(1e18).toFormat(3)
+})
 const facilitatorTokenBalanceHumanized = computed(() => {
   if (!facilitatorTokenBalance.value) { return null }
-  return BigNumber(facilitatorTokenBalance.value).dividedBy(10e18).toFormat(3)
+  return BigNumber(facilitatorTokenBalance.value).dividedBy(1e18).toFormat(3)
 })
 const tokensToClaim = computed(() => {
   if (!claimableAtomicTokens.value) { return null }
@@ -204,10 +208,10 @@ const tokensToClaim = computed(() => {
 
   return BigNumber(claimableAtomicTokens.value)
     .minus(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
+    .dividedBy(1e18)
 })
 const hasTokensToClaim = computed(() => {
-  return tokensToClaim.value && tokensToClaim.value.gt(0)
+  return tokensToClaim.value && tokensToClaim.value.gt(0.00001)
 })
 const needsToFund = computed(() => {
   if (!gasAvailable.value) { return true }
@@ -225,7 +229,7 @@ const currentlyClaimableTokens = computed(() => {
 
   return BigNumber(tokenAllocation.value)
     .minus(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
+    .dividedBy(1e18)
 })
 const gasBudgetBalance = computed(() => {
   if (!gasAvailable.value || !gasUsed.value) { return null }

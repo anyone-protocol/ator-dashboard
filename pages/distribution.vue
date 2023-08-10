@@ -158,7 +158,7 @@ const sumOfTotalDistributions = useState<string | null>(
 const totalDistributed = computed(() => {
   if (sumOfTotalDistributions.value) {
     return BigNumber(sumOfTotalDistributions.value)
-      .dividedBy(10e18)
+      .dividedBy(1e18)
       .toFormat(3) + ' $ATOR'
   }
 

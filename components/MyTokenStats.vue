@@ -92,7 +92,7 @@ const lifetimeRewards = computed(() => {
   }
 
   return BigNumber(claimableAtomicTokens.value)
-    .dividedBy(10e18)
+    .dividedBy(1e18)
     .toFormat(4) + ' $ATOR'
 })
 const pendingRewards = computed(() => {
@@ -102,7 +102,7 @@ const pendingRewards = computed(() => {
 
   const pending = BigNumber(claimableAtomicTokens.value)
     .minus(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
+    .dividedBy(1e18)
 
   if (pending.lt(0)) { return '0.0000 $ATOR' }
   return pending.toFormat(4) + ' $ATOR'
@@ -114,14 +114,14 @@ const claimableRewards = computed(() => {
 
   return BigNumber(tokenAllocation.value)
     .minus(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
+    .dividedBy(1e18)
     .toFormat(4) + ' $ATOR'
 })
 const previouslyClaimed = computed(() => {
   if (!alreadyClaimedTokens.value) { return null }
   
   return BigNumber(alreadyClaimedTokens.value)
-    .dividedBy(10e18)
+    .dividedBy(1e18)
     .toFormat(4) + ' $ATOR'
 })
 type TokenCards = {

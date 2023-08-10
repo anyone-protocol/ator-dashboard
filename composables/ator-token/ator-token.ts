@@ -29,18 +29,42 @@ export class AtorToken {
 
   get isInitialized() { return this._isInitialized }
 
-  initialize(contract: Contract, signer?: JsonRpcSigner) {
+  initialize(signer?: JsonRpcSigner) {
     if (this._isInitialized) { return }
+    if (!provider) { throw new Error('No Ethereum Provider available!') }
 
-    this.contract = contract
-    if (signer) { this.setSigner(signer) }
+    if (signer) {
+      this.setSigner(signer)
+    } else {
+      this.setSigner()
+    }
+
     this._isInitialized = true
 
     this.refresh()
   }
 
-  setSigner(signer: JsonRpcSigner) {
-    this.signer = signer
+  private initializeContract(signer?: JsonRpcSigner) {
+    const provider = useProvider()
+    if (!provider) { throw new Error('Ethereum Provider not available!') }
+
+    this.contract = new Contract(
+      config.public.goerliAtorTokenContract,
+      abi,
+      signer || provider
+    )
+    this.listenForUserEvents()
+  }
+
+  setSigner(signer?: JsonRpcSigner) {
+    if (signer) {
+      this.signer = signer
+      this.initializeContract(signer)
+    } else {
+      this.signer = null
+      this.initializeContract()
+    }
+    
     this.refresh()
   }
 
@@ -86,14 +110,20 @@ export class AtorToken {
     return BigNumber(balance.toString())
   }
 
-  private async onTransfer(from: string, to: string, value: bigint, event: any): Promise<void> {
+  private async onTransfer(
+    from: string,
+    to: string,
+    value: bigint,
+    event: any
+  ): Promise<void> {
     try {
       const auth = useAuth()
       if (!auth.value) { return }
       const authedAddress = auth.value.address
 
-      // console.log('Token Contract [Transfer]')
       if (authedAddress === to && config.public.facilitatorContract === from) {
+        useState<string>('token-contract-facilitator-transfer').value = value.toString()
+        
         // Refresh datas
         this.refresh()
         useFacilitator().refresh()
@@ -106,10 +136,12 @@ export class AtorToken {
 
   private listenForUserEvents() {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
+    
+    this.contract.off(TOKEN_EVENTS.Transfer)
+    
     const auth = useAuth()
     if (!auth.value) { return }
-
-    this.contract.off(TOKEN_EVENTS.Transfer)
+    
     this.contract.on(TOKEN_EVENTS.Transfer, this.onTransfer.bind(this))
   }
 }
@@ -120,24 +152,17 @@ const provider = useProvider()
 const atorToken = new AtorToken()
 export const initAtorToken = async () => {
   if (atorToken.isInitialized) { return }
-  if (!provider) { return }
-
-  let signer: JsonRpcSigner | undefined
-  if (auth.value) {
-    const _signer = await useSigner()
-    if (_signer) {
-      signer = _signer
-    }
-  }
 
   try {
-    const contract = new Contract(
-      config.public.goerliAtorTokenContract,
-      abi,
-      provider
-    )
+    let signer: JsonRpcSigner | undefined
+    if (auth.value) {
+      const _signer = await useSigner()
+      if (_signer) {
+        signer = _signer
+      }
+    }
 
-    atorToken.initialize(contract, signer)
+    atorToken.initialize(signer)
   } catch (error) {
     console.error(ERRORS.CONNECTING_CONTRACT, error)
   }

@@ -102,6 +102,9 @@ watch(auth, async () => {
     if (signer) {
       atorToken.setSigner(signer)
       facilitator.setSigner(signer)
+    } else {
+      atorToken.setSigner()
+      facilitator.setSigner()
     }
   }
 })
