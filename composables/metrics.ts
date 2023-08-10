@@ -55,6 +55,9 @@ export class RelayMetrics {
   relayMetrics: VerificationResultDto[] = []
   relayMetricsTimestamp: Date | null = null
 
+  private _lastRefresh: number | null = null
+  private _refreshInterval = 60 * 1000
+
   constructor(
     gateway: string,
     metricsDeployer: string
@@ -64,8 +67,25 @@ export class RelayMetrics {
   }
 
   async refresh() {
+    const shouldRefresh = !this._lastRefresh
+      || Date.now() - this._lastRefresh >= this._refreshInterval
+
+    if (!shouldRefresh) {
+      // console.log('Metrics did not refresh', this._lastRefresh)
+      return
+    }
+    // console.log('Metrics refreshing')
+    console.time('metrics')
     await this.refreshValidationStats()
     await this.refreshRelayMetrics()
+    console.timeEnd('metrics')
+    // console.log('Metrics refreshed', {
+    //   validationStats: this.validationStats,
+    //   validationStatsTimestamp: this.validationStatsTimestamp,
+    //   relayMetrics: this.relayMetrics,
+    //   relayMetricsTimestamp: this.relayMetricsTimestamp
+    // })
+    this._lastRefresh = Date.now()
   }
 
   private async refreshValidationStats() {
@@ -84,17 +104,23 @@ export class RelayMetrics {
         let validationStats = await getTransactionData(tx.id)
 
         if (!validationStats) {
-          validationStats = await $fetch<ValidationStats>(`${this.gateway}/${tx.id}`)
+          validationStats = await $fetch<ValidationStats>(
+            `${this.gateway}/${tx.id}`
+          )
           await saveTransactionData(tx.id, validationStats)
         }
   
+        useState<ValidationStats>('validationStats').value = validationStats
         this.validationStats = validationStats
       } catch (error) {
         console.error('Could not fetch validation/stats tx', error)
       }
 
-      const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
+      const timestamp = parseInt(
+        tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || ''
+      )
       if (!Number.isNaN(timestamp)) {
+        useState<number>('validationStatsTimestamp').value = timestamp
         this.validationStatsTimestamp = new Date(timestamp)
       }
     } else {
@@ -122,6 +148,7 @@ export class RelayMetrics {
           await saveTransactionData(tx.id, relayMetrics)
         }
   
+        useState<VerificationResultDto[]>('relayMetrics').value = relayMetrics
         this.relayMetrics = relayMetrics
       } catch (error) {
         console.error('Could not fetch relay/metrics tx', error)
@@ -129,6 +156,7 @@ export class RelayMetrics {
 
       const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
       if (!Number.isNaN(timestamp)) {
+        useState<number>('relayMetricsTimestamp').value = timestamp
         this.relayMetricsTimestamp = new Date(timestamp)
       }
     } else {
@@ -137,12 +165,13 @@ export class RelayMetrics {
   }
 }
 
-export const useRelayMetrics = async () => {
-  const { arweave } = useAppConfig()
-  const runtimeConfig = useRuntimeConfig()
-  const metrics = new RelayMetrics(arweave.gateway, runtimeConfig.public.metricsDeployer)
+const { arweave: { gateway } } = useAppConfig()
+const runtimeConfig = useRuntimeConfig()
+const metrics = new RelayMetrics(gateway, runtimeConfig.public.metricsDeployer)
 
-  await metrics.refresh()
+export const useRelayMetrics = () => metrics
+// {
+//   metrics.refresh()
 
-  return metrics
-}
+//   return metrics
+// }

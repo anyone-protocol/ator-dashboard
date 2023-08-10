@@ -1,4 +1,4 @@
-import { BrowserProvider } from 'ethers'
+import { BrowserProvider, ethers } from 'ethers'
 // import { BrowserProvider, getDefaultProvider } from 'ethers'
 
 const NETWORKS = {
@@ -13,6 +13,15 @@ export const useSuggestMetaMask = () => useState<boolean | undefined>(
 
 export const suggestMetaMask = useSuggestMetaMask()
 
+// @ts-ignore
+window.ethereum!.on('accountsChanged', (accounts: string[]) => {
+  if (accounts.length > 0) {
+    setAuth(accounts[0])
+  } else {
+    setAuth(undefined)
+  }
+})
+
 export const useProvider = () => {
   if (process.server || typeof window === 'undefined') {
     return null
@@ -24,17 +33,6 @@ export const useProvider = () => {
       window.ethereum,
       NETWORKS.GOERLI.decimal
     )
-
-    // @ts-ignore
-    window.ethereum.on('accountsChanged', (accounts: string[]) => {
-      const auth = useAuth()
-
-      if (accounts.length > 0) {
-        auth.value = { address: accounts[0] }
-      } else {
-        auth.value = undefined
-      }
-    })
 
     window.ethereum.request({
       method: 'wallet_switchEthereumChain',

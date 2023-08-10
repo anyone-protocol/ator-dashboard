@@ -10,12 +10,16 @@
         <v-menu activator="parent" offset-y :close-on-content-click="false">
           <v-list>
             <v-list-item>
+              <TokenBalance />
+              <v-divider />
               <code>{{ auth.address }}</code>
             </v-list-item>
           </v-list>
         </v-menu>
       </div>
       <div v-else>
+        <TokenBalance />
+        <v-divider />
         <code>{{ auth.address }}</code>
       </div>
     </div>
@@ -50,12 +54,12 @@
 </style>
 
 <script setup lang="ts">
-const auth = await setupAuth()
+const auth = useAuth()
 
 const connect = async () => {
   const signer = await useSigner()
   if (signer) {
-    auth.value = { address: signer.address }
+    setAuth(signer.address)
     const openWelcomeDialog = useWelcomeDialogOpen()
     const welcomeLastSeen = useWelcomeLastSeen()
     const { welcomeDialogUpdated } = useAppConfig()
