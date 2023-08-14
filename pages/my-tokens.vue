@@ -35,6 +35,7 @@
               :disabled="!!requestUpdateTx"
               @click="fundAndRequest"
             >Claim Tokens</v-btn>
+            <p v-else-if="!requestUpdateTx">Claiming tokens...</p>
             <p v-else>No tokens to claim!</p>
           </v-card-actions>
         </v-card>
@@ -181,7 +182,7 @@ const requestUpdateTx = useState<string | null>('facilitator-request-update-tx',
 const allocationUpdatedTx = useState<string | null>('facilitator-allocation-updated-tx', () => null)
 const tokensClaimedTx = useState<string | null>('facilitator-tokens-claimed-tx', () => null)
 const requestUpdateTxReady = useState<boolean>('facilitator-request-update-tx-ready', () => false)
-const claimedAllocationCachedValue = useState<string | null>('token-contract-facilitator-transfer', () => null)
+const claimedAllocationCachedValue = useState<bigint | null>('token-contract-facilitator-transfer', () => null)
 // NB: For debugging, only visual
 const _resetClaimProcessStatuses = () => {
   requestUpdateTx.value = null
@@ -196,7 +197,9 @@ const _resetClaimProcessStatuses = () => {
 const claimedAllocationCachedValueHumanized = computed(() => {
   if (!claimedAllocationCachedValue.value) { return null }
 
-  return BigNumber(claimedAllocationCachedValue.value).dividedBy(1e18).toFormat(3)
+  console.log('claimedAllocationCachedValue', claimedAllocationCachedValue.value)
+
+  return BigNumber(claimedAllocationCachedValue.value.toString()).dividedBy(1e18).toFormat(3)
 })
 const facilitatorTokenBalanceHumanized = computed(() => {
   if (!facilitatorTokenBalance.value) { return null }
