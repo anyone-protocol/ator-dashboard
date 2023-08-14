@@ -122,7 +122,7 @@ export class AtorToken {
       const authedAddress = auth.value.address
 
       if (authedAddress === to && config.public.facilitatorContract === from) {
-        useState<string>('token-contract-facilitator-transfer').value = value.toString()
+        useState<bigint>('token-contract-facilitator-transfer').value = value
         
         // Refresh datas
         this.refresh()
