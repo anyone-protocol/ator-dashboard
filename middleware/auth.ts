@@ -11,6 +11,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     setTimeout(() => highlightConnectButton.value = false, 1000)
 
-    return navigateTo('/')
+    return abortNavigation()
   }
 })
