@@ -30,7 +30,7 @@
       :class="{ animate: shouldAnimate }"
       :color="shouldAnimate ? 'red' : 'primary'"
       variant="tonal"
-      @click="suggestMetaMask ? linkToGetMetaMask() : connect()"
+      @click.stop="suggestMetaMask ? linkToGetMetaMask() : connect()"
     >
       Connect
     </v-btn>
@@ -54,20 +54,11 @@
 </style>
 
 <script setup lang="ts">
+import { connectAuth } from '~/composables/auth'
+
 const auth = useAuth()
 
-const connect = async () => {
-  const signer = await useSigner()
-  if (signer) {
-    setAuth(signer.address)
-    const openWelcomeDialog = useWelcomeDialogOpen()
-    const welcomeLastSeen = useWelcomeLastSeen()
-    const { welcomeDialogUpdated } = useAppConfig()
-    openWelcomeDialog.value = welcomeLastSeen.value
-      ? welcomeLastSeen.value < welcomeDialogUpdated
-      : true
-  }
-}
+const connect = debounce(async () => { await connectAuth() })
 
 const linkToGetMetaMask = () => {
   window.open("https://metamask.io/download/", '_blank')

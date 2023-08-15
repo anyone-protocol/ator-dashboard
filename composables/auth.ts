@@ -1,22 +1,48 @@
 import { BrowserProvider, ethers } from 'ethers'
+import { refreshDashboard } from '~/lib'
 
 interface Auth {
   address: string
 }
 
-export const initializeAuth = async () => {
-  const provider = useProvider()
+// export const initializeAuth = async () => {
+//   const provider = initializeBrowserProvider()
 
-  if (provider && provider instanceof BrowserProvider) {
-    const accounts = await provider.listAccounts()
+//   if (provider && provider instanceof BrowserProvider) {
+//     const accounts = await provider.listAccounts()
 
-    if (accounts.length > 0) {
-      setAuth(accounts[0].address)
-    }
+//     if (accounts.length > 0) {
+//       setAuth(accounts[0].address)
+//     }
+//   }
+// }
+
+export const connectAuth = async () => {
+  if (!window || !window.ethereum) {
+    useSuggestMetaMask().value = true
+  }
+
+  const signer = await useSigner()
+
+  if (signer) {
+    setAuth(signer.address)
+    const openWelcomeDialog = useWelcomeDialogOpen()
+    const welcomeLastSeen = useWelcomeLastSeen()
+    const { welcomeDialogUpdated } = useAppConfig()
+    openWelcomeDialog.value = welcomeLastSeen.value
+      ? welcomeLastSeen.value < welcomeDialogUpdated
+      : true
   }
 }
 
-export const useAuth = () => useState<Auth | undefined>('auth', () => undefined)
+const onAccountsChanged = (accounts: string[]) => {
+  if (accounts.length > 0) {
+    setAuth(accounts[0])
+  } else {
+    setAuth(undefined)
+  }
+}
+
 export const setAuth = (address?: string) => {
   const auth = useAuth()
 
@@ -25,7 +51,14 @@ export const setAuth = (address?: string) => {
 
   if (address) {
     auth.value = { address: ethers.getAddress(address) }
+    // @ts-ignore
+    window.ethereum!.on('accountsChanged', onAccountsChanged)
   } else {
     auth.value = undefined
+    window.ethereum!.off('accountsChanged', onAccountsChanged)
   }
+
+  refreshDashboard()
 }
+
+export const useAuth = () => useState<Auth | undefined>('auth', () => undefined)
