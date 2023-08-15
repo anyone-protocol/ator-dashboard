@@ -17,12 +17,11 @@
       </v-col>
     </v-row>
 
-    <v-row class="h-100">
+    <v-row>
       <v-col cols="12">
         <div>
-          <v-table height="70vh" fixed-header fixed-footer>
+          <v-table fixed-header fixed-footer>
             <thead>
-              <!-- <tr><strong>Previous Distributions</strong></tr> -->
               <tr>
                 <th class="font-weight-black basic-text">Time</th>
                 <th class="font-weight-black basic-text">Elapsed</th>
@@ -40,7 +39,7 @@
             <tbody>
               <tr
                 v-if="previousDistributions && previousDistributions.length > 0"
-                v-for="pd in previousDistributions"
+                v-for="pd in pagedPreviousDistributions"
                 :key="pd.timestamp"
               >
                 <td>
@@ -84,10 +83,10 @@
                 <td>No distributions yet!</td>
               </tr>
             </tbody>
-            <tfoot class="distribution-table">
+            <tfoot>
               <tr>
                 <td
-                  colspan="6"
+                  colspan="1"
                   v-if="latestTimestamp"
                   class="distribution-table"
                 >
@@ -102,6 +101,15 @@
                       <code>{{ latestTimestamp }}</code>
                     </v-tooltip>
                   </span>
+                </td>
+                <td colspan="5" class="distribution-table">
+                  <v-pagination
+                    v-model="page"
+                    total-visible="10"
+                    :length="
+                      previousDistributions ? (previousDistributions.length / pageSize) : 0
+                    "
+                  />
                 </td>
               </tr>
             </tfoot>
@@ -126,9 +134,20 @@ import { PreviousDistribution } from '~/composables'
 
 useHead({ title: 'Distribution' })
 
+const page = ref<number>(1) // NB: pages are 1-indexed :)
+const pageSize = ref<number>(10)
+
 const previousDistributions = useState<PreviousDistribution[]>(
   'previousDistributions'
 )
+const pagedPreviousDistributions = computed(() => {
+  if (!previousDistributions.value) { return null }
+
+  return previousDistributions.value.slice(
+    (page.value - 1) * pageSize.value,
+    (page.value * pageSize.value) - 1
+  )
+})
 const latestTimestamp = computed(() => {
   return previousDistributions.value && previousDistributions.value[0]
     ? previousDistributions.value[0].date.toUTCString()
