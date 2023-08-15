@@ -27,16 +27,26 @@
         </v-alert>
 
         <v-card>
-          <v-card-actions style="justify-content: center;">
+          <v-card-title>
+            <p v-if="hasTokensToClaim">
+              You have
+              <code>{{ currentlyClaimableTokens }} $ATOR (Goerli Test)</code>
+              ready to claim!
+            </p>
+            <p v-else-if="!requestUpdateTx">Claiming tokens...</p>
+            <p v-else>No tokens to claim!</p>
+          </v-card-title>
+
+          <v-card-actions
+            v-if="hasTokensToClaim"
+            style="justify-content: center;"
+          >
             <v-btn
-              v-if="hasTokensToClaim"
               class="primary-background"
               :loading="loading"
               :disabled="!!requestUpdateTx"
               @click="fundAndRequest"
             >Claim Tokens</v-btn>
-            <p v-else-if="!requestUpdateTx">Claiming tokens...</p>
-            <p v-else>No tokens to claim!</p>
           </v-card-actions>
         </v-card>
 
@@ -226,13 +236,14 @@ const panelsDisabled = computed(
   () => !gasAvailable.value || !oracleWeiRequired.value
 )
 const currentlyClaimableTokens = computed(() => {
-  if (!tokenAllocation.value || !alreadyClaimedTokens.value) {
+  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value) {
     return null
   }
 
-  return BigNumber(tokenAllocation.value)
+  return BigNumber(claimableAtomicTokens.value)
     .minus(alreadyClaimedTokens.value)
     .dividedBy(1e18)
+    .toFormat(4)
 })
 const gasBudgetBalance = computed(() => {
   if (!gasAvailable.value || !gasUsed.value) { return null }
@@ -245,13 +256,13 @@ const gasBudgetBalance = computed(() => {
  */
 const reset = debounce(_resetClaimProcessStatuses)
 const refresh = debounce(async () => {
-  await facilitator.refresh()
+  await facilitator!.refresh()
 })
 
 const fundAndRequest = debounce(async () => {
   loading.value = true
   // const result = await facilitator.receiveAndRequestUpdate()
-  const result = await facilitator.fundOracle()
+  const result = await facilitator!.fundOracle()
   loading.value = false
   if (!result) { hasError.value = true; return }
   
@@ -263,7 +274,7 @@ const fundOracle = debounce(async () => {
   loading.value = true
 
   try {
-    await facilitator.fundOracle()
+    await facilitator!.fundOracle()
   } catch (error) {
     console.error('There was an error while funding oracle', error)
     hasError.value = true
@@ -276,7 +287,7 @@ const requestUpdate = debounce(async () => {
   loading.value = true
 
   try {
-    await facilitator.requestUpdate()
+    await facilitator!.requestUpdate()
   } catch (error) {
     console.error('There was an error while requesting update', error)
     hasError.value = true
@@ -289,7 +300,7 @@ const claimTokens = debounce(async () => {
   loading.value = true
 
   try {
-    await facilitator.claim()
+    await facilitator!.claim()
   } catch (error) {
     console.error('There was an error while claiming tokens', error)
     hasError.value = true
@@ -301,7 +312,7 @@ const claimTokens = debounce(async () => {
 const query = debounce(async () => {
   loading.value = true
 
-  await facilitator.query('RequestingUpdate')
+  await facilitator!.query('RequestingUpdate')
 
   loading.value = false
 })
