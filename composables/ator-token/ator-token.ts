@@ -31,6 +31,7 @@ export class AtorToken {
 
   initialize(signer?: JsonRpcSigner) {
     if (this._isInitialized) { return }
+    const provider = useProvider()
     if (!provider) { throw new Error('No Ethereum Provider available!') }
 
     if (signer) {
@@ -46,6 +47,7 @@ export class AtorToken {
 
   private initializeContract(signer?: JsonRpcSigner) {
     const provider = useProvider()
+    const config = useRuntimeConfig()
     if (!provider) { throw new Error('Ethereum Provider not available!') }
 
     this.contract = new Contract(
@@ -85,6 +87,7 @@ export class AtorToken {
     if (auth.value) {
       balance = await this.getBalance(auth.value.address)
     }
+    const config = useRuntimeConfig()
     const facilitatorBalance = await this.getBalance(
       config.public.facilitatorContract
     )
@@ -103,6 +106,7 @@ export class AtorToken {
       useState<string>('tokenBalance').value = balance.toString()
     }
 
+    const config = useRuntimeConfig()
     if (address === config.public.facilitatorContract) {
       useState<string>('facilitatorTokenBalance').value = balance.toString()
     }
@@ -121,12 +125,14 @@ export class AtorToken {
       if (!auth.value) { return }
       const authedAddress = auth.value.address
 
+      const config = useRuntimeConfig()
       if (authedAddress === to && config.public.facilitatorContract === from) {
         useState<bigint>('token-contract-facilitator-transfer').value = value
         
         // Refresh datas
         this.refresh()
-        useFacilitator().refresh()
+        const facilitator = useFacilitator()
+        if (facilitator) { facilitator.refresh() }
         useDistribution().refresh()
       }
     } catch (error) {
@@ -146,12 +152,14 @@ export class AtorToken {
   }
 }
 
-const config = useRuntimeConfig()
-const auth = useAuth()
-const provider = useProvider()
+
 const atorToken = new AtorToken()
 export const initAtorToken = async () => {
   if (atorToken.isInitialized) { return }
+
+  // const config = useRuntimeConfig()
+  const auth = useAuth()
+  // const provider = useProvider()
 
   try {
     let signer: JsonRpcSigner | undefined

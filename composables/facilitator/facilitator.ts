@@ -1,7 +1,17 @@
-import { BrowserProvider, Contract, ContractTransactionResponse, ContractUnknownEventPayload, JsonRpcSigner, TransactionResponse, ethers } from 'ethers'
+import {
+  AbstractProvider,
+  BrowserProvider,
+  Contract,
+  ContractTransactionResponse,
+  ContractUnknownEventPayload,
+  JsonRpcSigner,
+  TransactionResponse,
+  ethers
+} from 'ethers'
 import BigNumber from 'bignumber.js'
 
 import { abi } from './Facility.json'
+import { RuntimeConfig } from 'nuxt/schema'
 
 const ESTIMATED_ORACLE_GAS = BigNumber('21644')
 const GAS_PRICE_ETH = BigNumber('0.000000004')
@@ -39,35 +49,30 @@ const ERRORS = {
 
 export class Facilitator {
   private _refreshing: boolean = false
-  private contract: Contract | null = null
+  private contract!: Contract
   private signer: JsonRpcSigner | null = null
-  private _isInitialized: boolean = false
+  // private _isInitialized: boolean = false
 
-  get isInitialized() { return this._isInitialized }
+  // get isInitialized() { return this._isInitialized }
 
-  initialize(signer?: JsonRpcSigner) {
-    if (this._isInitialized) { return }
-    if (!provider) { throw new Error(ERRORS.NO_PROVIDER) }
-
-    if (signer) {
-      this.setSigner(signer)
-    } else {
-      this.setSigner()
-    }
-    
-    this._isInitialized = true
-
-    this.refresh()
+  constructor(
+    private contractAddress: string,
+    private provider: BrowserProvider | AbstractProvider
+  ) {
+    this.refreshContract()  
   }
 
-  private initializeContract(signer?: JsonRpcSigner) {
-    const provider = useProvider()
-    if (!provider) { throw new Error('Ethereum Provider not available!') }
+  static buildContract(
+    contractAddress: string,
+    providerOrSigner: BrowserProvider | AbstractProvider | JsonRpcSigner
+  ): Contract {
+    return new Contract(contractAddress, abi, providerOrSigner)
+  }
 
-    this.contract = new Contract(
-      config.public.facilitatorContract,
-      abi,
-      signer || provider
+  private refreshContract() {
+    this.contract = Facilitator.buildContract(
+      this.contractAddress,
+      this.provider
     )
     this.listenForUserEvents()
   }
@@ -75,10 +80,16 @@ export class Facilitator {
   setSigner(signer?: JsonRpcSigner) {
     if (signer) {
       this.signer = signer
-      this.initializeContract(signer)
+      this.contract = Facilitator.buildContract(
+        this.contractAddress,
+        this.signer
+      )
     } else {
       this.signer = null
-      this.initializeContract()
+      this.contract = Facilitator.buildContract(
+        this.contractAddress,
+        useProvider()
+      )
     }   
     
     this.refresh()
@@ -460,12 +471,18 @@ export class Facilitator {
   }
 }
 
-const config = useRuntimeConfig()
-const auth = useAuth()
-const provider = useProvider()
-const facilitator = new Facilitator()
+// const config = useRuntimeConfig()
+// 
+// const provider = useProvider()
+let facilitator: Facilitator | null = null
 export const initFacilitator = async () => {
-  if (facilitator.isInitialized) { return }
+  const config = useRuntimeConfig()
+  const provider = useProvider()
+  const auth = useAuth()
+
+  if (!facilitator) {
+    facilitator = new Facilitator(config.public.facilitatorContract, provider)
+  }
 
   try {
     let signer: JsonRpcSigner | undefined
@@ -476,7 +493,7 @@ export const initFacilitator = async () => {
       }
     }
 
-    facilitator.initialize(signer)
+    facilitator.setSigner(signer)
   } catch (error) {
     console.error(ERRORS.CONNECTING_CONTRACT, error)
   }

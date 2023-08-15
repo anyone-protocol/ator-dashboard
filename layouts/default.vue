@@ -88,24 +88,4 @@ const include = () => [
 
 // NB: hack to setup auth and data providers
 await initializeDashboard()
-
-const auth = useAuth()
-const atorToken = useAtorToken()
-const facilitator = useFacilitator()
-const distribution = useDistribution()
-const relayRegistry = useRelayRegistry()
-watch(auth, async () => {
-  if (auth.value) {
-    distribution.refresh()
-    relayRegistry.refresh()
-    const signer = await useSigner()
-    if (signer) {
-      atorToken.setSigner(signer)
-      facilitator.setSigner(signer)
-    } else {
-      atorToken.setSigner()
-      facilitator.setSigner()
-    }
-  }
-})
 </script>
