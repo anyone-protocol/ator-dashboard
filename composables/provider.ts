@@ -1,5 +1,4 @@
-import { AbstractProvider, BrowserProvider, ethers } from 'ethers'
-// import { BrowserProvider, getDefaultProvider } from 'ethers'
+import { BrowserProvider, ethers } from 'ethers'
 
 export const NETWORKS = {
   MAINNET: { decimal: 1, hex: '0x1', name: 'mainnet' },
