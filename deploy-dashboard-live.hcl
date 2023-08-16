@@ -25,8 +25,8 @@ job "deploy-dashboard-live" {
             NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="[[ consulKey "smart-contracts/live/relay-registry-address" ]]"
             NUXT_PUBLIC_METRICS_DEPLOYER="[[ consulKey "valid-ator/live/validator-address-base64" ]]"
             NUXT_PUBLIC_DISTRIBUTION_CONTRACT="[[ consulKey "smart-contracts/live/distribution-address" ]]"
-            NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator-goerli/address" ]]"
-            NUXT_PUBLIC_GOERLI_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-goerli/address" ]]"
+            NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/goerli/live/address" ]]"
+            NUXT_PUBLIC_GOERLI_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/goerli/live/address" ]]"
             {{with secret "kv/dashboard/live"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}

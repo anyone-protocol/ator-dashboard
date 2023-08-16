@@ -26,8 +26,8 @@ job "deploy-dashboard-stage" {
             NUXT_PUBLIC_RELAY_REGISTRY_ADDRESS="[[ consulKey "smart-contracts/stage/relay-registry-address" ]]"
             NUXT_PUBLIC_METRICS_DEPLOYER="[[ consulKey "valid-ator/stage/validator-address-base64" ]]"
             NUXT_PUBLIC_DISTRIBUTION_CONTRACT="[[ consulKey "smart-contracts/stage/distribution-address" ]]"
-            NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator-goerli/address" ]]"
-            NUXT_PUBLIC_GOERLI_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-goerli/address" ]]"
+            NUXT_PUBLIC_FACILITATOR_CONTRACT="[[ consulKey "facilitator/goerli/stage/address" ]]"
+            NUXT_PUBLIC_GOERLI_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/goerli/stage/address" ]]"
             {{with secret "kv/dashboard/stage"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
             {{end}}
