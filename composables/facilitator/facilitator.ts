@@ -11,7 +11,6 @@ import {
 import BigNumber from 'bignumber.js'
 
 import { abi } from './Facility.json'
-import { RuntimeConfig } from 'nuxt/schema'
 
 const ESTIMATED_ORACLE_GAS = BigNumber('21644')
 const GAS_PRICE_ETH = BigNumber('0.000000004')
@@ -207,14 +206,15 @@ export class Facilitator {
 
   async query(
     facilitatorEvent: FacilitatorEvent,
+    address: string,
     fromBlock?: ethers.BlockTag,
     toBlock?: ethers.BlockTag
   ): Promise<(ethers.EventLog | ethers.Log)[]> {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
     try {
-      const event = this.contract.filters[facilitatorEvent]
-      const result = await this.contract.queryFilter(event, fromBlock, toBlock)
+      const filter = this.contract.filters[facilitatorEvent](address)
+      const result = await this.contract.queryFilter(filter, fromBlock, toBlock)
 
       console.log(`Facilitator query [${facilitatorEvent}]`, result)
       return result
@@ -234,27 +234,31 @@ export class Facilitator {
         allocationUpdatedTx = null,
         tokensClaimedTx = null
 
+    const auth = useAuth()
+
+    if (!auth.value) { return { requestUpdateTx: null, allocationUpdatedTx: null, tokensClaimedTx: null } }
+
     // TODO -> query from height of last AllocationClaimed event
-    const allocationClaimedEvents = await this.query('AllocationClaimed')
+    const allocationClaimedEvents = await this.query('AllocationClaimed', auth.value.address)
     // TODO -> what order are events in? first or last or no order? need to sort?
     const latestAllocationClaimedEvent: ethers.EventLog | ethers.Log | null = allocationClaimedEvents[0] || null
     const fromBlockHash = latestAllocationClaimedEvent ? latestAllocationClaimedEvent.blockHash : undefined
     
-    const requestUpdateEvents = await this.query('RequestingUpdate', fromBlockHash)
+    const requestUpdateEvents = await this.query('RequestingUpdate', auth.value.address, fromBlockHash)
     // TODO -> what order are events in? first or last or no order? need to sort?
     const latestRequestUpdateEvent: ethers.EventLog | ethers.Log | null = requestUpdateEvents[0] || null
     if (latestRequestUpdateEvent) {
       requestUpdateTx = latestRequestUpdateEvent.transactionHash
     }
 
-    const allocationUpdatedEvents = await this.query('AllocationUpdated', fromBlockHash)
+    const allocationUpdatedEvents = await this.query('AllocationUpdated', auth.value.address, fromBlockHash)
     // TODO -> what order are events in? first or last or no order? need to sort?
     const latestAllocationUpdatedEvent: ethers.EventLog | ethers.Log | null = allocationUpdatedEvents[0] || null
     if (latestAllocationUpdatedEvent) {
       allocationUpdatedTx = latestAllocationUpdatedEvent.transactionHash
     }
 
-    const tokensClaimedEvents = await this.query('AllocationClaimed', fromBlockHash)
+    const tokensClaimedEvents = await this.query('AllocationClaimed', auth.value.address, fromBlockHash)
     // TODO -> what order are events in? first or last or no order? need to sort?
     const latestTokensClaimedEvents: ethers.EventLog | ethers.Log | null = tokensClaimedEvents[0] || null
     if (latestTokensClaimedEvents) {
@@ -471,9 +475,6 @@ export class Facilitator {
   }
 }
 
-// const config = useRuntimeConfig()
-// 
-// const provider = useProvider()
 let facilitator: Facilitator | null = null
 export const initFacilitator = async () => {
   const config = useRuntimeConfig()
