@@ -33,7 +33,7 @@
               <code>{{ currentlyClaimableTokens }} $ATOR (Goerli Test)</code>
               ready to claim!
             </p>
-            <p v-else-if="!requestUpdateTx">Claiming tokens...</p>
+            <!-- <p v-else-if="requestUpdateTx">Claiming tokens...</p> -->
             <p v-else>No tokens to claim!</p>
           </v-card-title>
 
@@ -310,10 +310,10 @@ const claimTokens = debounce(async () => {
 })
 
 const query = debounce(async () => {
+  if (!auth.value) { return }
+  
   loading.value = true
-
-  await facilitator!.query('RequestingUpdate')
-
+  await facilitator!.query('RequestingUpdate', auth.value.address)
   loading.value = false
 })
 </script>
