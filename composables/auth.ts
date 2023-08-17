@@ -52,10 +52,9 @@ export const setAuth = (address?: string) => {
   if (address) {
     auth.value = { address: ethers.getAddress(address) }
     // @ts-ignore
-    window.ethereum!.on('accountsChanged', onAccountsChanged)
+    window.ethereum!.once('accountsChanged', onAccountsChanged)
   } else {
     auth.value = undefined
-    window.ethereum!.off('accountsChanged', onAccountsChanged)
   }
 
   refreshDashboard()
