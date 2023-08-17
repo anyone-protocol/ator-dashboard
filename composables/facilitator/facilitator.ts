@@ -58,7 +58,7 @@ export class Facilitator {
     private contractAddress: string,
     private provider: BrowserProvider | AbstractProvider
   ) {
-    this.refreshContract()  
+    this.refreshContract(provider)
   }
 
   static buildContract(
@@ -68,10 +68,12 @@ export class Facilitator {
     return new Contract(contractAddress, abi, providerOrSigner)
   }
 
-  private refreshContract() {
+  private refreshContract(
+    providerOrSigner: BrowserProvider | AbstractProvider | JsonRpcSigner
+  ) {
     this.contract = Facilitator.buildContract(
       this.contractAddress,
-      this.provider
+      providerOrSigner
     )
     this.listenForUserEvents()
   }
@@ -79,16 +81,10 @@ export class Facilitator {
   setSigner(signer?: JsonRpcSigner) {
     if (signer) {
       this.signer = signer
-      this.contract = Facilitator.buildContract(
-        this.contractAddress,
-        this.signer
-      )
+      this.refreshContract(this.signer)
     } else {
       this.signer = null
-      this.contract = Facilitator.buildContract(
-        this.contractAddress,
-        useProvider()
-      )
+      this.refreshContract(useProvider())
     }   
     
     this.refresh()
@@ -216,7 +212,6 @@ export class Facilitator {
       const filter = this.contract.filters[facilitatorEvent](address)
       const result = await this.contract.queryFilter(filter, fromBlock, toBlock)
 
-      console.log(`Facilitator query [${facilitatorEvent}]`, result)
       return result
     } catch (error) {
       console.error('Error querying facilitator contract events', error)
@@ -242,34 +237,46 @@ export class Facilitator {
     const allocationClaimedEvents = await this.query('AllocationClaimed', auth.value.address)
     // TODO -> what order are events in? first or last or no order? need to sort?
     const latestAllocationClaimedEvent: ethers.EventLog | ethers.Log | null = allocationClaimedEvents[0] || null
-    const fromBlockHash = latestAllocationClaimedEvent ? latestAllocationClaimedEvent.blockHash : undefined
-    
-    const requestUpdateEvents = await this.query('RequestingUpdate', auth.value.address, fromBlockHash)
-    // TODO -> what order are events in? first or last or no order? need to sort?
-    const latestRequestUpdateEvent: ethers.EventLog | ethers.Log | null = requestUpdateEvents[0] || null
-    if (latestRequestUpdateEvent) {
-      requestUpdateTx = latestRequestUpdateEvent.transactionHash
-    }
-
-    const allocationUpdatedEvents = await this.query('AllocationUpdated', auth.value.address, fromBlockHash)
-    // TODO -> what order are events in? first or last or no order? need to sort?
-    const latestAllocationUpdatedEvent: ethers.EventLog | ethers.Log | null = allocationUpdatedEvents[0] || null
-    if (latestAllocationUpdatedEvent) {
-      allocationUpdatedTx = latestAllocationUpdatedEvent.transactionHash
-    }
-
-    const tokensClaimedEvents = await this.query('AllocationClaimed', auth.value.address, fromBlockHash)
-    // TODO -> what order are events in? first or last or no order? need to sort?
-    const latestTokensClaimedEvents: ethers.EventLog | ethers.Log | null = tokensClaimedEvents[0] || null
-    if (latestTokensClaimedEvents) {
-      allocationUpdatedTx = latestTokensClaimedEvents.transactionHash
-    }
-
-    if (requestUpdateTx) {
-      this.setRequestUpdateTx(requestUpdateTx)
-      useState<boolean>('facilitator-request-update-tx-ready').value = true
-    }
+    const fromBlockNumber = latestAllocationClaimedEvent ? latestAllocationClaimedEvent.blockNumber : undefined
     if (allocationUpdatedTx) { this.setAllocationUpdatedTx(allocationUpdatedTx) }
+
+    try {
+      const requestUpdateEvents = await this.query('RequestingUpdate', auth.value.address, fromBlockNumber)
+      // TODO -> what order are events in? first or last or no order? need to sort?
+      const latestRequestUpdateEvent: ethers.EventLog | ethers.Log | null = requestUpdateEvents[0] || null
+      if (latestRequestUpdateEvent) {
+        requestUpdateTx = latestRequestUpdateEvent.transactionHash
+      }
+      if (requestUpdateTx) {
+        this.setRequestUpdateTx(requestUpdateTx)
+        useState<boolean>('facilitator-request-update-tx-ready').value = true
+      }
+    } catch (error) {
+      console.error('Error querying RequestingUpdate events', error)
+    }
+
+    try {
+      const allocationUpdatedEvents = await this.query('AllocationUpdated', auth.value.address, fromBlockNumber)
+      // TODO -> what order are events in? first or last or no order? need to sort?
+      const latestAllocationUpdatedEvent: ethers.EventLog | ethers.Log | null = allocationUpdatedEvents[0] || null
+      if (latestAllocationUpdatedEvent) {
+        allocationUpdatedTx = latestAllocationUpdatedEvent.transactionHash
+      }
+    } catch (error) {
+      console.error('Error querying AllocationUpdated events', error)
+    }
+
+    try {
+      const tokensClaimedEvents = await this.query('AllocationClaimed', auth.value.address, fromBlockNumber)
+      // TODO -> what order are events in? first or last or no order? need to sort?
+      const latestTokensClaimedEvents: ethers.EventLog | ethers.Log | null = tokensClaimedEvents[0] || null
+      if (latestTokensClaimedEvents) {
+        allocationUpdatedTx = latestTokensClaimedEvents.transactionHash
+      }
+    } catch (error) {
+      console.error('Error querying AllocationClaimed events', error)
+    }
+
     if (tokensClaimedTx) { this.setTokensClaimedTx(tokensClaimedTx) }
 
     return {

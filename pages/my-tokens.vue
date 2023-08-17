@@ -14,8 +14,10 @@
         <p>budget available: {{ gasAvailable }}</p>
         <p>budget used: {{ gasUsed }}</p>
         <p>budget balance: {{ gasBudgetBalance }}</p>
+        <p>token-contract-facilitator-transfer: {{ allocationUpdatedTx }}</p>
         <v-btn @click="query">Query</v-btn> |
-        <v-btn @click="fundOracle">Fund Oracle</v-btn> |
+        <!-- <v-btn @click="fundOracle">Fund Oracle</v-btn> | -->
+        <v-btn @click="simulateOnTransfer">Simulate On Transfer</v-btn> |
         <v-btn @click="refresh">Refresh</v-btn>
       </v-col>
     </v-row>
@@ -159,11 +161,12 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useFacilitator } from '~/composables'
+import { useAtorToken, useFacilitator } from '~/composables'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Tokens' })
 const facilitator = useFacilitator()
+const token = useAtorToken()
 const auth = useAuth()
 
 /**
@@ -206,8 +209,6 @@ const _resetClaimProcessStatuses = () => {
  */
 const claimedAllocationCachedValueHumanized = computed(() => {
   if (!claimedAllocationCachedValue.value) { return null }
-
-  console.log('claimedAllocationCachedValue', claimedAllocationCachedValue.value)
 
   return BigNumber(claimedAllocationCachedValue.value.toString()).dividedBy(1e18).toFormat(3)
 })
@@ -306,6 +307,23 @@ const claimTokens = debounce(async () => {
     hasError.value = true
   }
 
+  loading.value = false
+})
+
+const simulateOnTransfer = debounce(async () => {
+  if (!auth.value) { return }
+
+  loading.value = true
+  try {
+    // @ts-ignore
+    await token.onTransfer(
+      '0x72F28fD67b1Fc03d69A9b35EDB0A1f75b7af5C2b',
+      auth.value.address,
+      10625878774745353617n
+    )
+  } catch (error) {
+    console.error('There was an error simulating onTransfer event', error)
+  }
   loading.value = false
 })
 
