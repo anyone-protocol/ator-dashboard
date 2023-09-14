@@ -4,6 +4,8 @@
 
 <script>
 import mapboxgl from 'mapbox-gl';
+import { useTheme } from 'vuetify';
+import { watch, ref, onBeforeUnmount } from 'vue';
 
 export default {
   name: "MapboxComponent",
@@ -13,52 +15,48 @@ export default {
       required: true
     }
   },
-  data() {
-    return {
-      map: null
-    };
-  },
-  computed: {
-    ipData() {
-      return {
-        type: "FeatureCollection",
-        features: this.locations.map(location => ({
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [Number(location.lon), Number(location.lat)],
-          },
-          properties: {
-            latitude: Number(location.lat)
-          },
-        })),
-      };
-    }
-  },
-  mounted() {
-    this.initializeMap();
-    console.log(this.locations)
-  },
-  methods: {
-    initializeMap() {
+  setup(props) {
+    const appTheme = useTheme();
+    const map = ref(null);
+
+    const ipData = ref({
+      type: "FeatureCollection",
+      features: props.locations.map(location => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [Number(location.lon), Number(location.lat)],
+        },
+        properties: {
+          latitude: Number(location.lat)
+        },
+      })),
+    });
+
+    const initializeMap = () => {
       mapboxgl.accessToken = "pk.eyJ1IjoibWlkY29vbGVyIiwiYSI6ImNsbHljb3lzejB2eXYzbHA2bDF2aWU3YngifQ.RW55-cCEjahqZ2YLfJK_8w";
 
-      this.map = new mapboxgl.Map({
+      const mapStyle = appTheme.global.current.value.dark
+        ? "mapbox://styles/mapbox/dark-v10"
+        : "mapbox://styles/mapbox/light-v10";
+
+      map.value = new mapboxgl.Map({
         container: "map",
-        style: "mapbox://styles/mapbox/dark-v10",
+        style: mapStyle,
         center: [0, 30],
         zoom: 2.5,
       });
 
-      this.map.on("load", this.onMapLoad);
-    },
-    onMapLoad() {
-      this.map.addSource("ipData", {
+      map.value.on("load", onMapLoad);
+    };
+
+    const onMapLoad = () => {
+      map.value.addSource("ipData", {
         type: "geojson",
-        data: this.ipData,
+        data: ipData.value,
       });
 
-      this.map.addLayer({
+      map.value.addLayer({
         id: "points",
         type: "circle",
         source: "ipData",
@@ -76,22 +74,55 @@ export default {
         },
       });
 
-      const layers = this.map.getStyle().layers;
+      const layers = map.value.getStyle().layers;
       const layersToHide = ["state-label", "settlement-label", "poi-label"];
 
       for (let layer of layers) {
         if (layersToHide.includes(layer.id)) {
-          this.map.setLayoutProperty(layer.id, "visibility", "none");
+          map.value.setLayoutProperty(layer.id, "visibility", "none");
         }
 
         if (layer.type === "line") {
-          this.map.setPaintProperty(layer.id, "line-color", "#007cbf");
+          map.value.setPaintProperty(layer.id, "line-color", "#007cbf");
         }
       }
-    },
+    };
+
+    watch(() => appTheme.global.current.value.dark, (newValue) => {
+      const mapStyle = newValue 
+        ? "mapbox://styles/mapbox/dark-v10"
+        : "mapbox://styles/mapbox/light-v10";
+
+      if (map.value && map.value.isStyleLoaded()) { 
+          map.value.setStyle(mapStyle);
+          map.value.once("style.load", () => {
+          onMapLoad();
+        });
+      }
+    }, { immediate: true });
+
+    onBeforeUnmount(() => {
+      if (map.value) {
+          map.value.remove();
+      }
+    });
+
+    return {
+      appTheme,
+      map,
+      initializeMap,
+      onMapLoad
+    };
   },
+
+  mounted() {
+    this.$nextTick(function () {
+      this.initializeMap();
+      console.log(this.locations);
+    })
+  },
+
   beforeDestroy() {
-    // This is needed to ensure that map resources are released when the component is destroyed
     if (this.map) {
       this.map.remove();
     }
