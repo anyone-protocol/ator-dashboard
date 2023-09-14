@@ -22,6 +22,11 @@ export const navItems = ref([
     label: 'My Tokens',
     icon: 'mdi-bank',
     to: '/my-tokens'
+  },
+  {
+    label: 'Relay Map',
+    icon: 'mdi-map',
+    to: '/relay-map'
   }
 ])
 

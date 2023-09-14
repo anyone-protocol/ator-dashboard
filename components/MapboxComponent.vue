@@ -26,10 +26,10 @@ export default {
           type: "Feature",
           geometry: {
             type: "Point",
-            coordinates: [location.lon, location.lat],
+            coordinates: [Number(location.lon), Number(location.lat)],
           },
           properties: {
-            latitude: location.lat
+            latitude: Number(location.lat)
           },
         })),
       };

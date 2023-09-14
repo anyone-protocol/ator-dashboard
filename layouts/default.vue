@@ -60,12 +60,6 @@
 
 
 <script setup lang="ts">
-import {
-  useAtorToken,
-  useDistribution,
-  useFacilitator,
-  useRelayRegistry
-} from '~/composables'
 import { initializeDashboard } from '~/lib'
 
 const navDrawerOpen = useNavDrawerOpen()
