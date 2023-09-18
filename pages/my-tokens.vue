@@ -29,7 +29,7 @@
         </v-alert>
 
         <v-card>
-          <v-card-title>
+          <v-card-text>
             <p v-if="hasTokensToClaim">
               You have
               <code>{{ currentlyClaimableTokens }} $ATOR (Goerli Test)</code>
@@ -37,7 +37,7 @@
             </p>
             <!-- <p v-else-if="requestUpdateTx">Claiming tokens...</p> -->
             <p v-else>No tokens to claim!</p>
-          </v-card-title>
+          </v-card-text>
 
           <v-card-actions
             v-if="hasTokensToClaim"

@@ -19,6 +19,7 @@ export const useWarp = async () => {
 
   const {
     EvmSignatureVerificationWebPlugin
+    // @ts-ignore
   } = await import('warp-contracts-plugin-signature')
 
   return warp.use(new EvmSignatureVerificationWebPlugin())
