@@ -133,7 +133,6 @@
 
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
-import { sleep } from 'warp-contracts'
 
 import { useRelayRegistry } from '~/composables'
 import { ValidatedRelay, VerificationResultDto } from '~/composables/metrics'
