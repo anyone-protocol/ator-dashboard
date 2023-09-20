@@ -114,6 +114,20 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="snackbarOpen" vertical :color="snackbarType">
+      <div class="text-subtitle-1 pb-2">{{ snackbarTitle }}</div>
+      <p>{{ snackbarMessage }}</p>  
+      <template v-slot:actions>
+        <v-btn
+          color="white"
+          variant="text"
+          @click="snackbarOpen = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -126,6 +140,17 @@ import { Fingerprint } from '~/utils/contracts'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Relays' })
+
+const snackbarOpen = ref(false)
+const snackbarMessage = ref('')
+const snackbarType = ref<'success' | 'error'>('success')
+const snackbarTitle = ref('')
+const showSnackbarMessage = (type: 'success' | 'error', message: string) => {
+  snackbarType.value = type
+  snackbarTitle.value = type === 'success' ? 'Success' : 'Error'
+  snackbarMessage.value = message
+  snackbarOpen.value = true
+}
 
 const loading = ref<boolean>(false)
 const relayRegistryRefreshing = useState<boolean>(
@@ -204,14 +229,20 @@ const claim = debounce(async (fingerprint: string) => {
   try {
     const success = await registry.claim(fingerprint)
 
-    // TODO -> inform user of success, contract state update may be delayed
-
     if (success) {
+      showSnackbarMessage(
+        'success',
+        `Successfully claimed relay ${fingerprint}!`
+      )
       await registry.refresh()
     } else {
-      console.error('Unknown error interacting with registry contract')
+      throw new Error('Unknown error interacting with registry contract')
     }
   } catch (error) {
+    showSnackbarMessage(
+      'error',
+      `An error occurred claiming relay ${fingerprint}: ${error}`
+    )
     console.error(error)
   }
 
@@ -241,15 +272,22 @@ const renounce = debounce(async (fingerprint: string) => {
   try {
     const success = await registry.renounce(fingerprint)
 
-    // TODO -> inform user of success, contract state update may be delayed
-
     if (success) {
-      await registry.refresh()
       isRenounceDialogOpen.value = false
+      showSnackbarMessage(
+        'success',
+        `Successfully renounced relay ${fingerprint}!`
+      )
+      await registry.refresh()
+      
     } else {
-      console.error('Unknown error interacting with registry contract')
+      throw new Error('Unknown error interacting with registry contract')
     }
   } catch (error) {
+    showSnackbarMessage(
+      'error',
+      `An error occurred renouncing relay ${fingerprint}: ${error}`
+    )
     console.error(error)
   }
 
