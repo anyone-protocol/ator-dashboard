@@ -233,23 +233,21 @@ export class Facilitator {
 
     if (!auth.value) { return { requestUpdateTx: null, allocationUpdatedTx: null, tokensClaimedTx: null } }
 
-    // TODO -> query from height of last AllocationClaimed event
     const allocationClaimedEvents = await this.query('AllocationClaimed', auth.value.address)
-    // TODO -> what order are events in? first or last or no order? need to sort?
+    // console.log(`Facilitator checking for PREVIOUS claims found ${allocationClaimedEvents.length} AllocationClaimed event(s)`, allocationClaimedEvents)
+    allocationClaimedEvents.reverse()
     const latestAllocationClaimedEvent: ethers.EventLog | ethers.Log | null = allocationClaimedEvents[0] || null
     const fromBlockNumber = latestAllocationClaimedEvent ? latestAllocationClaimedEvent.blockNumber : undefined
-    if (allocationUpdatedTx) { this.setAllocationUpdatedTx(allocationUpdatedTx) }
+    const latestAllocationClaimedHash: string = latestAllocationClaimedEvent?.transactionHash || ''
+    // console.log('Facilitator checking for PREVIOUS claims found latest AllocationClaimed event', latestAllocationClaimedEvent)
+    // console.log('Faciltator checking for events from block', fromBlockNumber)
 
     try {
       const requestUpdateEvents = await this.query('RequestingUpdate', auth.value.address, fromBlockNumber)
-      // TODO -> what order are events in? first or last or no order? need to sort?
+      requestUpdateEvents.reverse()
       const latestRequestUpdateEvent: ethers.EventLog | ethers.Log | null = requestUpdateEvents[0] || null
-      if (latestRequestUpdateEvent) {
+      if (latestRequestUpdateEvent && latestRequestUpdateEvent.transactionHash !== latestAllocationClaimedHash) {
         requestUpdateTx = latestRequestUpdateEvent.transactionHash
-      }
-      if (requestUpdateTx) {
-        this.setRequestUpdateTx(requestUpdateTx)
-        useState<boolean>('facilitator-request-update-tx-ready').value = true
       }
     } catch (error) {
       console.error('Error querying RequestingUpdate events', error)
@@ -257,9 +255,9 @@ export class Facilitator {
 
     try {
       const allocationUpdatedEvents = await this.query('AllocationUpdated', auth.value.address, fromBlockNumber)
-      // TODO -> what order are events in? first or last or no order? need to sort?
+      allocationUpdatedEvents.reverse()
       const latestAllocationUpdatedEvent: ethers.EventLog | ethers.Log | null = allocationUpdatedEvents[0] || null
-      if (latestAllocationUpdatedEvent) {
+      if (latestAllocationUpdatedEvent && latestAllocationUpdatedEvent.transactionHash !== latestAllocationClaimedHash) {
         allocationUpdatedTx = latestAllocationUpdatedEvent.transactionHash
       }
     } catch (error) {
@@ -268,16 +266,27 @@ export class Facilitator {
 
     try {
       const tokensClaimedEvents = await this.query('AllocationClaimed', auth.value.address, fromBlockNumber)
-      // TODO -> what order are events in? first or last or no order? need to sort?
+      tokensClaimedEvents.reverse()
       const latestTokensClaimedEvents: ethers.EventLog | ethers.Log | null = tokensClaimedEvents[0] || null
-      if (latestTokensClaimedEvents) {
-        allocationUpdatedTx = latestTokensClaimedEvents.transactionHash
+      if (latestTokensClaimedEvents && latestTokensClaimedEvents.transactionHash !== latestAllocationClaimedHash) {
+        tokensClaimedTx = latestTokensClaimedEvents.transactionHash
       }
     } catch (error) {
       console.error('Error querying AllocationClaimed events', error)
     }
 
+    if (requestUpdateTx) {
+      this.setRequestUpdateTx(requestUpdateTx)
+      useState<boolean>('facilitator-request-update-tx-ready').value = true
+    }
+    if (allocationUpdatedTx) {
+      this.setAllocationUpdatedTx(allocationUpdatedTx)
+    }
     if (tokensClaimedTx) { this.setTokensClaimedTx(tokensClaimedTx) }
+
+    // console.log('Facilitator found RequestingUpdate Event TX', requestUpdateTx)
+    // console.log('Facilitator found AllocationUpdated Event TX', allocationUpdatedTx)
+    // console.log('Facilitator found AllocationClaimed Event TX', tokensClaimedTx)
 
     return {
       requestUpdateTx,
