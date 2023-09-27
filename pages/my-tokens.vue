@@ -15,6 +15,11 @@
         <p>budget used: {{ gasUsed }}</p>
         <p>budget balance: {{ gasBudgetBalance }}</p>
         <p>token-contract-facilitator-transfer: {{ allocationUpdatedTx }}</p>
+        <p>facilitator-request-update-tx: {{ requestUpdateTx }}</p>
+        <p>facilitator-allocation-updated-tx: {{ allocationUpdatedTx }}</p>
+        <p>facilitator-tokens-claimed-tx: {{ tokensClaimedTx }}</p>
+        <p>facilitator-request-update-tx-ready: {{ requestUpdateTxReady }}</p>
+        <p>isClaimInProgressButNotComplete: {{ isClaimInProgressButNotComplete }}</p>
         <v-btn @click="query">Query</v-btn> |
         <!-- <v-btn @click="fundOracle">Fund Oracle</v-btn> | -->
         <v-btn @click="simulateOnTransfer">Simulate On Transfer</v-btn> |
@@ -46,7 +51,7 @@
             <v-btn
               class="primary-background"
               :loading="loading"
-              :disabled="!!requestUpdateTx"
+              :disabled="isClaimInProgressButNotComplete"
               @click="fundAndRequest"
             >Claim Tokens</v-btn>
           </v-card-actions>
@@ -115,44 +120,6 @@
             <v-btn class="danger-background" @click="reset">Reset</v-btn>
           </v-card-actions>
         </v-card>
-
-        <!-- <v-timeline side="end">
-          <v-timeline-item :dot-color="needsToFund ? '' : 'primary'">
-            <v-card>
-              <v-card-title>
-                {{ `${needsToFund ? 'Fund Oracle & ' : ''}Request Update` }}
-              </v-card-title>
-              <v-card-actions>
-                <v-btn
-                  v-if="needsToFund"
-                  class="primary-background"
-                  :loading="loading"
-                  @click="fundAndRequest"
-                >Fund Oracle & Request Update</v-btn>
-                <v-btn
-                  v-else
-                  class="primary-background"
-                  :loading="loading"
-                  @click="requestUpdate"
-                >Request Update</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-timeline-item>
-
-          <v-timeline-item v-if="currentlyClaimableTokens && currentlyClaimableTokens.gt(0)">
-            <v-card>
-              <v-card-title>Claim Tokens</v-card-title>
-              <v-card-actions>
-                <v-btn
-                  class="primary-background"
-                  :loading="loading"
-                  @click="claimTokens"
-                >Claim Tokens</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-timeline-item>
-
-        </v-timeline> -->
       </v-col>
     </v-row>
   </v-container>
@@ -176,6 +143,7 @@ const loading = ref<boolean>(false)
 const hasError = ref<boolean>(false)
 const debug = ref<boolean>(false)
 const cachedTokensOnClaimStart = ref<number | null>(null)
+const hasUserActuallyClickedClaim = ref<boolean>(false)
 
 /**
  * State Values
@@ -207,6 +175,24 @@ const _resetClaimProcessStatuses = () => {
 /**
  * Computed Values
  */
+const isClaimInProgressButNotComplete = computed(() => {
+  const isAnyProgress = !!requestUpdateTx.value
+    || !!requestUpdateTxReady.value  
+    || !!allocationUpdatedTx.value
+    || !!tokensClaimedTx.value
+
+  const isCompleteProgress = !!tokensClaimedTx.value
+
+  return isAnyProgress && !isCompleteProgress
+})
+const shouldShowClaimProgress = computed(() => {
+  const shouldShow = isClaimInProgressButNotComplete.value
+    || hasUserActuallyClickedClaim.value
+
+  console.log('hasUserActuallyClickedClaim', hasUserActuallyClickedClaim.value)
+
+  return shouldShow
+})
 const claimedAllocationCachedValueHumanized = computed(() => {
   if (!claimedAllocationCachedValue.value) { return null }
 
@@ -262,6 +248,8 @@ const refresh = debounce(async () => {
 
 const fundAndRequest = debounce(async () => {
   loading.value = true
+  hasUserActuallyClickedClaim.value = true
+  _resetClaimProcessStatuses()
   // const result = await facilitator.receiveAndRequestUpdate()
   const result = await facilitator!.fundOracle()
   loading.value = false
