@@ -143,7 +143,6 @@ const loading = ref<boolean>(false)
 const hasError = ref<boolean>(false)
 const debug = ref<boolean>(false)
 const cachedTokensOnClaimStart = ref<number | null>(null)
-const hasUserActuallyClickedClaim = ref<boolean>(false)
 
 /**
  * State Values
@@ -184,14 +183,6 @@ const isClaimInProgressButNotComplete = computed(() => {
   const isCompleteProgress = !!tokensClaimedTx.value
 
   return isAnyProgress && !isCompleteProgress
-})
-const shouldShowClaimProgress = computed(() => {
-  const shouldShow = isClaimInProgressButNotComplete.value
-    || hasUserActuallyClickedClaim.value
-
-  console.log('hasUserActuallyClickedClaim', hasUserActuallyClickedClaim.value)
-
-  return shouldShow
 })
 const claimedAllocationCachedValueHumanized = computed(() => {
   if (!claimedAllocationCachedValue.value) { return null }
@@ -248,7 +239,6 @@ const refresh = debounce(async () => {
 
 const fundAndRequest = debounce(async () => {
   loading.value = true
-  hasUserActuallyClickedClaim.value = true
   _resetClaimProcessStatuses()
   // const result = await facilitator.receiveAndRequestUpdate()
   const result = await facilitator!.fundOracle()
