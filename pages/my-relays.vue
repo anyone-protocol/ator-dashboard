@@ -14,57 +14,68 @@
                 Observed Bandwidth
               </th>
               <th class="font-weight-black basic-text text-right">Active</th>
-              <th></th>
+              <th />
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-if="!relayRegistryRefreshing && claimable"
-              v-for="fingerprint in claimable"
-              :key="fingerprint"
-            >
-              <td><code>{{ fingerprint }}</code></td>
-              <td>Claimable</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td>
-                <v-btn
-                  @click="claim(fingerprint)"
-                  class="primary-background"
-                  size="small"
-                  :loading="loading"
-                >Claim</v-btn>
-              </td>
-            </tr>
+            <template v-if="!relayRegistryRefreshing && claimable">
+              <tr
+                v-for="fingerprint in claimable"
+                :key="fingerprint"
+              >
+                <td><code>{{ fingerprint }}</code></td>
+                <td>Claimable</td>
+                <td />
+                <td />
+                <td />
+                <td>
+                  <v-btn
+                    class="primary-background"
+                    size="small"
+                    :loading="loading"
+                    @click="claim(fingerprint)"
+                  >
+                    Claim
+                  </v-btn>
+                </td>
+              </tr>
+            </template>
 
-            <tr
-              v-if="!relayRegistryRefreshing && verified"
-              v-for="relay in verified"
-              :key="relay.fingerprint"
-            >
-              <td><code>{{ relay.fingerprint }}</code></td>
-              <td>Verified</td>
-              <td class="text-end">
-                {{ relay.consensus_weight ? relay.consensus_weight : '--' }}
-              </td>
-              <td class="text-end">
-                {{ relay.observed_bandwidth ? relay.observed_bandwidth : '--' }}
-              </td>
-              <td class="text-end">
-                <v-icon :color="relay.running ? 'green' : 'red'">
-                  {{ relay.running ? 'mdi-lan-check' : 'mdi-lan-disconnect' }}
-                </v-icon>
-              </td>
-              <td class="text-end">
-                <v-btn
-                  @click="openRenounceDialog(relay.fingerprint)"
-                  class="danger-background"
-                  size="small"
-                  :loading="loading"
-                >Renounce</v-btn>
-              </td>
-            </tr>
+            <template v-if="!relayRegistryRefreshing && verified">
+              <tr
+                v-for="relay in verified"
+                :key="relay.fingerprint"
+              >
+                <td><code>{{ relay.fingerprint }}</code></td>
+                <td>Verified</td>
+                <td class="text-end">
+                  {{ relay.consensus_weight ? relay.consensus_weight : '--' }}
+                </td>
+                <td class="text-end">
+                  {{
+                    relay.observed_bandwidth
+                      ? relay.observed_bandwidth
+                      : '--'
+                  }}
+                </td>
+                <td class="text-end">
+                  <v-icon :color="relay.running ? 'green' : 'red'">
+                    {{ relay.running ? 'mdi-lan-check' : 'mdi-lan-disconnect' }}
+                  </v-icon>
+                </td>
+                <td class="text-end">
+                  <v-btn
+                    class="danger-background"
+                    size="small"
+                    :loading="loading"
+                    @click="openRenounceDialog(relay.fingerprint)"
+                  >
+                    Renounce
+                  </v-btn>
+                </td>
+              </tr>
+            </template>
+            
             <tr v-if="!relayRegistryRefreshing && !hasRelays">
               <td>No pending claimable or verified relays!</td>
             </tr>
@@ -103,14 +114,18 @@
           <v-btn
             class="danger-background"
             @click="cancelRenounce"
-          >Cancel</v-btn>
+          >
+            Cancel
+          </v-btn>
           <v-spacer />
           <v-btn
             class="primary-background"
-            @click="renounce(renounceFingerprint)"
             :loading="loading"
             :disabled="userTypedRenouncePhrase !== renouncePhrase"
-          >Renounce</v-btn>
+            @click="renounce(renounceFingerprint)"
+          >
+            Renounce
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -118,7 +133,7 @@
     <v-snackbar v-model="snackbarOpen" vertical :color="snackbarType">
       <div class="text-subtitle-1 pb-2">{{ snackbarTitle }}</div>
       <p>{{ snackbarMessage }}</p>  
-      <template v-slot:actions>
+      <template #actions>
         <v-btn
           color="white"
           variant="text"
@@ -239,9 +254,13 @@ const claim = debounce(async (fingerprint: string) => {
       throw new Error('Unknown error interacting with registry contract')
     }
   } catch (error) {
+    let message = 'See console for error'
+    if (error instanceof Error) {
+      message = error.message
+    }
     showSnackbarMessage(
       'error',
-      `An error occurred claiming relay ${fingerprint}: ${error}`
+      `An error occurred claiming relay ${fingerprint}: ${message}`
     )
     console.error(error)
   }
@@ -284,9 +303,13 @@ const renounce = debounce(async (fingerprint: string) => {
       throw new Error('Unknown error interacting with registry contract')
     }
   } catch (error) {
+    let message = 'See console for error'
+    if (error instanceof Error) {
+      message = error.message
+    }
     showSnackbarMessage(
       'error',
-      `An error occurred renouncing relay ${fingerprint}: ${error}`
+      `An error occurred renouncing relay ${fingerprint}: ${message}`
     )
     console.error(error)
   }

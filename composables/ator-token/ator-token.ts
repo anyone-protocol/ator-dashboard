@@ -41,7 +41,7 @@ export class AtorToken {
     }
 
     this._isInitialized = true
-
+    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.refresh()
   }
 
@@ -55,6 +55,7 @@ export class AtorToken {
       abi,
       signer || provider
     )
+    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.listenForUserEvents()
   }
 
@@ -66,7 +67,7 @@ export class AtorToken {
       this.signer = null
       this.initializeContract()
     }
-    
+    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.refresh()
   }
 
@@ -87,20 +88,15 @@ export class AtorToken {
     if (auth.value) {
       balance = await this.getBalance(auth.value.address)
     }
-    const config = useRuntimeConfig()
-    const facilitatorBalance = await this.getBalance(
-      config.public.facilitatorContract
-    )
-
     console.timeEnd('ator-token')
-    // console.log('AtorToken refreshed', { balance })
+    console.log('AtorToken refreshed', { balance })
     this.setRefreshing(false)
   }
 
   async getBalance(address: string): Promise<BigNumber> {
     if (!this.contract) { throw new Error('AtorToken not initialized!') }
 
-    const balance = await this.contract.balanceOf(address)
+    const balance = await this.contract.balanceOf(address) as bigint
 
     if (address === useAuth().value?.address) {
       useState<string>('tokenBalance').value = balance.toString()
@@ -114,12 +110,11 @@ export class AtorToken {
     return BigNumber(balance.toString())
   }
 
-  private async onTransfer(
+  private onTransfer(
     from: string,
     to: string,
-    value: bigint,
-    event: any
-  ): Promise<void> {
+    value: bigint
+  ) {
     try {
       const auth = useAuth()
       if (!auth.value) { return }
@@ -129,10 +124,14 @@ export class AtorToken {
       if (authedAddress === to && config.public.facilitatorContract === from) {
         useState<bigint>('token-contract-facilitator-transfer').value = value
         
-        // Refresh datas
+        /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
         this.refresh()
         const facilitator = useFacilitator()
-        if (facilitator) { facilitator.refresh() }
+        if (facilitator) {
+          /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
+          facilitator.refresh()
+        }
+        /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
         useDistribution().refresh()
       }
     } catch (error) {
@@ -140,15 +139,15 @@ export class AtorToken {
     }
   }
 
-  private listenForUserEvents() {
+  private async listenForUserEvents() {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
     
-    this.contract.off(TOKEN_EVENTS.Transfer)
+    await this.contract.off(TOKEN_EVENTS.Transfer)
     
     const auth = useAuth()
     if (!auth.value) { return }
     
-    this.contract.on(TOKEN_EVENTS.Transfer, this.onTransfer.bind(this))
+    await this.contract.on(TOKEN_EVENTS.Transfer, this.onTransfer.bind(this))
   }
 }
 

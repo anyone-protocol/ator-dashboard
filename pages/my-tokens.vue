@@ -19,10 +19,10 @@
         <p>facilitator-allocation-updated-tx: {{ allocationUpdatedTx }}</p>
         <p>facilitator-tokens-claimed-tx: {{ tokensClaimedTx }}</p>
         <p>facilitator-request-update-tx-ready: {{ requestUpdateTxReady }}</p>
-        <p>isClaimInProgressButNotComplete: {{ isClaimInProgressButNotComplete }}</p>
+        <p>
+          isClaimInProgressButNotComplete: {{ isClaimInProgressButNotComplete }}
+        </p>
         <v-btn @click="query">Query</v-btn> |
-        <!-- <v-btn @click="fundOracle">Fund Oracle</v-btn> | -->
-        <v-btn @click="simulateOnTransfer">Simulate On Transfer</v-btn> |
         <v-btn @click="refresh">Refresh</v-btn>
       </v-col>
     </v-row>
@@ -53,13 +53,15 @@
               :loading="loading"
               :disabled="isClaimInProgressButNotComplete"
               @click="fundAndRequest"
-            >Claim Tokens</v-btn>
+            >
+              Claim Tokens
+            </v-btn>
           </v-card-actions>
         </v-card>
 
-        <br />
+        <br>
         <v-divider v-if="requestUpdateTx" />
-        <br />
+        <br>
 
         <v-card v-if="requestUpdateTx">
           <v-card-title>Fund Oracle</v-card-title>
@@ -68,9 +70,9 @@
           </v-card-actions>
         </v-card>
 
-        <br />
+        <br>
         <v-divider v-if="requestUpdateTx" />
-        <br />
+        <br>
 
         <v-card v-if="requestUpdateTx">
           <v-card-title>Requesting Update from Oracle</v-card-title>
@@ -80,9 +82,9 @@
           </v-card-text>
         </v-card>
 
-        <br />
+        <br>
         <v-divider v-if="requestUpdateTxReady" />
-        <br />
+        <br>
 
         <v-card v-if="requestUpdateTxReady">
           <v-card-title>Waiting for Oracle Update</v-card-title>
@@ -92,9 +94,9 @@
           </v-card-text>
         </v-card>
 
-        <br />
+        <br>
         <v-divider v-if="allocationUpdatedTx" />
-        <br />
+        <br>
 
         <v-card v-if="allocationUpdatedTx">
           <v-card-title>Waiting for Tokens to Transfer</v-card-title>
@@ -102,7 +104,11 @@
             <v-progress-circular v-if="!tokensClaimedTx" indeterminate />
             <template v-else>
               <v-icon color="primary">mdi-party-popper</v-icon>
-              <p>Congratulations, you've claimed your {{claimedAllocationCachedValueHumanized}} $ATOR (Goerli Test) rewards!</p>
+              <p>
+                Congratulations, you've claimed your
+                {{ claimedAllocationCachedValueHumanized }}
+                $ATOR (Goerli Test) rewards!
+              </p>
               <a
                 target="_blank"
                 :href="`https://goerli.etherscan.io/tx/${allocationUpdatedTx}`"
@@ -111,9 +117,9 @@
           </v-card-text>
         </v-card>
 
-        <br />
+        <br>
         <v-divider v-if="requestUpdateTxReady" />
-        <br />
+        <br>
 
         <v-card v-if="debug && requestUpdateTxReady">
           <v-card-actions style="justify-content: center;">
@@ -128,12 +134,11 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { useAtorToken, useFacilitator } from '~/composables'
+import { useFacilitator } from '~/composables'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Tokens' })
 const facilitator = useFacilitator()
-const token = useAtorToken()
 const auth = useAuth()
 
 /**
@@ -142,7 +147,6 @@ const auth = useAuth()
 const loading = ref<boolean>(false)
 const hasError = ref<boolean>(false)
 const debug = ref<boolean>(false)
-const cachedTokensOnClaimStart = ref<number | null>(null)
 
 /**
  * State Values
@@ -151,18 +155,40 @@ const cachedTokensOnClaimStart = ref<number | null>(null)
 // Token & Facilitator Stats
 const gasAvailable = useState<string | null>('gasAvailable', () => null)
 const gasUsed = useState<string | null>('gasUsed', () => null)
-const oracleWeiRequired = useState<string | null>('oracleWeiRequired', () => null)
-const alreadyClaimedTokens = useState<string | null>('alreadyClaimedTokens', () => null)
-const tokenAllocation = useState<string | null>('tokenAllocation', () => null)
-const facilitatorTokenBalance = useState<string | null>('facilitatorTokenBalance', () => null)
-const claimableAtomicTokens = useState<string | null>('claimableAtomicTokens', () => null)
+const alreadyClaimedTokens = useState<string | null>(
+  'alreadyClaimedTokens',
+  () => null
+)
+const facilitatorTokenBalance = useState<string | null>(
+  'facilitatorTokenBalance',
+  () => null
+)
+const claimableAtomicTokens = useState<string | null>(
+  'claimableAtomicTokens',
+  () => null
+)
 
 // Claim Process Statuses
-const requestUpdateTx = useState<string | null>('facilitator-request-update-tx', () => null)
-const allocationUpdatedTx = useState<string | null>('facilitator-allocation-updated-tx', () => null)
-const tokensClaimedTx = useState<string | null>('facilitator-tokens-claimed-tx', () => null)
-const requestUpdateTxReady = useState<boolean>('facilitator-request-update-tx-ready', () => false)
-const claimedAllocationCachedValue = useState<bigint | null>('token-contract-facilitator-transfer', () => null)
+const requestUpdateTx = useState<string | null>(
+  'facilitator-request-update-tx',
+  () => null
+)
+const allocationUpdatedTx = useState<string | null>(
+  'facilitator-allocation-updated-tx',
+  () => null
+)
+const tokensClaimedTx = useState<string | null>(
+  'facilitator-tokens-claimed-tx',
+  () => null
+)
+const requestUpdateTxReady = useState<boolean>(
+  'facilitator-request-update-tx-ready',
+  () => false
+)
+const claimedAllocationCachedValue = useState<bigint | null>(
+  'token-contract-facilitator-transfer',
+  () => null
+)
 // NB: For debugging, only visual
 const _resetClaimProcessStatuses = () => {
   requestUpdateTx.value = null
@@ -187,7 +213,9 @@ const isClaimInProgressButNotComplete = computed(() => {
 const claimedAllocationCachedValueHumanized = computed(() => {
   if (!claimedAllocationCachedValue.value) { return null }
 
-  return BigNumber(claimedAllocationCachedValue.value.toString()).dividedBy(1e18).toFormat(3)
+  return BigNumber(claimedAllocationCachedValue.value.toString())
+    .dividedBy(1e18)
+    .toFormat(3)
 })
 const facilitatorTokenBalanceHumanized = computed(() => {
   if (!facilitatorTokenBalance.value) { return null }
@@ -204,15 +232,6 @@ const tokensToClaim = computed(() => {
 const hasTokensToClaim = computed(() => {
   return tokensToClaim.value && tokensToClaim.value.gt(0.00001)
 })
-const needsToFund = computed(() => {
-  if (!gasAvailable.value) { return true }
-  if (!oracleWeiRequired.value) { return true }
-
-  return BigNumber(oracleWeiRequired.value).gt(gasAvailable.value)
-})
-const panelsDisabled = computed(
-  () => !gasAvailable.value || !oracleWeiRequired.value
-)
 const currentlyClaimableTokens = computed(() => {
   if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value) {
     return null
@@ -247,62 +266,6 @@ const fundAndRequest = debounce(async () => {
   
   await result.wait()
   requestUpdateTxReady.value = true
-})
-
-const fundOracle = debounce(async () => {
-  loading.value = true
-
-  try {
-    await facilitator!.fundOracle()
-  } catch (error) {
-    console.error('There was an error while funding oracle', error)
-    hasError.value = true
-  }
-
-  loading.value = false
-})
-
-const requestUpdate = debounce(async () => {
-  loading.value = true
-
-  try {
-    await facilitator!.requestUpdate()
-  } catch (error) {
-    console.error('There was an error while requesting update', error)
-    hasError.value = true
-  }
-
-  loading.value = false
-})
-
-const claimTokens = debounce(async () => {
-  loading.value = true
-
-  try {
-    await facilitator!.claim()
-  } catch (error) {
-    console.error('There was an error while claiming tokens', error)
-    hasError.value = true
-  }
-
-  loading.value = false
-})
-
-const simulateOnTransfer = debounce(async () => {
-  if (!auth.value) { return }
-
-  loading.value = true
-  try {
-    // @ts-ignore
-    await token.onTransfer(
-      '0x72F28fD67b1Fc03d69A9b35EDB0A1f75b7af5C2b',
-      auth.value.address,
-      10625878774745353617n
-    )
-  } catch (error) {
-    console.error('There was an error simulating onTransfer event', error)
-  }
-  loading.value = false
 })
 
 const query = debounce(async () => {

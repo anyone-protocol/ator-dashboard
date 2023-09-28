@@ -1,21 +1,9 @@
-import { BrowserProvider, ethers } from 'ethers'
+import { ethers } from 'ethers'
 import { refreshDashboard } from '~/lib'
 
 interface Auth {
   address: string
 }
-
-// export const initializeAuth = async () => {
-//   const provider = initializeBrowserProvider()
-
-//   if (provider && provider instanceof BrowserProvider) {
-//     const accounts = await provider.listAccounts()
-
-//     if (accounts.length > 0) {
-//       setAuth(accounts[0].address)
-//     }
-//   }
-// }
 
 export const connectAuth = async () => {
   if (!window || !window.ethereum) {
@@ -47,16 +35,19 @@ export const setAuth = (address?: string) => {
   const auth = useAuth()
 
   // TODO -> use actual authed address
-  // address = address ? '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996' : undefined
+  // address = address
+  //   ? '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+  //   : undefined
 
   if (address) {
     auth.value = { address: ethers.getAddress(address) }
-    // @ts-ignore
+    /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
+    /* @ts-ignore */
     window.ethereum!.once('accountsChanged', onAccountsChanged)
   } else {
     auth.value = undefined
   }
-
+  /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
   refreshDashboard()
 }
 

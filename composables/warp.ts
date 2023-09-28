@@ -8,6 +8,10 @@ export const useWarp = async () => {
     .forMainnet()
     .use(new EthersExtension())
 
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+  /* eslint-disable @typescript-eslint/ban-ts-comment */
+  /* eslint-disable @typescript-eslint/no-unsafe-argument */
+  /* eslint-disable @typescript-eslint/no-unsafe-call */
   if (process.server) {
     const {
       EvmSignatureVerificationServerPlugin
@@ -21,6 +25,10 @@ export const useWarp = async () => {
     EvmSignatureVerificationWebPlugin
     // @ts-ignore
   } = await import('warp-contracts-plugin-signature')
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+  /* eslint-enable @typescript-eslint/ban-ts-comment */
+  /* eslint-enable @typescript-eslint/no-unsafe-argument */
+  /* eslint-enable @typescript-eslint/no-unsafe-call */
 
   return warp.use(new EvmSignatureVerificationWebPlugin())
 }

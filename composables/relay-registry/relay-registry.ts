@@ -30,6 +30,7 @@ export class RelayRegistry {
     this.sign = sign
     this._isInitialized = true
 
+    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.refresh()
   }
 
@@ -49,15 +50,15 @@ export class RelayRegistry {
     let claimableRelays = null, verifiedRelays = null
     if (auth.value) {
       verifiedRelays = await this.verified(auth.value.address)
-      claimableRelays = await this.claimable(auth.value.address)      
+      claimableRelays = await this.claimable(auth.value.address)
     }
     const totalVerifiedRelays = await this.verified()
     console.timeEnd('relay-registry')
-    // console.log('RelayRegistry refreshed', {
-    //   claimableRelays,
-    //   verifiedRelays,
-    //   totalVerifiedRelays
-    // })
+    console.log('RelayRegistry refreshed', {
+      claimableRelays,
+      verifiedRelays,
+      totalVerifiedRelays
+    })
     this.setRefreshing(false)
   }
 

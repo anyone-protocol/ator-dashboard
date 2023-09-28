@@ -37,41 +37,44 @@
               </tr>
             </thead>
             <tbody>
-              <tr
+              <template
                 v-if="previousDistributions && previousDistributions.length > 0"
-                v-for="pd in pagedPreviousDistributions"
-                :key="pd.timestamp"
               >
-                <td>
-                  <v-tooltip class="v-tooltip-opaque-background">
-                    <template v-slot:activator="{ props }">
-                      <code v-bind="props">
-                        {{ pd.fromNowHumanized }}
-                      </code>
-                    </template>
-                    <code>{{ pd.date.toUTCString() }}</code>
-                  </v-tooltip>
-                </td>
-                <td>
-                  <v-tooltip class="v-tooltip-opaque-background">
-                    <template v-slot:activator="{ props }">
-                      <code v-bind="props">
-                        {{ pd.timeElapsedHumanized }}
-                      </code>
-                    </template>
-                    <code>{{ pd.timeElapsed }}</code>
-                  </v-tooltip>
-                </td>
-                <td class="text-right">
-                  <code>{{ pd.tokensDistributedPerDay }} $ATOR / day</code>
-                </td>
-                <td class="text-right">
-                  <code>{{ pd.totalScore }}</code>
-                </td>
-                <td class="text-right">
-                  <code>{{ pd.totalDistributed }} $ATOR</code>
-                </td>
-              </tr>
+                <tr
+                  v-for="pd in pagedPreviousDistributions"
+                  :key="pd.timestamp"
+                >
+                  <td>
+                    <v-tooltip class="v-tooltip-opaque-background">
+                      <template #activator="{ props }">
+                        <code v-bind="props">
+                          {{ pd.fromNowHumanized }}
+                        </code>
+                      </template>
+                      <code>{{ pd.date.toUTCString() }}</code>
+                    </v-tooltip>
+                  </td>
+                  <td>
+                    <v-tooltip class="v-tooltip-opaque-background">
+                      <template #activator="{ props }">
+                        <code v-bind="props">
+                          {{ pd.timeElapsedHumanized }}
+                        </code>
+                      </template>
+                      <code>{{ pd.timeElapsed }}</code>
+                    </v-tooltip>
+                  </td>
+                  <td class="text-right">
+                    <code>{{ pd.tokensDistributedPerDay }} $ATOR / day</code>
+                  </td>
+                  <td class="text-right">
+                    <code>{{ pd.totalScore }}</code>
+                  </td>
+                  <td class="text-right">
+                    <code>{{ pd.totalDistributed }} $ATOR</code>
+                  </td>
+                </tr>
+              </template>
 
               <tr v-else-if="!previousDistributions">
                 <td width="100%" colspan="5">
@@ -86,13 +89,13 @@
             <tfoot>
               <tr>
                 <td
+                  v-if="latestTimestamp"  
                   colspan="1"
-                  v-if="latestTimestamp"
                   class="distribution-table"
                 >
                   <span class="text-caption">
                     <v-tooltip class="v-tooltip-opaque-background">
-                      <template v-slot:activator="{ props }">
+                      <template #activator="{ props }">
                         <code v-bind="props">
                           Last Updated:
                           {{ latestTimestampHumanized }}
@@ -107,7 +110,9 @@
                     v-model="page"
                     total-visible="10"
                     :length="
-                      previousDistributions ? (previousDistributions.length / pageSize) : 0
+                      previousDistributions
+                        ? (previousDistributions.length / pageSize)
+                        : 0
                     "
                   />
                 </td>

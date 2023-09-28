@@ -1,5 +1,5 @@
 <template>
-  <v-app class="app" v-resize="onResize">
+  <v-app v-resize="onResize" class="app">
     <TopBar />
 
     <v-navigation-drawer
@@ -80,6 +80,5 @@ const include = () => [
   document.getElementById('nav-drawer')
 ]
 
-// NB: hack to setup auth and data providers
-await initializeDashboard()
+initializeDashboard()
 </script>

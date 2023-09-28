@@ -16,13 +16,13 @@
       </v-col>
       <v-col cols="2">
         <v-btn color="primary" variant="plain" size="small">
-          {{appTheme.global.name.value}}
+          {{ appTheme.global.name.value }}
           <v-menu activator="parent" offset-y>
             <v-list>
               <v-list-item
-                class="theme-menu-list-item"
-                v-for="theme in themes"
+                v-for="theme in themes"  
                 :key="theme"
+                class="theme-menu-list-item"
                 @click="changeTheme(theme)"
               >
                 <div class="theme-menu-list-item-container">

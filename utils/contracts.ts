@@ -2,6 +2,7 @@ import { EvolveState, SigningFunction } from 'warp-contracts'
 
 export type ContractFunctionInput = {
   function: string
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   [key: string]: any
 }
 export type EvolvableState = Partial<EvolveState> & OwnableState
@@ -25,7 +26,7 @@ export const formatTorFingerprint = (fingerprintHex: string) => {
 export const createWarpSigningFunction = async (): Promise<SigningFunction> => {
   let sign: SigningFunction
   if (process.server) {
-    sign = async (tx) => {}
+    sign = async () => {}
   } else {
     const { evmSignature } = await import('warp-contracts-plugin-signature')
     sign = evmSignature

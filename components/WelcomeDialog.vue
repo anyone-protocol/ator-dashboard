@@ -13,7 +13,7 @@
         <v-checkbox
           v-model="hideUntilUpdate"
           label="Hide until next update"
-        ></v-checkbox>
+        />
         <v-btn color="primary-background" @click="close">Okay</v-btn>
       </v-card-actions>
     </v-card>
@@ -25,7 +25,7 @@ const open = useWelcomeDialogOpen()
 const welcomeLastSeen = useWelcomeLastSeen()
 const hideUntilUpdate = ref<boolean>(!!welcomeLastSeen.value)
 
-const close = async () => {
+const close = () => {
   if (hideUntilUpdate.value) {
     setWelcomeLastSeen(Date.now())
   } else {
