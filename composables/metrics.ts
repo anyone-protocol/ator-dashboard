@@ -3,11 +3,7 @@ import ArDB from 'ardb'
 import ArdbTransaction from 'ardb/lib/models/transaction'
 import { useTxCache } from './txCache'
 
-const arweave = new Arweave({
-  protocol: 'https',
-  host: 'arweave.net',
-  port: '443'
-})
+const arweave = new Arweave({})
 const ardb = new ArDB(arweave)
 
 const { getTransactionData, saveTransactionData } = useTxCache()
