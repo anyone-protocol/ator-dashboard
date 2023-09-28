@@ -10,12 +10,16 @@
         <v-menu activator="parent" offset-y :close-on-content-click="false">
           <v-list>
             <v-list-item>
+              <TokenBalance />
+              <v-divider />
               <code>{{ auth.address }}</code>
             </v-list-item>
           </v-list>
         </v-menu>
       </div>
       <div v-else>
+        <TokenBalance />
+        <v-divider />
         <code>{{ auth.address }}</code>
       </div>
     </div>
@@ -26,7 +30,7 @@
       :class="{ animate: shouldAnimate }"
       :color="shouldAnimate ? 'red' : 'primary'"
       variant="tonal"
-      @click="suggestMetaMask ? linkToGetMetaMask() : connect()"
+      @click.stop="suggestMetaMask ? linkToGetMetaMask() : connect()"
     >
       Connect
     </v-btn>
@@ -50,20 +54,11 @@
 </style>
 
 <script setup lang="ts">
-const auth = await setupAuth()
+import { connectAuth } from '~/composables/auth'
 
-const connect = async () => {
-  const signer = await useSigner()
-  if (signer) {
-    auth.value = { address: signer.address }
-    const openWelcomeDialog = useWelcomeDialogOpen()
-    const welcomeLastSeen = useWelcomeLastSeen()
-    const { welcomeDialogUpdated } = useAppConfig()
-    openWelcomeDialog.value = welcomeLastSeen.value
-      ? welcomeLastSeen.value < welcomeDialogUpdated
-      : true
-  }
-}
+const auth = useAuth()
+
+const connect = debounce(async () => { await connectAuth() })
 
 const linkToGetMetaMask = () => {
   window.open("https://metamask.io/download/", '_blank')

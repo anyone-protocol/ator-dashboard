@@ -1,7 +1,9 @@
-import { BrowserProvider } from 'ethers'
-// import { BrowserProvider, getDefaultProvider } from 'ethers'
+import { BrowserProvider, ethers } from 'ethers'
 
-const network = 31337 // TODO -> network swapping
+export const NETWORKS = {
+  MAINNET: { decimal: 1, hex: '0x1', name: 'mainnet' },
+  GOERLI: { decimal: 5, hex: '0x5', name: 'goerli' }
+}
 
 export const useSuggestMetaMask = () => useState<boolean | undefined>(
   'suggest-meta-mask',
@@ -10,33 +12,27 @@ export const useSuggestMetaMask = () => useState<boolean | undefined>(
 
 export const suggestMetaMask = useSuggestMetaMask()
 
-export const useProvider = () => {
-
-  if (process.server || typeof window === 'undefined') {
-    return null
-  } else if (!window.ethereum) {
-    suggestMetaMask.value = true
-    return null
-    // try {
-    //   return getDefaultProvider(31337)
-    // } catch {
-    //   suggestMetaMask.value = true
-    //   return null
-    // }
-  } else {
-    const provider = new BrowserProvider(window.ethereum, 31337)
-
-    // @ts-ignore
-    window.ethereum.on('accountsChanged', accounts => {
-      const auth = useAuth()
-
-      if (accounts.length > 0) {
-        auth.value = { address: accounts[0] }
-      } else {
-        auth.value = undefined
-      }
-    })
-
-    return provider
+let provider = ethers.getDefaultProvider(
+  NETWORKS.GOERLI.decimal,
+  {
+    // NB: Required to force fallback provider.  Errors with goerli otherwise.
+    alchemy: '-',
+    ankr: '-',
+    cloudflare: '-',
+    etherscan: '-',
+    infura: '-'
   }
+)
+
+export const initializeBrowserProvider = () => {
+  if (window && window.ethereum) {
+    provider = new BrowserProvider(
+      window.ethereum,
+      NETWORKS.GOERLI.decimal
+    )
+  }
+
+  return provider
 }
+
+export const useProvider = () => provider

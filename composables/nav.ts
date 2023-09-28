@@ -9,15 +9,20 @@ export const navItems = ref([
     to: '/'
   },
   {
+    label: 'Distribution',
+    icon: 'mdi-network-pos',
+    to: '/distribution'
+  },
+  {
     label: 'My Relays',
     icon: 'mdi-lifebuoy',
     to: '/my-relays'
   },
-  // {
-  //   label: 'Purchase',
-  //   pathToLogo: '/images/AtorLogo.png',
-  //   href: links.uniswap
-  // }
+  {
+    label: 'My Tokens',
+    icon: 'mdi-bank',
+    to: '/my-tokens'
+  }
 ])
 
 export const currentPageTitle = computed(() => {

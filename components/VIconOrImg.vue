@@ -14,7 +14,7 @@ export default {
   },
   props: {
     icon: String,
-    pathToImg: String
+    pathToImg: String | undefined
   }
 }
 </script>
