@@ -2,7 +2,7 @@ import { createVuetify, ThemeDefinition } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
-let theme = 'light'
+let theme = 'dark'
 const localStorageTheme = localStorage && localStorage.getItem('theme')
 if (localStorageTheme) {
   theme = localStorageTheme
