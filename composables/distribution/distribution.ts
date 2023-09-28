@@ -30,7 +30,7 @@ export class Distribution {
     this.contract = contract
     this.sign = sign
     this._isInitialized = true
-
+    /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.refresh()
   }
 
@@ -57,11 +57,11 @@ export class Distribution {
       const previousDistributions = await this.getPreviousDistributions()
       const distributionRatePerDay = await this.getDistributionRatePer('day')
       console.timeEnd('distribution')
-      // console.log('Distribution refreshed', {
-      //   claimableAtomicTokens,
-      //   previousDistributions,
-      //   distributionRatePerDay: distributionRatePerDay.toString()
-      // })
+      console.log('Distribution refreshed', {
+        claimableAtomicTokens,
+        previousDistributions,
+        distributionRatePerDay: distributionRatePerDay.toString()
+      })
       this.setRefreshing(false)
     } catch (error) {
       console.error('ERROR REFRESHING DISTRIBUTION', error)

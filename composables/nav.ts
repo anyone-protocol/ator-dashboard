@@ -1,7 +1,5 @@
 export const route = useRoute()
 
-const { links } = useAppConfig()
-
 export const navItems = ref([
   {
     label: 'Dashboard',
@@ -26,17 +24,17 @@ export const navItems = ref([
 ])
 
 export const currentPageTitle = computed(() => {
-    const currentNavItem = navItems.value.find(item => {
-      if (item.to && route.name === item.to.substring(1)) {
-        return true
-      }
-      
-      if (route.name === 'index' && item.to === '/') {
-        return true
-      }
-  
-      return false
-    })
+  const currentNavItem = navItems.value.find(item => {
+    if (item.to && route.name === item.to.substring(1)) {
+      return true
+    }
     
-    return currentNavItem ? currentNavItem.label : ''
+    if (route.name === 'index' && item.to === '/') {
+      return true
+    }
+
+    return false
+  })
+    
+  return currentNavItem ? currentNavItem.label : ''
 })

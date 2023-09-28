@@ -5,7 +5,8 @@
         <MyTokenStats />
       </v-row>
 
-      <br /><br />
+      <br>
+      <br>
 
       <v-row>
         <v-col cols="12">
@@ -83,8 +84,8 @@ const atorBandwidth = computed(() => {
     .verified_and_running.observed_bandwidth
 
   return BigNumber(bandwidth)
-        .dividedBy(Math.pow(1024, 2))
-        .toFormat(3) + ' MiB/s'
+    .dividedBy(Math.pow(1024, 2))
+    .toFormat(3) + ' MiB/s'
 })
 const networkStatsCards = computed(() => [
   {

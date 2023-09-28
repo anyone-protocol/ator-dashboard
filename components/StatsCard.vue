@@ -12,7 +12,7 @@
           <LoadingBreeze v-else :dots="11" />
         </v-col>
         <v-col cols="5" class="text-right">
-          <v-icon :icon="icon" class="icon-ator"></v-icon>
+          <v-icon :icon="icon" class="icon-ator" />
         </v-col>
       </v-row>
     </v-container>
@@ -23,7 +23,11 @@
 export interface StatsCardProps {
   label: string
   icon: string
-  value?: string | number
+  value: {
+    type: string | number | undefined,
+    required: false,
+    default: undefined
+  }
   labelClass?: string
   valueClass?: string
 }

@@ -9,7 +9,7 @@
                 <v-container>
                   <v-row align="center" justify="space-around">
                     <v-col
-                      v-for="{ key, label, value, icon } in myTokensCards"
+                      v-for="{ key, label, value } in myTokensCards"
                       :key="key"
                       class="text-center"
                       cols="12"
@@ -76,12 +76,15 @@ const auth = useAuth()
  * State Values
  */
 // From Distribution
-const claimableAtomicTokens = useState<string | null>('claimableAtomicTokens', () => null)
+const claimableAtomicTokens = useState<string | null>(
+  'claimableAtomicTokens',
+  () => null
+)
 // From Facilitator
-const alreadyClaimedTokens = useState<string | null>('alreadyClaimedTokens', () => null)
-// From Facilitator
-const tokenAllocation = useState<string | null>('tokenAllocation', () => null)
-
+const alreadyClaimedTokens = useState<string | null>(
+  'alreadyClaimedTokens',
+  () => null
+)
 
 /**
  * Computed Values
@@ -107,16 +110,6 @@ const pendingRewards = computed(() => {
   if (pending.lt(0)) { return '0.0000 $ATOR' }
   return pending.toFormat(4) + ' $ATOR'
 })
-const claimableRewards = computed(() => {
-  if (!tokenAllocation.value || !alreadyClaimedTokens.value) {
-    return null
-  }
-
-  return BigNumber(tokenAllocation.value)
-    .minus(alreadyClaimedTokens.value)
-    .dividedBy(1e18)
-    .toFormat(4) + ' $ATOR'
-})
 const previouslyClaimed = computed(() => {
   if (!alreadyClaimedTokens.value) { return null }
   
@@ -128,8 +121,7 @@ type TokenCards = {
   label: string
   icon: string
   value?: string | number | null
-  key: string,
-  click?: Function
+  key: string
 }[]
 const myTokensCards = computed((): TokenCards => {
   return [
@@ -149,14 +141,6 @@ const myTokensCards = computed((): TokenCards => {
         ? pendingRewards.value
         : '--'
     },
-    // {
-    //   key: 'claimable-rewards',
-    //   label: 'My Claimable Rewards',
-    //   icon: 'mdi-bank',
-    //   value: auth.value
-    //     ? claimableRewards.value
-    //     : '--'
-    // },
     {
       key: 'previously-claimed',
       label: 'Previously Claimed',

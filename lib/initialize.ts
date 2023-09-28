@@ -11,15 +11,16 @@ import {
 
 let dashboardInitialized = false
 
-export const initializeDashboard = async () => {
+export const initializeDashboard = () => {
   if (dashboardInitialized) { return }
 
-  // await initializeAuth()
+  /* eslint-disable @typescript-eslint/no-floating-promises */
   initRelayRegistry()
   initAtorToken()
   initDistribution()
   initFacilitator()
   useRelayMetrics().refresh()
+  /* eslint-enable @typescript-eslint/no-floating-promises */
 
   dashboardInitialized = true
 }
@@ -28,8 +29,10 @@ export const refreshDashboard = async () => {
   const auth = useAuth()
 
   if (auth.value) {
+    /* eslint-disable @typescript-eslint/no-floating-promises */
     useDistribution().refresh()
     useRelayRegistry().refresh()
+    /* eslint-enable @typescript-eslint/no-floating-promises */
     const signer = await useSigner()
     const facilitator = useFacilitator()
     const token = useAtorToken()

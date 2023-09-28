@@ -6,7 +6,7 @@ import { useTxCache } from './txCache'
 const arweave = new Arweave({})
 const ardb = new ArDB(arweave)
 
-const { getTransactionData, saveTransactionData } = useTxCache()
+const txCache = useTxCache()
 
 export interface ValidationStats {
   consensus_weight: number
@@ -97,13 +97,14 @@ export class RelayMetrics {
   
     if (tx) {
       try {
-        let validationStats = await getTransactionData(tx.id)
+        let validationStats = await txCache
+          .getTransactionData(tx.id) as ValidationStats | null
 
         if (!validationStats) {
           validationStats = await $fetch<ValidationStats>(
             `${this.gateway}/${tx.id}`
           )
-          await saveTransactionData(tx.id, validationStats)
+          await txCache.saveTransactionData(tx.id, validationStats)
         }
   
         useState<ValidationStats>('validationStats').value = validationStats
@@ -137,11 +138,14 @@ export class RelayMetrics {
 
     if (tx) {
       try {
-        let relayMetrics = await getTransactionData(tx.id)
+        let relayMetrics = await txCache
+          .getTransactionData(tx.id) as VerificationResultDto[] | null
 
         if (!relayMetrics) {
-          relayMetrics = await $fetch<VerificationResultDto[]>(`${this.gateway}/${tx.id}`)
-          await saveTransactionData(tx.id, relayMetrics)
+          relayMetrics = await $fetch<VerificationResultDto[]>(
+            `${this.gateway}/${tx.id}`
+          )
+          await txCache.saveTransactionData(tx.id, relayMetrics)
         }
   
         useState<VerificationResultDto[]>('relayMetrics').value = relayMetrics
@@ -150,7 +154,9 @@ export class RelayMetrics {
         console.error('Could not fetch relay/metrics tx', error)
       }
 
-      const timestamp = parseInt(tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || '')
+      const timestamp = parseInt(
+        tx.tags.find(tag => tag.name === 'Content-Timestamp')?.value || ''
+      )
       if (!Number.isNaN(timestamp)) {
         useState<number>('relayMetricsTimestamp').value = timestamp
         this.relayMetricsTimestamp = new Date(timestamp)

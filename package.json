@@ -20,17 +20,18 @@
     "deploy:balance:eth": "bundlr balance 0xc93F6314e3a8854CC00Db79Cd0883316554AF437 -c ethereum -h https://node2.bundlr.network",
     "deploy:fund:eth": "bundlr fund 5000000000000000 -c ethereum -h https://node2.bundlr.network -w \"$(cat ./.secrets/dashboard-deployer-eth-keyfile)\"",
     "deploy:eth": "bundlr upload-dir ./.output/public --index-file index.html -c ethereum -h https://node2.bundlr.network -w \"$(cat ./.secrets/dashboard-deployer-eth-keyfile)\"",
-    "lint": "eslint --ext .ts,.vue --ignore-path .gitignore .",
-    "lint:fix": "eslint --ext .ts,.vue --ignore-path .gitignore --fix ."
+    "lint": "eslint ."
   },
   "devDependencies": {
     "@bundlr-network/client": "^0.9.11",
     "@types/animejs": "^3.1.7",
     "@types/lodash": "^4.14.194",
-    "@typescript-eslint/parser": "^6.1.0",
-    "eslint": "^8.45.0",
-    "eslint-plugin-vue": "^9.15.1",
-    "nuxt": "^3.2.3"
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "eslint": "^8.47.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "nuxt": "^3.2.3",
+    "vue-eslint-parser": "^9.3.1"
   },
   "dependencies": {
     "@mdi/font": "^7.1.96",
