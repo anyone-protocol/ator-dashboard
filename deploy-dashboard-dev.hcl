@@ -10,7 +10,7 @@ job "deploy-dashboard-dev" {
         driver = "docker"
 
         config {
-            image = "ghcr.io/ator-development/ator-dashboard:0.1.2"
+            image = "ghcr.io/ator-development/ator-dashboard:[[.deploy]]"
             force_pull = true
             entrypoint = ["yarn"]
             command = "deploy"
@@ -38,7 +38,7 @@ job "deploy-dashboard-dev" {
         
         env {
             PHASE="dev"
-            DASHBOARD_VERSION="dev-deployed"
+            DASHBOARD_VERSION="[[.commit_sha]]"
         }
 
         restart {
