@@ -74,7 +74,7 @@ export class Facilitator {
     this.listenForUserEvents()
   }
 
-  setSigner(signer?: JsonRpcSigner) {
+  async setSigner(signer?: JsonRpcSigner) {
     if (signer) {
       this.signer = signer
       this.refreshContract(this.signer)
@@ -83,7 +83,7 @@ export class Facilitator {
       this.refreshContract(useProvider())
     }   
     /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
-    this.refresh()
+    return this.refresh()
   }
 
   private setRefreshing(refreshing: boolean) {

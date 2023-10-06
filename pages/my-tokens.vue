@@ -128,6 +128,52 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <v-row justify="center">
+      <v-col cols="12">
+        <v-table>
+          <thead>
+            <tr>
+              <th class="font-weight-black basic-text">Claim #</th>
+              <th class="font-weight-black basic-text">Request Tx</th>
+              <th class="font-weight-black basic-text">Request Timestamp</th>
+              <th class="font-weight-black basic-text">Claim Tx</th>
+              <th class="font-weight-black basic-text">Claim Timestamp</th>
+              <th class="font-weight-black basic-text">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="claim in facilitatorStore.claims"
+              :key="claim.RequestingUpdate?.transactionHash"
+            >
+              <td class="text-center">{{ facilitatorStore.claims.length - claim.claimNumber }}</td>
+              <td>
+                <a
+                  v-if="claim.RequestingUpdate"
+                  target="_blank"
+                  :href="`https://goerli.etherscan.io/tx/${claim.RequestingUpdate.transactionHash}`"
+                >
+                  <code>{{ truncatedHash(claim.RequestingUpdate.transactionHash) }}</code>
+                </a>
+              </td>
+              <td><code>{{ claim.requestedBlockTimestamp }}</code></td>
+              <td>
+                <a
+                  v-if="claim.AllocationClaimed"
+                  target="_blank"
+                  :href="`https://goerli.etherscan.io/tx/${claim.AllocationClaimed.transactionHash}`"
+                >
+                  <code>{{ truncatedHash(claim.AllocationClaimed.transactionHash) }}</code>
+                </a>
+              </td>
+              <td><code>{{ claim.claimedBlockTimestamp }}</code></td>
+              <td class="text-end"><code>{{ claim.amount }} $ATOR</code></td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -135,11 +181,21 @@
 import BigNumber from 'bignumber.js'
 
 import { useFacilitator } from '~/composables'
+import { useFacilitatorStore } from '~/stores/facilitator'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Tokens' })
 const facilitator = useFacilitator()
 const auth = useAuth()
+const facilitatorStore = useFacilitatorStore()
+
+const truncatedHash = (transactionHash?: string) => {
+  if (!transactionHash) return ''
+
+  return transactionHash.substring(0, 6)
+    + '...'
+    + transactionHash.substring(transactionHash.length - 4)
+}
 
 /**
  * Ref Values
@@ -151,7 +207,6 @@ const debug = ref<boolean>(false)
 /**
  * State Values
  */
-
 // Token & Facilitator Stats
 const gasAvailable = useState<string | null>('gasAvailable', () => null)
 const gasUsed = useState<string | null>('gasUsed', () => null)

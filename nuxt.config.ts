@@ -66,5 +66,7 @@ export default defineNuxtConfig({
   /**
    * Vue Router Config
    */
-  pages: true
+  pages: true,
+
+  modules: [ '@pinia/nuxt' ]
 })
