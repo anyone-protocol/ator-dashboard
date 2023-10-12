@@ -4,9 +4,10 @@ const logLevels: { [key: string]: number } = {
   error: 1,
   warn: 2,
   info: 3,
-  verbose: 4,
-  debug: 5
+  debug: 4,
 }
+
+export type LogLevel = 'error' | 'warn' | 'info' | 'debug'
 
 export default class Logger {
   private level = logLevels[process.env.LOG_LEVEL || 'info']
@@ -23,7 +24,8 @@ export default class Logger {
 
   info(...messages: any[]) {
     const prepend = `[INFO]${this.prepend}`
-    useEventlogStore().append('info', prepend, ...messages)
+    useEventlogStore().append(this.className, 'info', prepend, ...messages)
+    
     if (this.level >= logLevels.info) {
       console.info(prepend, ...messages)
     }
@@ -31,15 +33,19 @@ export default class Logger {
 
   error(...messages: any[]) {
     const prepend = `[ERROR]${this.prepend}`
-    useEventlogStore().append('error', prepend, ...messages)
+    useEventlogStore().append(this.className, 'error', prepend, ...messages)
+    
     if (this.level >= logLevels.error) {
       console.error(prepend, ...messages)
     }
   }
 
   warn(...messages: any[]) {
+    const prepend = `[WARN]${this.prepend}`
+    useEventlogStore().append(this.className, 'warn', prepend, ...messages)
+
     if (this.level >= logLevels.warn) {
-      console.warn(`[WARN]${this.prepend}`, ...messages)
+      console.warn(prepend, ...messages)
     }
   }
 

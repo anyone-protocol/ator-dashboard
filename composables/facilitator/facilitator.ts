@@ -91,7 +91,11 @@ export class Facilitator {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    this.logger.info('Refreshing Facilitator for address', auth.value?.address)
+    this.logger.info(
+      auth.value?.address
+        ? `Refreshing Facilitator for ${auth.value?.address}`
+        : 'Refreshing Facilitator'
+    )
     this.logger.time()
 
     let tokenAllocation = null,
@@ -121,9 +125,9 @@ export class Facilitator {
       gasAvailable: gasAvailable?.toString(),
       gasUsed: gasUsed?.toString(),
       oracleWeiRequired: oracleWeiRequired.toString(),
-      requestUpdateTx,
-      allocationUpdatedTx,
-      tokensClaimedTx
+      // requestUpdateTx,
+      // allocationUpdatedTx,
+      // tokensClaimedTx
     })
     this.setRefreshing(false)
   }

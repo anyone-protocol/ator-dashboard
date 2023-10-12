@@ -83,12 +83,7 @@ export class RelayMetrics {
     await this.refreshValidationStats()
     await this.refreshRelayMetrics()
     this.logger.timeEnd()
-    this.logger.log('Metrics refreshed', {
-      validationStats: this.validationStats,
-      validationStatsTimestamp: this.validationStatsTimestamp,
-      relayMetrics: this.relayMetrics,
-      relayMetricsTimestamp: this.relayMetricsTimestamp
-    })
+    this.logger.log('Metrics refreshed')
     this._lastRefresh = Date.now()
   }
 

@@ -84,7 +84,11 @@ export class AtorToken {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    this.logger.info('AtorToken refreshing for', auth.value?.address)
+    this.logger.info(
+      auth.value?.address
+        ? `AtorToken refreshing for ${auth.value?.address}`
+        : 'AtorToken refreshing'
+    )
     this.logger.time()
 
     let balance = null

@@ -46,7 +46,11 @@ export class RelayRegistry {
     
     this.setRefreshing(true)
     const auth = useAuth()
-    this.logger.info('RelayRegistry refreshing for', auth.value?.address)
+    this.logger.info(
+      auth.value?.address
+        ? `RelayRegistry refreshing for ${auth.value?.address}`
+        : 'RelayRegistry refreshing'
+    )
     this.logger.time()
 
     let claimableRelays = null, verifiedRelays = null
@@ -56,11 +60,7 @@ export class RelayRegistry {
     }
     const totalVerifiedRelays = await this.verified()
     this.logger.timeEnd()
-    this.logger.info('RelayRegistry refreshed', {
-      claimableRelays,
-      verifiedRelays,
-      totalVerifiedRelays
-    })
+    this.logger.info('RelayRegistry refreshed')
     this.setRefreshing(false)
   }
 

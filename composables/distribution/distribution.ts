@@ -47,7 +47,11 @@ export class Distribution {
 
       this.setRefreshing(true)
       const auth = useAuth()
-      this.logger.info('Distribution refreshing for', auth.value?.address)
+      this.logger.info(
+        auth.value?.address
+          ? `Distribution refreshing for ${auth.value?.address}`
+          : 'Distribution refreshing'
+      )
       this.logger.time()
 
       let claimableAtomicTokens = null
@@ -61,7 +65,7 @@ export class Distribution {
       this.logger.timeEnd()
       this.logger.info('Distribution refreshed', {
         claimableAtomicTokens,
-        previousDistributions,
+        // previousDistributions,
         distributionRatePerDay: distributionRatePerDay.toString()
       })
       this.setRefreshing(false)
