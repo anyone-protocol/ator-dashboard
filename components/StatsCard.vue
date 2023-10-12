@@ -23,11 +23,7 @@
 export interface StatsCardProps {
   label: string
   icon: string
-  value: {
-    type: string | number | undefined,
-    required: false,
-    default: undefined
-  }
+  value?: string | number
   labelClass?: string
   valueClass?: string
 }

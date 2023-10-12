@@ -11,6 +11,8 @@ import {
 import BigNumber from 'bignumber.js'
 
 import { abi } from './Facility.json'
+import Logger from '~/utils/logger'
+import { useFacilitatorStore } from '~/stores/facilitator'
 
 export const FACILITATOR_EVENTS = {
   AllocationUpdated: 'AllocationUpdated',
@@ -19,14 +21,6 @@ export const FACILITATOR_EVENTS = {
   RequestingUpdate: 'RequestingUpdate'
 }
 export type FacilitatorEvent = keyof typeof FACILITATOR_EVENTS
-
-export type AllocationUpdatedEvent = {
-  type: 'AllocationUpdated',
-  address: string,
-  amount: string,
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  evmEvent: any
-}
 
 const ERRORS = {
   NOT_INITIALIZED: 'Facilitator is not initialized!',
@@ -48,6 +42,7 @@ export class Facilitator {
   private _refreshing: boolean = false
   private contract!: Contract
   private signer: JsonRpcSigner | null = null
+  private readonly logger = new Logger('Facilitator')
 
   constructor(
     private contractAddress: string,
@@ -96,8 +91,8 @@ export class Facilitator {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    // console.log('Refreshing Facilitator for address', auth.value?.address)
-    console.time('facilitator')
+    this.logger.info('Refreshing Facilitator for address', auth.value?.address)
+    this.logger.time()
 
     let tokenAllocation = null,
       alreadyClaimed = null,
@@ -119,8 +114,8 @@ export class Facilitator {
     }
     const oracleWeiRequired = await this.getOracleWeiRequired()
 
-    console.timeEnd('facilitator')
-    console.log('Facilitator refreshed', {
+    this.logger.timeEnd()
+    this.logger.info('Facilitator refreshed', {
       tokenAllocation: tokenAllocation?.toString(),
       alreadyClaimed: alreadyClaimed?.toString(),
       gasAvailable: gasAvailable?.toString(),
@@ -212,7 +207,7 @@ export class Facilitator {
 
       return result
     } catch (error) {
-      console.error('Error querying facilitator contract events', error)
+      this.logger.error('Error querying facilitator contract events', error)
     }
 
     return []
@@ -266,7 +261,7 @@ export class Facilitator {
         requestUpdateTx = latestRequestUpdate.transactionHash
       }
     } catch (error) {
-      console.error('Error querying RequestingUpdate events', error)
+      this.logger.error('Error querying RequestingUpdate events', error)
     }
 
     try {
@@ -285,7 +280,7 @@ export class Facilitator {
         allocationUpdatedTx = latestAllocationUpdated.transactionHash
       }
     } catch (error) {
-      console.error('Error querying AllocationUpdated events', error)
+      this.logger.error('Error querying AllocationUpdated events', error)
     }
 
     try {
@@ -304,7 +299,7 @@ export class Facilitator {
         tokensClaimedTx = latestTokensClaimedEvents.transactionHash
       }
     } catch (error) {
-      console.error('Error querying AllocationClaimed events', error)
+      this.logger.error('Error querying AllocationClaimed events', error)
     }
 
     if (requestUpdateTx) {
@@ -336,12 +331,14 @@ export class Facilitator {
       //     a contract.  There is no explicit receive() interface on the ABI.
       //     So instead we send a normal transaction.
       const result = await this.signer.sendTransaction({ to, value })
-
-      this.setRequestUpdateTx(result.hash)
+      await result.wait()
+      const block = await result.getBlock()
+       if (!block) { throw new Error('Could not get block for funding tx') }
+      await useFacilitatorStore().addPendingClaim(result.hash, block.timestamp)
 
       return result
     } catch (error) {
-      console.error(ERRORS.FUNDING_ORACLE, error)
+      this.logger.error(ERRORS.FUNDING_ORACLE, error)
     }
 
     return null
@@ -358,7 +355,7 @@ export class Facilitator {
 
       return result
     } catch (error) {
-      console.error(ERRORS.REQUESTING_UPDATE, error)
+      this.logger.error(ERRORS.REQUESTING_UPDATE, error)
     }
 
     return null
@@ -379,7 +376,7 @@ export class Facilitator {
 
       return result
     } catch (error) {
-      console.error(ERRORS.RECEIVE_AND_REQUEST_UPDATE, error)
+      this.logger.error(ERRORS.RECEIVE_AND_REQUEST_UPDATE, error)
     }
 
     return null
@@ -409,12 +406,14 @@ export class Facilitator {
 
       if (authedAddress === address) {
         const tx = await event.getTransaction()
-        this.setTokensClaimedTx(tx.hash)
+        // this.setTokensClaimedTx(tx.hash)
+        const store = useFacilitatorStore()
+        await store.onAllocationClaimed(amount, event)
         await tx.wait()
         await this.getAlreadyClaimedTokens(authedAddress)
       }
     } catch (error) {
-      console.error('Error consuming AllocationClaimed event', error)
+      this.logger.error('Error consuming AllocationClaimed event', error)
     }
   }
 
@@ -430,12 +429,12 @@ export class Facilitator {
 
       if (authedAddress === address) {
         const tx = await event.getTransaction()
-        this.setAllocationUpdatedTx(tx.hash)
+        // this.setAllocationUpdatedTx(tx.hash)
         await tx.wait()
         await this.getTokenAllocation(authedAddress)
       }
     } catch (error) {
-      console.error('Error consuming AllocationUpdated event', error)
+      this.logger.error('Error consuming AllocationUpdated event', error)
     }
   }
 
@@ -451,11 +450,13 @@ export class Facilitator {
       const authedAddress = auth.value.address
 
       if (authedAddress === address) {
-        const tx = await event.getTransaction()
-        this.setRequestUpdateTx(tx.hash)
+        // const store = useFacilitatorStore()
+        // await store.onRequestingUpdate(event)
+        // const tx = await event.getTransaction()
+        // this.setRequestUpdateTx(tx.hash)
       }
     } catch (error) {
-      console.error('Error consuming RequestingUpdate event', error)
+      this.logger.error('Error consuming RequestingUpdate event', error)
     }
   }
 

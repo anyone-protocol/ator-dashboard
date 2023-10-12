@@ -1,69 +1,24 @@
-import { EventLog, Log } from 'ethers'
+import { ContractUnknownEventPayload, EventLog } from 'ethers'
 import { defineStore } from 'pinia'
 import BigNumber from 'bignumber.js'
 
 import { useFacilitator } from '~/composables'
+import Logger from '~/utils/logger'
 
-interface TransactionReceiptLogJSON {
-  readonly _type: 'log'
-  readonly address: string
-  readonly blockHash: string
-  readonly blockNumber: number
-  readonly data: string
-  readonly index: number
-  readonly removed: boolean
-  readonly topics: string[]
-  readonly transactionHash: string
-  readonly transactionIndex: number
-}
-
-interface TransactionReceiptJSON {
-  readonly _type: 'TransactionReceipt'
-  readonly blockHash: string
-  readonly blockNumber: number
-  readonly contractAddress: string | null
-  readonly cumulativeGasUsed: string | null
-  readonly from: string
-  readonly gasPrice: string | null
-  readonly gasUsed: string | null
-  readonly hash: string,
-  readonly index: number,
-  readonly logs: TransactionReceiptLogJSON[],
-  readonly logsBloom: string,
-  readonly root: string | null,
-  readonly status: number | null,
-  readonly to: string | null
-}
-
-interface WithTruncatedTransactionHash { 
-  truncatedTranscationHash: string
-}
+const logger = new Logger('FacilitatorStore')
 
 interface ClaimProcess {
   claimNumber: number
-  amount: string
-  RequestingUpdate: EventLog | null
-  AllocationUpdated: EventLog | null
-  AllocationClaimed: EventLog | null
-  requestedBlockTimestamp: string
-  claimedBlockTimestamp: string
+  amount?: string
+  requestingUpdateTransactionHash?: string
+  requestingUpdateBlockTimestamp?: string
+  allocationClaimedTransactionHash?: string
+  allocationClaimedBlockTimestamp?: string
 }
 
 interface FacilitatorStoreState {
   lastQueriedBlockHeight: number
   claims: ClaimProcess[]
-}
-
-function createNewClaimProcess(claimNumber: number) {
-  return {
-    claimNumber,
-    amount: '0',
-    RequestingUpdate: null,
-    AllocationUpdated: null,
-    AllocationClaimed: null,
-    requestedBlockTimestamp: '',
-    claimedBlockTimestamp: ''
-  }
 }
 
 export const useFacilitatorStore = defineStore('facilitator', {
@@ -73,81 +28,149 @@ export const useFacilitatorStore = defineStore('facilitator', {
       claims: []
     }
   },
-  getters: {},
+  getters: {
+    nextClaimNumber: (state) => state.claims.length + 1
+  },
   actions: {
     async queryEventsForAuthedUser() {
       const auth = useAuth()
       const facilitator = useFacilitator()
-      const provider = useProvider()
 
       if (!facilitator) { return }
 
       if (auth.value?.address) {
         const { address } = auth.value
 
-        const requestingUpdate = await facilitator.query('RequestingUpdate', address, this.lastQueriedBlockHeight)
-        const allocationUpdated = await facilitator.query('AllocationUpdated', address, this.lastQueriedBlockHeight)
-        const allocationClaimed = await facilitator.query('AllocationClaimed', address, this.lastQueriedBlockHeight)
+        const requestingUpdate = await facilitator
+          .query('RequestingUpdate', address, this.lastQueriedBlockHeight)
+        const allocationClaimed = await facilitator
+          .query('AllocationClaimed', address, this.lastQueriedBlockHeight)
         const combined: EventLog[] = [
           ...requestingUpdate as EventLog[],
-          ...allocationUpdated as EventLog[],
           ...allocationClaimed as EventLog[]
         ]
+
+        // NB: Sort combined event log by block and tx index ascending
         combined.sort((a, b) => {
           const aVal = parseFloat(`${a.blockNumber}.${a.transactionIndex}`)
           const bVal = parseFloat(`${b.blockNumber}.${b.transactionIndex}`)
-          return bVal - aVal
+          return aVal - bVal
         })
-        console.log('FacilitatorStore queryEventsForAuthedUser()', combined)
+
+        logger.info('Got claim events for authed user', combined)
 
         const claims: ClaimProcess[] = []
-        let currentClaim: ClaimProcess = createNewClaimProcess(claims.length)
+        let currentClaim: ClaimProcess = { claimNumber: this.nextClaimNumber }
         for (let i = 0; i < combined.length; i++) {
           const log = combined[i]
           const { eventName } = log
 
-          switch (eventName) {
-            case 'RequestingUpdate':
-              if (!currentClaim.RequestingUpdate) {
-                currentClaim.RequestingUpdate = log
-              }
-              break
-            case 'AllocationUpdated':
-              if (!currentClaim.AllocationUpdated) {
-                currentClaim.AllocationUpdated = log
-              }
-              break
-            case 'AllocationClaimed':
-              if (!currentClaim.AllocationClaimed) {
-                currentClaim.AllocationClaimed = log
-              }
-              break
-          }
-
           if (
-            currentClaim.RequestingUpdate
-            && currentClaim.AllocationUpdated
-            && currentClaim.AllocationClaimed
+            eventName === 'RequestingUpdate'
+            && !currentClaim.requestingUpdateTransactionHash
           ) {
-            const requestedBlock = await currentClaim.RequestingUpdate.getBlock()
-            currentClaim.requestedBlockTimestamp = new Date(requestedBlock.timestamp * 1000).toUTCString()
-            const claimedBlock = await currentClaim.AllocationClaimed.getBlock()
-            currentClaim.claimedBlockTimestamp = new Date(claimedBlock.timestamp * 1000).toUTCString()
-            const amount = currentClaim.AllocationClaimed.args[1] as bigint
+            const block = await log.getBlock()
+            const timestamp = new Date(block.timestamp * 1000).toUTCString()
+            currentClaim.requestingUpdateTransactionHash = log.transactionHash            
+            currentClaim.requestingUpdateBlockTimestamp = timestamp
+            claims.push(currentClaim)
+          } else if (
+            eventName === 'AllocationClaimed'
+            && !currentClaim.allocationClaimedTransactionHash
+          ) {
+            const block = await log.getBlock()
+            const timestamp = new Date(block.timestamp * 1000).toUTCString()
+            const amount = log.args[1] as bigint
+            currentClaim.allocationClaimedTransactionHash = log.transactionHash
+            currentClaim.allocationClaimedBlockTimestamp = timestamp
             currentClaim.amount = BigNumber(amount.toString())
               .dividedBy(1e18)
               .toFormat(3)
+          }
 
-            claims.push(currentClaim)
-            currentClaim = createNewClaimProcess(claims.length)
+          if (
+            currentClaim.requestingUpdateTransactionHash
+            && currentClaim.allocationClaimedTransactionHash
+          ) {
+            // Reset claim loop window
+            currentClaim = { claimNumber: this.nextClaimNumber }
           }
         }
 
-        console.log('CLAIMS', claims)
+        // NB: Reverse claims so they are in descending order
+        claims.reverse()
+        logger.info('Got claims', claims)
         this.claims = claims
+
         // TODO -> set lastQueriedBlockHeight
       } else {
         this.$reset()
+      }
+    },
+
+    // async onRequestingUpdate(requestingUpdate: ContractUnknownEventPayload) {
+    //   logger.info('onRequestingUpdate()')
+
+    //   const transactionHash = requestingUpdate.log.transactionHash
+    //   const lastClaim = this.claims.at(-1)
+    //   if (lastClaim?.requestingUpdateTransactionHash === transactionHash) {
+    //     logger.info('onRequestingUpdate() skipping duplicate event')
+    //   }
+
+    //   const block = await requestingUpdate.getBlock()
+    //   const timestamp = new Date(block.timestamp * 1000).toUTCString()
+    //   const claim = {
+    //     claimNumber: this.claims.length + 1,
+    //     requestingUpdateTransactionHash: transactionHash,
+    //     requestingUpdateBlockTimestamp: timestamp
+    //   }
+      
+    //   logger.info('onRequestingUpdate() new claim', claim)
+    //   this.claims.push(claim)
+    // },
+
+    async addPendingClaim(transactionHash: string, blockTimestamp: number) {
+      logger.info('addPendingClaim()', transactionHash, blockTimestamp)
+
+      const timestamp = new Date(blockTimestamp * 1000).toUTCString()
+      const claim = {
+        claimNumber: this.nextClaimNumber,
+        requestingUpdateTransactionHash: transactionHash,
+        requestingUpdateBlockTimestamp: timestamp          
+      }
+
+      const existingClaim = this.claims.find(
+        claim => claim.requestingUpdateTransactionHash === transactionHash
+      )
+      if (existingClaim) {
+        logger.info('addPendingClaim() duplicate claim', existingClaim)
+      } else {
+        this.claims.push(claim)
+        logger.info('addPendingClaim() new claim', claim)
+      }
+    },
+
+    async onAllocationClaimed(
+      amount: bigint,
+      allocationClaimed: ContractUnknownEventPayload
+    ) {
+      logger.info('onAllocationClaimed()', amount)
+      const claim = this.claims.pop()
+      logger.info('onAllocationClaimed() existing claim', claim)
+      if (!claim) { return }
+
+      if (claim && !claim.allocationClaimedTransactionHash) {
+        const block = await allocationClaimed.getBlock()
+        const timestamp = new Date(block.timestamp * 1000).toUTCString()
+        claim.allocationClaimedTransactionHash =
+          allocationClaimed.log.transactionHash
+        claim.allocationClaimedBlockTimestamp = timestamp
+        claim.amount = BigNumber(amount.toString())
+          .dividedBy(1e18)
+          .toFormat(3)
+
+        logger.info('onAllocationClaimed() updated claim', claim)
+        this.claims.push(claim)
       }
     }
   }

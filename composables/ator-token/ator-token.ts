@@ -4,6 +4,8 @@ import BigNumber from 'bignumber.js'
 import { abi } from './AirTor.json'
 import { useFacilitator } from '../facilitator'
 import { useDistribution } from '../distribution'
+import Logger from '~/utils/logger'
+
 
 const ERRORS = {
   CONNECTING_CONTRACT:
@@ -26,6 +28,7 @@ export class AtorToken {
   private contract: Contract | null = null
   private signer: JsonRpcSigner | null = null
   private _isInitialized: boolean = false
+  private readonly logger = new Logger('AtorToken')
 
   get isInitialized() { return this._isInitialized }
 
@@ -81,15 +84,15 @@ export class AtorToken {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    // console.log('AtorToken refreshing for', auth.value?.address)
-    console.time('ator-token')
+    this.logger.info('AtorToken refreshing for', auth.value?.address)
+    this.logger.time()
 
     let balance = null
     if (auth.value) {
       balance = await this.getBalance(auth.value.address)
     }
-    console.timeEnd('ator-token')
-    console.log('AtorToken refreshed', { balance })
+    this.logger.timeEnd()
+    this.logger.info('AtorToken refreshed', { balance })
     this.setRefreshing(false)
   }
 
@@ -135,7 +138,7 @@ export class AtorToken {
         useDistribution().refresh()
       }
     } catch (error) {
-      console.error('Error consuming Transfer event', error)
+      this.logger.error('Error consuming Transfer event', error)
     }
   }
 

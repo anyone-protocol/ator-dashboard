@@ -2,8 +2,14 @@ import Arweave from 'arweave'
 import ArDB from 'ardb'
 import ArdbTransaction from 'ardb/lib/models/transaction'
 import { useTxCache } from './txCache'
+import Logger from '~/utils/logger'
 
-const arweave = new Arweave({})
+// NB: Use arweave mainnet locally
+const arweaveConfig = window.location.hostname === 'localhost'
+  ? { protocol: 'https', host: 'arweave.net', port: 443 }
+  : {}
+
+const arweave = new Arweave(arweaveConfig)
 const ardb = new ArDB(arweave)
 
 const txCache = useTxCache()
@@ -54,6 +60,8 @@ export class RelayMetrics {
   private _lastRefresh: number | null = null
   private _refreshInterval = 60 * 1000
 
+  private readonly logger = new Logger('RelayMetrics')
+
   constructor(
     gateway: string,
     metricsDeployer: string
@@ -67,20 +75,20 @@ export class RelayMetrics {
       || Date.now() - this._lastRefresh >= this._refreshInterval
 
     if (!shouldRefresh) {
-      // console.log('Metrics did not refresh', this._lastRefresh)
+      this.logger.info('Metrics did not refresh', this._lastRefresh)
       return
     }
-    // console.log('Metrics refreshing')
-    console.time('metrics')
+    this.logger.log('Metrics refreshing')
+    this.logger.time()
     await this.refreshValidationStats()
     await this.refreshRelayMetrics()
-    console.timeEnd('metrics')
-    // console.log('Metrics refreshed', {
-    //   validationStats: this.validationStats,
-    //   validationStatsTimestamp: this.validationStatsTimestamp,
-    //   relayMetrics: this.relayMetrics,
-    //   relayMetricsTimestamp: this.relayMetricsTimestamp
-    // })
+    this.logger.timeEnd()
+    this.logger.log('Metrics refreshed', {
+      validationStats: this.validationStats,
+      validationStatsTimestamp: this.validationStatsTimestamp,
+      relayMetrics: this.relayMetrics,
+      relayMetricsTimestamp: this.relayMetricsTimestamp
+    })
     this._lastRefresh = Date.now()
   }
 
@@ -110,7 +118,7 @@ export class RelayMetrics {
         useState<ValidationStats>('validationStats').value = validationStats
         this.validationStats = validationStats
       } catch (error) {
-        console.error('Could not fetch validation/stats tx', error)
+        this.logger.error('Could not fetch validation/stats tx', error)
       }
 
       const timestamp = parseInt(
@@ -121,7 +129,7 @@ export class RelayMetrics {
         this.validationStatsTimestamp = new Date(timestamp)
       }
     } else {
-      console.error('Could not find validation/stats tx')
+      this.logger.error('Could not find validation/stats tx')
     }
   }
 
@@ -151,7 +159,7 @@ export class RelayMetrics {
         useState<VerificationResultDto[]>('relayMetrics').value = relayMetrics
         this.relayMetrics = relayMetrics
       } catch (error) {
-        console.error('Could not fetch relay/metrics tx', error)
+        this.logger.error('Could not fetch relay/metrics tx', error)
       }
 
       const timestamp = parseInt(
@@ -162,7 +170,7 @@ export class RelayMetrics {
         this.relayMetricsTimestamp = new Date(timestamp)
       }
     } else {
-      console.error('Could not find relay/metrics tx')
+      this.logger.error('Could not find relay/metrics tx')
     }
   }
 }
@@ -172,8 +180,3 @@ const runtimeConfig = useRuntimeConfig()
 const metrics = new RelayMetrics(gateway, runtimeConfig.public.metricsDeployer)
 
 export const useRelayMetrics = () => metrics
-// {
-//   metrics.refresh()
-
-//   return metrics
-// }
