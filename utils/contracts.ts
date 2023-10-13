@@ -48,7 +48,7 @@ interface TransactionReceiptLogJSON {
   readonly transactionIndex: number
 }
 
-interface TransactionReceiptJSON {
+export interface TransactionReceiptJSON {
   readonly _type: 'TransactionReceipt'
   readonly blockHash: string
   readonly blockNumber: number
@@ -64,8 +64,4 @@ interface TransactionReceiptJSON {
   readonly root: string | null,
   readonly status: number | null,
   readonly to: string | null
-}
-
-interface WithTruncatedTransactionHash { 
-  truncatedTranscationHash: string
 }

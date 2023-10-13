@@ -1,5 +1,5 @@
 <template>
-  <v-footer app border>
+  <v-footer app border fixed>
     <v-container class="pa-0">
       <v-row v-if="isEventLogOpen" dense>
         <v-col cols="12" class="pa-0 contain-overscroll">
@@ -14,14 +14,18 @@
             href="https://ator.io"
             variant="text"
             size="small"
-          >ATOR</v-btn>
+          >
+            ATOR
+          </v-btn>
           <v-btn
             color="primary"
             target="_blank"
             href="https://github.com/ATOR-Development"
             variant="text"
             size="small"
-          >GitHub</v-btn>
+          >
+            GitHub
+          </v-btn>
         </v-col>
         <v-col cols="2">
           <v-btn color="primary" variant="text" size="small">
@@ -48,13 +52,13 @@
             color="primary"
             variant="text"
             size="small"
-            @click="toggleEventLog"
             :active="isEventLogOpen"
+            @click="toggleEventLog"
           >
             Logs
           </v-btn>
         </v-col>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-col cols="6">
           <v-btn
             v-for="{ label, address, url } in blockchainExplorerLinks"

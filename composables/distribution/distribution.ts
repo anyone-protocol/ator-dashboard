@@ -60,12 +60,11 @@ export class Distribution {
           auth.value.address.toString()
         )
       }
-      const previousDistributions = await this.getPreviousDistributions()
+      await this.getPreviousDistributions()
       const distributionRatePerDay = await this.getDistributionRatePer('day')
       this.logger.timeEnd()
       this.logger.info('Distribution refreshed', {
         claimableAtomicTokens,
-        // previousDistributions,
         distributionRatePerDay: distributionRatePerDay.toString()
       })
       this.setRefreshing(false)

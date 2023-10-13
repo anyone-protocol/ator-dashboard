@@ -23,12 +23,14 @@ export type TokenBalanceUpdatedEvent = {
   balance: BigNumber
 }
 
+const logger = new Logger('AtorToken')
+
 export class AtorToken {
   private _refreshing: boolean = false
   private contract: Contract | null = null
   private signer: JsonRpcSigner | null = null
   private _isInitialized: boolean = false
-  private readonly logger = new Logger('AtorToken')
+  private readonly logger = logger
 
   get isInitialized() { return this._isInitialized }
 
@@ -158,7 +160,6 @@ export class AtorToken {
   }
 }
 
-
 const atorToken = new AtorToken()
 export const initAtorToken = async () => {
   if (atorToken.isInitialized) { return }
@@ -178,7 +179,7 @@ export const initAtorToken = async () => {
 
     atorToken.initialize(signer)
   } catch (error) {
-    console.error(ERRORS.CONNECTING_CONTRACT, error)
+    logger.error(ERRORS.CONNECTING_CONTRACT, error)
   }
 }
 export const useAtorToken = () => atorToken

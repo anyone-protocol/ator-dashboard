@@ -35,12 +35,21 @@ export const useEventlogStore = defineStore('eventlog', {
     filtered: (state) => state.logs.filter(log => state.filters[log.level])
   },
   actions: {
-    async append(source: string, level: LogLevel, ...messages: any[]) {
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    append(source: string, level: LogLevel, ...messages: any[]) {
       const timestamp = Date.now()
-      const message: string = messages.reduce((rest, c) => {
+      const message = messages.reduce<string>((rest, c) => {
+        /* eslint-disable @typescript-eslint/no-unsafe-argument */
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+        /* eslint-disable @typescript-eslint/no-unsafe-call */
+        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         const currentPart = typeof c === 'object'
           ? JSON.stringify(c)
-          : c.toString()
+          : c.toString() || ''
+        /* eslint-enable @typescript-eslint/no-unsafe-argument */
+        /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+        /* eslint-enable @typescript-eslint/no-unsafe-call */
+        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 
         return rest + ' ' + currentPart
       }, '')

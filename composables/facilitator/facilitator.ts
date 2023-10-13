@@ -38,11 +38,13 @@ const ERRORS = {
   NO_SIGNER: 'No Signer connected'
 }
 
+const logger = new Logger('Facilitator')
+
 export class Facilitator {
   private _refreshing: boolean = false
   private contract!: Contract
   private signer: JsonRpcSigner | null = null
-  private readonly logger = new Logger('Facilitator')
+  private readonly logger = logger
 
   constructor(
     private contractAddress: string,
@@ -101,20 +103,13 @@ export class Facilitator {
     let tokenAllocation = null,
       alreadyClaimed = null,
       gasAvailable = null,
-      gasUsed = null,
-      requestUpdateTx = null,
-      allocationUpdatedTx = null,
-      tokensClaimedTx = null
+      gasUsed = null
 
     if (auth.value) {
       tokenAllocation = await this.getTokenAllocation(auth.value.address)
       alreadyClaimed = await this.getAlreadyClaimedTokens(auth.value.address)
       gasAvailable = await this.getGasAvailable(auth.value.address)
       gasUsed = await this.getGasUsed(auth.value.address)
-      const eventTxs = await this.queryEventTransactionsForUser()
-      requestUpdateTx = eventTxs.requestUpdateTx
-      allocationUpdatedTx = eventTxs.allocationUpdatedTx
-      tokensClaimedTx = eventTxs.tokensClaimedTx
     }
     const oracleWeiRequired = await this.getOracleWeiRequired()
 
@@ -125,9 +120,6 @@ export class Facilitator {
       gasAvailable: gasAvailable?.toString(),
       gasUsed: gasUsed?.toString(),
       oracleWeiRequired: oracleWeiRequired.toString(),
-      // requestUpdateTx,
-      // allocationUpdatedTx,
-      // tokensClaimedTx
     })
     this.setRefreshing(false)
   }
@@ -337,8 +329,8 @@ export class Facilitator {
       const result = await this.signer.sendTransaction({ to, value })
       await result.wait()
       const block = await result.getBlock()
-       if (!block) { throw new Error('Could not get block for funding tx') }
-      await useFacilitatorStore().addPendingClaim(result.hash, block.timestamp)
+      if (!block) { throw new Error('Could not get block for funding tx') }
+      useFacilitatorStore().addPendingClaim(result.hash, block.timestamp)
 
       return result
     } catch (error) {
@@ -456,7 +448,8 @@ export class Facilitator {
       if (authedAddress === address) {
         // const store = useFacilitatorStore()
         // await store.onRequestingUpdate(event)
-        // const tx = await event.getTransaction()
+        const tx = await event.getTransaction()
+        this.logger.log('onRequestingUpdate tx', tx.hash)
         // this.setRequestUpdateTx(tx.hash)
       }
     } catch (error) {
@@ -518,9 +511,9 @@ export const initFacilitator = async () => {
       }
     }
 
-    facilitator.setSigner(signer)
+    await facilitator.setSigner(signer)
   } catch (error) {
-    console.error(ERRORS.CONNECTING_CONTRACT, error)
+    logger.error(ERRORS.CONNECTING_CONTRACT, error)
   }
 }
 export const useFacilitator = () => facilitator

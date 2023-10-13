@@ -71,7 +71,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           ) {
             const block = await log.getBlock()
             const timestamp = new Date(block.timestamp * 1000).toUTCString()
-            currentClaim.requestingUpdateTransactionHash = log.transactionHash            
+            currentClaim.requestingUpdateTransactionHash = log.transactionHash
             currentClaim.requestingUpdateBlockTimestamp = timestamp
             claims.push(currentClaim)
           } else if (
@@ -129,7 +129,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
     //   this.claims.push(claim)
     // },
 
-    async addPendingClaim(transactionHash: string, blockTimestamp: number) {
+    addPendingClaim(transactionHash: string, blockTimestamp: number) {
       logger.info('addPendingClaim()', transactionHash, blockTimestamp)
 
       const timestamp = new Date(blockTimestamp * 1000).toUTCString()

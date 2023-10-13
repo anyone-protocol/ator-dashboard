@@ -1,54 +1,61 @@
 <template>
-  <v-table height="200px" density="compact" fixed-header class="log-table">
+  <v-table
+    ref="table"
+    density="compact"
+    fixed-header
+    class="log-table"
+    height="350px"
+  >
     <thead fixed>
       <tr>
-        <th><code class="log-text">Time</code></th>
-        <th><code class="log-text">Message</code></th>
+        <th class="log-text text-uppercase">Time</th>
+        <th class="log-text text-uppercase">Message</th>
         <th class="text-end">
-          <v-switch
+          <v-checkbox-btn
             v-model="logs.filters.info"
             hide-details
             color="primary"
             inline
-            class="d-inline-block"
             density="compact"
+            class="vertical-align-middle log-text"
           >
             <template #label>
-              <span class="log-text text-caption text-uppercase">info</span>
+              <span class="log-text text-uppercase">info</span>
             </template>
-          </v-switch>
+          </v-checkbox-btn>
 
-          <v-switch
+          <v-checkbox-btn
             v-model="logs.filters.warn"
             hide-details
             color="primary"
             inline
-            class="d-inline-block pl-4"
             density="compact"
+            class="vertical-align-middle log-text"
           >
             <template #label>
-              <span class="log-text text-caption text-uppercase">warn</span>
+              <span class="log-text text-uppercase">warn</span>
             </template>
-          </v-switch>
+          </v-checkbox-btn>
 
-          <v-switch
+          <v-checkbox-btn
             v-model="logs.filters.error"
             hide-details
             color="primary"
             inline
-            class="d-inline-block pl-4"
             density="compact"
+            class="vertical-align-middle log-text"
           >
             <template #label>
-              <span class="log-text text-caption text-uppercase">error</span>
+              <span class="log-text text-uppercase">error</span>
             </template>
-          </v-switch>
+          </v-checkbox-btn>
 
           <v-btn
             icon
             variant="text"
             color="primary"
-            class="d-inline-block copy-button"
+            size="x-small"
+            class="log-text"
             @click="onCopyLogsToClipboardClicked"
           >
             <v-icon>mdi-content-copy</v-icon>
@@ -71,7 +78,7 @@
       </tr>
       <tr v-if="logs.filtered.length < 1">
         <td colspan="3">
-          <code class="text-primary log-text">
+          <code class="log-text">
             Logs are empty, change filter to show more
           </code>
         </td>
@@ -91,31 +98,53 @@
 }
 
 .log-timestamp-cell {
-  width: 224px;
+  width: 10%;
 }
 
 .log-message-cell {
   word-break: break-all;
 }
 
-.copy-button {
-  vertical-align: top;
+.vertical-align-middle {
+  vertical-align: middle;
 }
 
 .log-text {
   font-size: 12px;
 }
+
+.log-control-text {
+  font-size: 12px;
+}
 </style>
 
 <script setup lang="ts">
+import { VTable } from 'vuetify/lib/components/index.mjs'
 import { useEventlogStore } from '~/stores/eventlog'
-import { LogLevel } from '~/utils/logger'
+import Logger, { LogLevel } from '~/utils/logger'
 
 const logs = useEventlogStore()
 const logColorClass = (type: LogLevel) => {
-  return type === 'error' ? 'text-error' : 'text-primary'
+  if (type === 'error') { return 'text-error' }
+  if (type === 'warn') { return 'text-warn' }
+  return ''
 }
+const table = ref<VTable>()
+const scrollToEnd = () => {
+  if (!table.value) { return }
+  const wrapper = (table.value.$el as HTMLDivElement)
+    .getElementsByClassName('v-table__wrapper')
+    .item(0)
+  if (!wrapper) { return }
+  wrapper.scrollTo({
+    top: wrapper.scrollHeight,
+    left: 0,
+    behavior: 'smooth'
+  })
+}
+watch(logs.logs, scrollToEnd)
 
+const logger = new Logger('EventLog.vue')
 const onCopyLogsToClipboardClicked = debounce(async () => {
   const type = 'text/plain'
   const logsJson = JSON.stringify(logs.logs)
@@ -125,7 +154,7 @@ const onCopyLogsToClipboardClicked = debounce(async () => {
   try {
     await navigator.clipboard.write([item])
   } catch (error) {
-    console.error('Error copying logs to clipboard', error)
+    logger.error('Error copying logs to clipboard', error)
   }
 })
 </script>

@@ -53,12 +53,11 @@ export class RelayRegistry {
     )
     this.logger.time()
 
-    let claimableRelays = null, verifiedRelays = null
     if (auth.value) {
-      verifiedRelays = await this.verified(auth.value.address)
-      claimableRelays = await this.claimable(auth.value.address)
+      await this.verified(auth.value.address)
+      await this.claimable(auth.value.address)
     }
-    const totalVerifiedRelays = await this.verified()
+    await this.verified()
     this.logger.timeEnd()
     this.logger.info('RelayRegistry refreshed')
     this.setRefreshing(false)

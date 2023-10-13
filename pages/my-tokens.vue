@@ -27,7 +27,7 @@
             <v-btn
               class="primary-background"
               :loading="loading"
-              @click="claim"
+              @click="onClaimClicked"
             >
               Claim Tokens
             </v-btn>
@@ -207,7 +207,7 @@ const currentlyClaimableTokens = computed(() => {
 /**
  * UI Actions
  */
-const claim = debounce(async () => {
+const onClaimClicked = debounce(async () => {
   const facilitator = useFacilitator()
   if (!facilitator) { return }
   loading.value = true
