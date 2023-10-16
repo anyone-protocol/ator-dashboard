@@ -8,6 +8,7 @@ import {
   useFacilitator,
   useRelayRegistry
 } from '~/composables'
+import { useFacilitatorStore } from '~/stores/facilitator'
 
 let dashboardInitialized = false
 
@@ -27,6 +28,7 @@ export const initializeDashboard = () => {
 
 export const refreshDashboard = async () => {
   const auth = useAuth()
+  const facilitatorStore = useFacilitatorStore()
 
   if (auth.value) {
     /* eslint-disable @typescript-eslint/no-floating-promises */
@@ -38,10 +40,16 @@ export const refreshDashboard = async () => {
     const token = useAtorToken()
     if (signer) {
       token.setSigner(signer)
-      if (facilitator) { facilitator.setSigner(signer) }
+      if (facilitator) {
+        await facilitator.setSigner(signer)
+        await facilitatorStore.queryEventsForAuthedUser()
+      }
     } else {
       token.setSigner()
-      if (facilitator) { facilitator.setSigner() }
+      if (facilitator) {
+        await facilitator.setSigner()
+        await facilitatorStore.queryEventsForAuthedUser()
+      }
     }
   }
 }

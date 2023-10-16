@@ -4,6 +4,7 @@ import moment from 'moment'
 
 import { Claimable } from '~~/utils/contracts'
 import { DistributionState } from './contract'
+import Logger from '~/utils/logger'
 
 export type PreviousDistribution = {
   timestamp: string,
@@ -21,6 +22,7 @@ export class Distribution {
   private contract: Contract<DistributionState> | null = null
   private sign: SigningFunction | null = null
   private _isInitialized: boolean = false
+  private logger = new Logger('Distribution')
 
   get isInitialized() { return this._isInitialized }
 
@@ -45,8 +47,12 @@ export class Distribution {
 
       this.setRefreshing(true)
       const auth = useAuth()
-      // console.log('Distribution refreshing for', auth.value?.address)
-      console.time('distribution')
+      this.logger.info(
+        auth.value?.address
+          ? `Distribution refreshing for ${auth.value?.address}`
+          : 'Distribution refreshing'
+      )
+      this.logger.time()
 
       let claimableAtomicTokens = null
       if (auth.value) {
@@ -54,17 +60,16 @@ export class Distribution {
           auth.value.address.toString()
         )
       }
-      const previousDistributions = await this.getPreviousDistributions()
+      await this.getPreviousDistributions()
       const distributionRatePerDay = await this.getDistributionRatePer('day')
-      console.timeEnd('distribution')
-      console.log('Distribution refreshed', {
+      this.logger.timeEnd()
+      this.logger.info('Distribution refreshed', {
         claimableAtomicTokens,
-        previousDistributions,
         distributionRatePerDay: distributionRatePerDay.toString()
       })
       this.setRefreshing(false)
     } catch (error) {
-      console.error('ERROR REFRESHING DISTRIBUTION', error)
+      this.logger.error('ERROR REFRESHING DISTRIBUTION', error)
     }
   }
 
@@ -169,7 +174,7 @@ export class Distribution {
         ? BigNumber(claimable).dividedBy(1e18).toFormat(4)
         : claimable
     } catch (error) {
-      console.error(
+      this.logger.error(
         'Error in Distribution when checking claimable tokens for',
         address,
         error

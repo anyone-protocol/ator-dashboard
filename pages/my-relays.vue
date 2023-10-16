@@ -152,10 +152,12 @@ import BigNumber from 'bignumber.js'
 import { useRelayRegistry } from '~/composables'
 import { ValidatedRelay, VerificationResultDto } from '~/composables/metrics'
 import { Fingerprint } from '~/utils/contracts'
+import Logger from '~/utils/logger'
 
 definePageMeta({ middleware: 'auth' })
 useHead({ title: 'My Relays' })
 
+const logger = new Logger('my-relays.vue')
 const snackbarOpen = ref(false)
 const snackbarMessage = ref('')
 const snackbarType = ref<'success' | 'error'>('success')
@@ -262,7 +264,7 @@ const claim = debounce(async (fingerprint: string) => {
       'error',
       `An error occurred claiming relay ${fingerprint}: ${message}`
     )
-    console.error(error)
+    logger.error(error)
   }
 
   loading.value = false
@@ -311,7 +313,7 @@ const renounce = debounce(async (fingerprint: string) => {
       'error',
       `An error occurred renouncing relay ${fingerprint}: ${message}`
     )
-    console.error(error)
+    logger.error(error)
   }
 
   loading.value = false

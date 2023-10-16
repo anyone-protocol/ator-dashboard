@@ -11,12 +11,14 @@ import {
   Renounce,
   Verified
 } from './'
+import Logger from '~/utils/logger'
 
 export class RelayRegistry {
   private _refreshing: boolean = false
   private sign: SigningFunction | null = null
   private contract: Contract<RelayRegistryState> | null = null
   private _isInitialized: boolean = false
+  private readonly logger = new Logger('RelayRegistry')
 
   get isInitialized() { return this._isInitialized }
 
@@ -44,21 +46,20 @@ export class RelayRegistry {
     
     this.setRefreshing(true)
     const auth = useAuth()
-    // console.log('RelayRegistry refreshing for', auth.value?.address)
-    console.time('relay-registry')
+    this.logger.info(
+      auth.value?.address
+        ? `RelayRegistry refreshing for ${auth.value?.address}`
+        : 'RelayRegistry refreshing'
+    )
+    this.logger.time()
 
-    let claimableRelays = null, verifiedRelays = null
     if (auth.value) {
-      verifiedRelays = await this.verified(auth.value.address)
-      claimableRelays = await this.claimable(auth.value.address)
+      await this.verified(auth.value.address)
+      await this.claimable(auth.value.address)
     }
-    const totalVerifiedRelays = await this.verified()
-    console.timeEnd('relay-registry')
-    console.log('RelayRegistry refreshed', {
-      claimableRelays,
-      verifiedRelays,
-      totalVerifiedRelays
-    })
+    await this.verified()
+    this.logger.timeEnd()
+    this.logger.info('RelayRegistry refreshed')
     this.setRefreshing(false)
   }
 

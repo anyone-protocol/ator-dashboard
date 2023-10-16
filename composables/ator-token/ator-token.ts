@@ -4,6 +4,8 @@ import BigNumber from 'bignumber.js'
 import { abi } from './AirTor.json'
 import { useFacilitator } from '../facilitator'
 import { useDistribution } from '../distribution'
+import Logger from '~/utils/logger'
+
 
 const ERRORS = {
   CONNECTING_CONTRACT:
@@ -21,11 +23,14 @@ export type TokenBalanceUpdatedEvent = {
   balance: BigNumber
 }
 
+const logger = new Logger('AtorToken')
+
 export class AtorToken {
   private _refreshing: boolean = false
   private contract: Contract | null = null
   private signer: JsonRpcSigner | null = null
   private _isInitialized: boolean = false
+  private readonly logger = logger
 
   get isInitialized() { return this._isInitialized }
 
@@ -81,15 +86,19 @@ export class AtorToken {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    // console.log('AtorToken refreshing for', auth.value?.address)
-    console.time('ator-token')
+    this.logger.info(
+      auth.value?.address
+        ? `AtorToken refreshing for ${auth.value?.address}`
+        : 'AtorToken refreshing'
+    )
+    this.logger.time()
 
     let balance = null
     if (auth.value) {
       balance = await this.getBalance(auth.value.address)
     }
-    console.timeEnd('ator-token')
-    console.log('AtorToken refreshed', { balance })
+    this.logger.timeEnd()
+    this.logger.info('AtorToken refreshed', { balance })
     this.setRefreshing(false)
   }
 
@@ -135,7 +144,7 @@ export class AtorToken {
         useDistribution().refresh()
       }
     } catch (error) {
-      console.error('Error consuming Transfer event', error)
+      this.logger.error('Error consuming Transfer event', error)
     }
   }
 
@@ -150,7 +159,6 @@ export class AtorToken {
     await this.contract.on(TOKEN_EVENTS.Transfer, this.onTransfer.bind(this))
   }
 }
-
 
 const atorToken = new AtorToken()
 export const initAtorToken = async () => {
@@ -171,7 +179,7 @@ export const initAtorToken = async () => {
 
     atorToken.initialize(signer)
   } catch (error) {
-    console.error(ERRORS.CONNECTING_CONTRACT, error)
+    logger.error(ERRORS.CONNECTING_CONTRACT, error)
   }
 }
 export const useAtorToken = () => atorToken

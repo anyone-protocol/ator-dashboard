@@ -1,5 +1,9 @@
 import { AbstractProvider, BrowserProvider } from 'ethers'
 
+import Logger from '~/utils/logger'
+
+const logger = new Logger('useSigner')
+
 export const useSigner = async () => {
   let provider = useProvider()
 
@@ -21,7 +25,7 @@ export const useSigner = async () => {
 
       return signer
     } catch (error) {
-      console.error('Error getting Signer', error)
+      logger.error('Error getting Signer', error)
     }
   }
 

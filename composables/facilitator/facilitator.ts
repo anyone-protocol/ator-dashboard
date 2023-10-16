@@ -2,7 +2,6 @@ import {
   AbstractProvider,
   BrowserProvider,
   Contract,
-  ContractTransactionResponse,
   ContractUnknownEventPayload,
   JsonRpcSigner,
   TransactionResponse,
@@ -11,6 +10,8 @@ import {
 import BigNumber from 'bignumber.js'
 
 import { abi } from './Facility.json'
+import Logger from '~/utils/logger'
+import { useFacilitatorStore } from '~/stores/facilitator'
 
 export const FACILITATOR_EVENTS = {
   AllocationUpdated: 'AllocationUpdated',
@@ -19,14 +20,6 @@ export const FACILITATOR_EVENTS = {
   RequestingUpdate: 'RequestingUpdate'
 }
 export type FacilitatorEvent = keyof typeof FACILITATOR_EVENTS
-
-export type AllocationUpdatedEvent = {
-  type: 'AllocationUpdated',
-  address: string,
-  amount: string,
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  evmEvent: any
-}
 
 const ERRORS = {
   NOT_INITIALIZED: 'Facilitator is not initialized!',
@@ -44,10 +37,13 @@ const ERRORS = {
   NO_SIGNER: 'No Signer connected'
 }
 
+const logger = new Logger('Facilitator')
+
 export class Facilitator {
   private _refreshing: boolean = false
   private contract!: Contract
   private signer: JsonRpcSigner | null = null
+  private readonly logger = logger
 
   constructor(
     private contractAddress: string,
@@ -74,7 +70,7 @@ export class Facilitator {
     this.listenForUserEvents()
   }
 
-  setSigner(signer?: JsonRpcSigner) {
+  async setSigner(signer?: JsonRpcSigner) {
     if (signer) {
       this.signer = signer
       this.refreshContract(this.signer)
@@ -83,7 +79,7 @@ export class Facilitator {
       this.refreshContract(useProvider())
     }   
     /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
-    this.refresh()
+    return this.refresh()
   }
 
   private setRefreshing(refreshing: boolean) {
@@ -96,78 +92,51 @@ export class Facilitator {
 
     this.setRefreshing(true)
     const auth = useAuth()
-    // console.log('Refreshing Facilitator for address', auth.value?.address)
-    console.time('facilitator')
+    this.logger.info(
+      auth.value?.address
+        ? `Refreshing Facilitator for ${auth.value?.address}`
+        : 'Refreshing Facilitator'
+    )
+    this.logger.time()
 
-    let tokenAllocation = null,
-      alreadyClaimed = null,
+    let totalClaimed = null,
       gasAvailable = null,
-      gasUsed = null,
-      requestUpdateTx = null,
-      allocationUpdatedTx = null,
-      tokensClaimedTx = null
+      gasUsed = null
 
     if (auth.value) {
-      tokenAllocation = await this.getTokenAllocation(auth.value.address)
-      alreadyClaimed = await this.getAlreadyClaimedTokens(auth.value.address)
+      totalClaimed = await this.getTotalClaimedTokens(auth.value.address)
       gasAvailable = await this.getGasAvailable(auth.value.address)
       gasUsed = await this.getGasUsed(auth.value.address)
-      const eventTxs = await this.queryEventTransactionsForUser()
-      requestUpdateTx = eventTxs.requestUpdateTx
-      allocationUpdatedTx = eventTxs.allocationUpdatedTx
-      tokensClaimedTx = eventTxs.tokensClaimedTx
     }
     const oracleWeiRequired = await this.getOracleWeiRequired()
 
-    console.timeEnd('facilitator')
-    console.log('Facilitator refreshed', {
-      tokenAllocation: tokenAllocation?.toString(),
-      alreadyClaimed: alreadyClaimed?.toString(),
+    this.logger.timeEnd()
+    this.logger.info('Facilitator refreshed', {
+      totalClaimed: totalClaimed?.toString(),
       gasAvailable: gasAvailable?.toString(),
       gasUsed: gasUsed?.toString(),
       oracleWeiRequired: oracleWeiRequired.toString(),
-      requestUpdateTx,
-      allocationUpdatedTx,
-      tokensClaimedTx
     })
     this.setRefreshing(false)
   }
 
-  async getTokenAllocation(address: string): Promise<BigNumber> {
+  async getTotalClaimedTokens(address: string): Promise<BigNumber> {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
-    const tokenAllocation = await this.contract
-      .allocatedTokens(address) as bigint
-
-    if (address === useAuth().value?.address) {
-      useState<string>('tokenAllocation').value = tokenAllocation.toString()
-    }
-
-    return BigNumber(tokenAllocation.toString())
-  }
-
-  async getAlreadyClaimedTokens(address: string): Promise<BigNumber> {
-    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
-
-    const alreadyClaimedTokens = await this.contract
+    const totalClaimedTokens = await this.contract
       .claimedTokens(address) as bigint
 
     if (address === useAuth().value?.address) {
-      useState<string>('alreadyClaimedTokens').value =
-        alreadyClaimedTokens.toString()
+      useFacilitatorStore().totalClaimedTokens = totalClaimedTokens.toString()
     }
 
-    return BigNumber(alreadyClaimedTokens.toString())
+    return BigNumber(totalClaimedTokens.toString())
   }
 
   async getGasAvailable(address: string): Promise<BigNumber> {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
     const gasAvailable = await this.contract.availableBudget(address) as bigint
-
-    if (address === useAuth().value?.address) {
-      useState<string>('gasAvailable').value = gasAvailable.toString()
-    }
 
     return BigNumber(gasAvailable.toString())
   }
@@ -176,10 +145,6 @@ export class Facilitator {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
     const gasUsed = await this.contract.usedBudget(address) as bigint
-
-    if (address === useAuth().value?.address) {
-      useState<string>('gasUsed').value = gasUsed.toString()
-    }
 
     return BigNumber(gasUsed.toString())
   }
@@ -190,10 +155,6 @@ export class Facilitator {
     const GAS_COST = await this.contract.GAS_COST() as bigint
     const GAS_PRICE = await this.contract.GAS_PRICE() as bigint
     const oracleWeiRequired = GAS_COST * GAS_PRICE
-
-    useState<string>('GAS_COST').value = GAS_COST.toString()
-    useState<string>('GAS_PRICE').value = GAS_PRICE.toString()
-    useState<string>('oracleWeiRequired').value = oracleWeiRequired.toString()
 
     return BigNumber(oracleWeiRequired.toString())
   }
@@ -208,193 +169,39 @@ export class Facilitator {
 
     try {
       const filter = this.contract.filters[facilitatorEvent](address)
-      const result = await this.contract.queryFilter(filter, fromBlock, toBlock)
 
-      return result
+      return await this.contract.queryFilter(filter, fromBlock, toBlock)
     } catch (error) {
-      console.error('Error querying facilitator contract events', error)
+      this.logger.error('Error querying facilitator contract events', error)
     }
 
     return []
   }
 
-  private async queryEventTransactionsForUser(): Promise<{
-    requestUpdateTx: string | null,
-    allocationUpdatedTx: string | null,
-    tokensClaimedTx: string | null
-  }> {
-    let requestUpdateTx = null,
-      allocationUpdatedTx = null,
-      tokensClaimedTx = null
-
-    const auth = useAuth()
-
-    if (!auth.value) {
-      return {
-        requestUpdateTx: null,
-        allocationUpdatedTx: null,
-        tokensClaimedTx: null
-      }
-    }
-
-    const allocationClaimedEvents = await this.query(
-      'AllocationClaimed',
-      auth.value.address
-    )
-    allocationClaimedEvents.reverse()
-    const latestAllocationClaimedEvent: ethers.EventLog | ethers.Log | null =
-      allocationClaimedEvents[0] || null
-    const fromBlockNumber = latestAllocationClaimedEvent
-      ? latestAllocationClaimedEvent.blockNumber
-      : undefined
-    const latestClaimedHash: string =
-      latestAllocationClaimedEvent?.transactionHash || ''
-
-    try {
-      const requestUpdateEvents = await this.query(
-        'RequestingUpdate',
-        auth.value.address,
-        fromBlockNumber
-      )
-      requestUpdateEvents.reverse()
-      const latestRequestUpdate: ethers.EventLog | ethers.Log | null =
-        requestUpdateEvents[0] || null
-      if (
-        latestRequestUpdate
-        && latestRequestUpdate.transactionHash !== latestClaimedHash
-      ) {
-        requestUpdateTx = latestRequestUpdate.transactionHash
-      }
-    } catch (error) {
-      console.error('Error querying RequestingUpdate events', error)
-    }
-
-    try {
-      const allocationUpdatedEvents = await this.query(
-        'AllocationUpdated',
-        auth.value.address,
-        fromBlockNumber
-      )
-      allocationUpdatedEvents.reverse()
-      const latestAllocationUpdated: ethers.EventLog | ethers.Log | null =
-        allocationUpdatedEvents[0] || null
-      if (
-        latestAllocationUpdated
-        && latestAllocationUpdated.transactionHash !== latestClaimedHash
-      ) {
-        allocationUpdatedTx = latestAllocationUpdated.transactionHash
-      }
-    } catch (error) {
-      console.error('Error querying AllocationUpdated events', error)
-    }
-
-    try {
-      const tokensClaimedEvents = await this.query(
-        'AllocationClaimed',
-        auth.value.address,
-        fromBlockNumber
-      )
-      tokensClaimedEvents.reverse()
-      const latestTokensClaimedEvents: ethers.EventLog | ethers.Log | null =
-        tokensClaimedEvents[0] || null
-      if (
-        latestTokensClaimedEvents
-        && latestTokensClaimedEvents.transactionHash !== latestClaimedHash
-      ) {
-        tokensClaimedTx = latestTokensClaimedEvents.transactionHash
-      }
-    } catch (error) {
-      console.error('Error querying AllocationClaimed events', error)
-    }
-
-    if (requestUpdateTx) {
-      this.setRequestUpdateTx(requestUpdateTx)
-      useState<boolean>('facilitator-request-update-tx-ready').value = true
-    }
-    if (allocationUpdatedTx) {
-      this.setAllocationUpdatedTx(allocationUpdatedTx)
-    }
-    if (tokensClaimedTx) { this.setTokensClaimedTx(tokensClaimedTx) }
-
-    return {
-      requestUpdateTx,
-      allocationUpdatedTx,
-      tokensClaimedTx
-    }
-  }
-
-  async fundOracle(): Promise<TransactionResponse | null> {
+  async claim(): Promise<TransactionResponse | null> {
     if (!this.signer) { throw new Error(ERRORS.NO_SIGNER) }
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
 
-    const oracleWeiRequired = useState<string>('oracleWeiRequired').value
+    const oracleWeiRequired = await this.getOracleWeiRequired()
 
     try {
-      const value = oracleWeiRequired
+      const value = oracleWeiRequired.toString()
       const to = await this.contract.getAddress()
       // NB: receive() is a standard hook for when a normal tx sends value to
       //     a contract.  There is no explicit receive() interface on the ABI.
       //     So instead we send a normal transaction.
       const result = await this.signer.sendTransaction({ to, value })
-
-      this.setRequestUpdateTx(result.hash)
-
-      return result
-    } catch (error) {
-      console.error(ERRORS.FUNDING_ORACLE, error)
-    }
-
-    return null
-  }
-
-  async requestUpdate(): Promise<ContractTransactionResponse | null> {
-    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
-
-    try {
-      const result = await this.contract
-        .requestUpdate() as ContractTransactionResponse
-      
-      this.setRequestUpdateTx(result.hash)
+      await result.wait()
+      const block = await result.getBlock()
+      if (!block) { throw new Error('Could not get block for funding tx') }
+      useFacilitatorStore().addPendingClaim(result.hash, block.timestamp)
 
       return result
     } catch (error) {
-      console.error(ERRORS.REQUESTING_UPDATE, error)
+      this.logger.error(ERRORS.FUNDING_ORACLE, error)
     }
 
     return null
-  }
-
-  async receiveAndRequestUpdate(): Promise<ContractTransactionResponse | null> {
-    if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
-
-    const oracleWeiRequired = useState<string>('oracleWeiRequired').value
-
-    try {
-      const result = await this.contract
-        .receiveAndRequestUpdate(
-          { value: oracleWeiRequired }
-        ) as ContractTransactionResponse
-
-      this.setRequestUpdateTx(result.hash)
-
-      return result
-    } catch (error) {
-      console.error(ERRORS.RECEIVE_AND_REQUEST_UPDATE, error)
-    }
-
-    return null
-  }
-
-  private setRequestUpdateTx(txid: string | null) {
-    useState<string | null>('facilitator-request-update-tx').value = txid
-  }
-
-  private setAllocationUpdatedTx(txid: string | null) {
-    useState<string | null>('facilitator-allocation-updated-tx').value = txid
-  }
-
-  private setTokensClaimedTx(txid: string | null) {
-    useState<string | null>('facilitator-tokens-claimed-tx').value = txid
   }
 
   private async onAllocationClaimed(
@@ -405,59 +212,22 @@ export class Facilitator {
     try {
       const auth = useAuth()
       if (!auth.value) { return }
-      const authedAddress = auth.value.address
-
-      if (authedAddress === address) {
+      if (auth.value.address === address) {
+        this.logger.info('onAllocationClaimed()', address, amount)
+        const store = useFacilitatorStore()
+        await store.onAllocationClaimed(amount, event)
         const tx = await event.getTransaction()
-        this.setTokensClaimedTx(tx.hash)
         await tx.wait()
-        await this.getAlreadyClaimedTokens(authedAddress)
+        await this.getTotalClaimedTokens(auth.value.address)
       }
     } catch (error) {
-      console.error('Error consuming AllocationClaimed event', error)
+      this.logger.error('Error consuming AllocationClaimed event', error)
     }
   }
 
-  private async onAllocationUpdated(
-    address: string,
-    amount: bigint,
-    event: ContractUnknownEventPayload
-  ): Promise<void> {
-    try {
-      const auth = useAuth()
-      if (!auth.value) { return }
-      const authedAddress = auth.value.address
-
-      if (authedAddress === address) {
-        const tx = await event.getTransaction()
-        this.setAllocationUpdatedTx(tx.hash)
-        await tx.wait()
-        await this.getTokenAllocation(authedAddress)
-      }
-    } catch (error) {
-      console.error('Error consuming AllocationUpdated event', error)
-    }
-  }
-
+  private async onAllocationUpdated(): Promise<void> {}
   private async onGasBudgetUpdated(): Promise<void> {}
-
-  private async onRequestingUpdate(
-    address: string,
-    event: ContractUnknownEventPayload
-  ): Promise<void> {
-    try {
-      const auth = useAuth()
-      if (!auth.value) { return }
-      const authedAddress = auth.value.address
-
-      if (authedAddress === address) {
-        const tx = await event.getTransaction()
-        this.setRequestUpdateTx(tx.hash)
-      }
-    } catch (error) {
-      console.error('Error consuming RequestingUpdate event', error)
-    }
-  }
+  private async onRequestingUpdate(): Promise<void> {}
 
   private async listenForUserEvents() {
     if (!this.contract) { throw new Error(ERRORS.NOT_INITIALIZED) }
@@ -513,9 +283,9 @@ export const initFacilitator = async () => {
       }
     }
 
-    facilitator.setSigner(signer)
+    await facilitator.setSigner(signer)
   } catch (error) {
-    console.error(ERRORS.CONNECTING_CONTRACT, error)
+    logger.error(ERRORS.CONNECTING_CONTRACT, error)
   }
 }
 export const useFacilitator = () => facilitator

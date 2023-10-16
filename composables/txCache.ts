@@ -1,7 +1,10 @@
+import Logger from '~/utils/logger'
+
 export class TxCache {
   private dbName: string
   private objectStoreName: string
   private keyPrefix: string
+  private readonly logger = new Logger('TxCache')
     
   constructor() {
     this.dbName = 'arweaveDataDB'
@@ -48,10 +51,10 @@ export class TxCache {
         }
       })
     } catch (error) {
-      console.error('Failed to get transaction data:', error)
-
-      return null
+      this.logger.error('Failed to get transaction data', error)
     }
+
+    return null
   }
     
   public async saveTransactionData(
@@ -76,7 +79,7 @@ export class TxCache {
         }
       })
     } catch (error) {
-      console.error('Failed to save transaction data:', error)
+      this.logger.error('Failed to save transaction data', error)
     }
   }
 }
