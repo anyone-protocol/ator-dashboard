@@ -24,7 +24,10 @@
             <p v-else><strong>No tokens</strong> to claim!</p>
           </v-card-text>
 
-          <v-card-actions class="claim-card-actions" v-if="hasTokensToClaim && !facilitatorStore.hasPendingClaim">
+          <v-card-actions
+            v-if="hasTokensToClaim && !facilitatorStore.hasPendingClaim"
+            class="claim-card-actions"
+          >
             <v-btn
               class="primary-background"
               :loading="loading"
@@ -106,7 +109,6 @@
 
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
-import { sleep } from 'warp-contracts'
 
 import { useFacilitator } from '~/composables'
 import { useFacilitatorStore } from '~/stores/facilitator'

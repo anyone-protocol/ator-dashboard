@@ -113,7 +113,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
           currentClaim.requestingUpdateTransactionHash
           && !currentClaim.allocationClaimedTransactionHash
         ) {
-          this.pendingClaim = JSON.parse(JSON.stringify(currentClaim))
+          this.pendingClaim =
+            JSON.parse(JSON.stringify(currentClaim)) as ClaimProcess
         }
 
         // NB: Reverse claims so they are in descending order
@@ -155,7 +156,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
       ) {
         const block = await allocationClaimed.getBlock()
         const timestamp = new Date(block.timestamp * 1000).toUTCString()
-        const pendingClaimCopy = JSON.parse(JSON.stringify(this.pendingClaim))
+        const pendingClaimCopy =
+          JSON.parse(JSON.stringify(this.pendingClaim)) as ClaimProcess
         pendingClaimCopy.allocationClaimedTransactionHash =
           allocationClaimed.log.transactionHash
         pendingClaimCopy.allocationClaimedBlockTimestamp = timestamp
