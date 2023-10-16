@@ -17,19 +17,29 @@ interface ClaimProcess {
 }
 
 interface FacilitatorStoreState {
-  lastQueriedBlockHeight: number
-  claims: ClaimProcess[]
+  claims: ClaimProcess[],
+  pendingClaim: ClaimProcess | null
+  totalClaimedTokens: string | null
 }
 
 export const useFacilitatorStore = defineStore('facilitator', {
   state: (): FacilitatorStoreState => {
     return {
-      lastQueriedBlockHeight: 0,
-      claims: []
+      claims: [],
+      pendingClaim: null,
+      totalClaimedTokens: null
     }
   },
   getters: {
-    nextClaimNumber: (state) => state.claims.length + 1
+    claimLog: state => {
+      if (state.pendingClaim) {
+        return [...state.claims, state.pendingClaim]
+      } else {
+        return state.claims
+      }
+    },
+    nextClaimNumber: state => state.claims.length + 1,
+    hasPendingClaim: state => !!state.pendingClaim
   },
   actions: {
     async queryEventsForAuthedUser() {
@@ -42,9 +52,9 @@ export const useFacilitatorStore = defineStore('facilitator', {
         const { address } = auth.value
 
         const requestingUpdate = await facilitator
-          .query('RequestingUpdate', address, this.lastQueriedBlockHeight)
+          .query('RequestingUpdate', address)
         const allocationClaimed = await facilitator
-          .query('AllocationClaimed', address, this.lastQueriedBlockHeight)
+          .query('AllocationClaimed', address)
         const combined: EventLog[] = [
           ...requestingUpdate as EventLog[],
           ...allocationClaimed as EventLog[]
@@ -60,7 +70,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
         logger.info('Got claim events for authed user', combined)
 
         const claims: ClaimProcess[] = []
-        let currentClaim: ClaimProcess = { claimNumber: this.nextClaimNumber }
+        let currentClaim: ClaimProcess = { claimNumber: claims.length + 1 }
         for (let i = 0; i < combined.length; i++) {
           const log = combined[i]
           const { eventName } = log
@@ -73,7 +83,6 @@ export const useFacilitatorStore = defineStore('facilitator', {
             const timestamp = new Date(block.timestamp * 1000).toUTCString()
             currentClaim.requestingUpdateTransactionHash = log.transactionHash
             currentClaim.requestingUpdateBlockTimestamp = timestamp
-            claims.push(currentClaim)
           } else if (
             eventName === 'AllocationClaimed'
             && !currentClaim.allocationClaimedTransactionHash
@@ -92,61 +101,43 @@ export const useFacilitatorStore = defineStore('facilitator', {
             currentClaim.requestingUpdateTransactionHash
             && currentClaim.allocationClaimedTransactionHash
           ) {
+            // Add to finalized claims
+            claims.push(currentClaim)
             // Reset claim loop window
-            currentClaim = { claimNumber: this.nextClaimNumber }
+            currentClaim = { claimNumber: claims.length + 1 }
           }
+        }
+
+        // NB: Check if last claim is pending, add copy to state as pending
+        if (
+          currentClaim.requestingUpdateTransactionHash
+          && !currentClaim.allocationClaimedTransactionHash
+        ) {
+          this.pendingClaim = JSON.parse(JSON.stringify(currentClaim))
         }
 
         // NB: Reverse claims so they are in descending order
         claims.reverse()
         logger.info('Got claims', claims)
         this.claims = claims
-
-        // TODO -> set lastQueriedBlockHeight
       } else {
         this.$reset()
       }
     },
 
-    // async onRequestingUpdate(requestingUpdate: ContractUnknownEventPayload) {
-    //   logger.info('onRequestingUpdate()')
-
-    //   const transactionHash = requestingUpdate.log.transactionHash
-    //   const lastClaim = this.claims.at(-1)
-    //   if (lastClaim?.requestingUpdateTransactionHash === transactionHash) {
-    //     logger.info('onRequestingUpdate() skipping duplicate event')
-    //   }
-
-    //   const block = await requestingUpdate.getBlock()
-    //   const timestamp = new Date(block.timestamp * 1000).toUTCString()
-    //   const claim = {
-    //     claimNumber: this.claims.length + 1,
-    //     requestingUpdateTransactionHash: transactionHash,
-    //     requestingUpdateBlockTimestamp: timestamp
-    //   }
-      
-    //   logger.info('onRequestingUpdate() new claim', claim)
-    //   this.claims.push(claim)
-    // },
-
     addPendingClaim(transactionHash: string, blockTimestamp: number) {
       logger.info('addPendingClaim()', transactionHash, blockTimestamp)
-
-      const timestamp = new Date(blockTimestamp * 1000).toUTCString()
-      const claim = {
-        claimNumber: this.nextClaimNumber,
-        requestingUpdateTransactionHash: transactionHash,
-        requestingUpdateBlockTimestamp: timestamp          
-      }
-
-      const existingClaim = this.claims.find(
-        claim => claim.requestingUpdateTransactionHash === transactionHash
-      )
-      if (existingClaim) {
-        logger.info('addPendingClaim() duplicate claim', existingClaim)
+      if (this.pendingClaim) {
+        logger.info('addPendingClaim() duplicate claim', this.pendingClaim)
       } else {
-        this.claims.push(claim)
+        const timestamp = new Date(blockTimestamp * 1000).toUTCString()
+        const claim = {
+          claimNumber: this.nextClaimNumber,
+          requestingUpdateTransactionHash: transactionHash,
+          requestingUpdateBlockTimestamp: timestamp          
+        }
         logger.info('addPendingClaim() new claim', claim)
+        this.pendingClaim = claim
       }
     },
 
@@ -155,22 +146,30 @@ export const useFacilitatorStore = defineStore('facilitator', {
       allocationClaimed: ContractUnknownEventPayload
     ) {
       logger.info('onAllocationClaimed()', amount)
-      const claim = this.claims.pop()
-      logger.info('onAllocationClaimed() existing claim', claim)
-      if (!claim) { return }
+      logger.info('onAllocationClaimed() pending claim', this.pendingClaim)
+      if (!this.pendingClaim) { return }
 
-      if (claim && !claim.allocationClaimedTransactionHash) {
+      if (
+        this.pendingClaim
+        && !this.pendingClaim.allocationClaimedTransactionHash
+      ) {
         const block = await allocationClaimed.getBlock()
         const timestamp = new Date(block.timestamp * 1000).toUTCString()
-        claim.allocationClaimedTransactionHash =
+        const pendingClaimCopy = JSON.parse(JSON.stringify(this.pendingClaim))
+        pendingClaimCopy.allocationClaimedTransactionHash =
           allocationClaimed.log.transactionHash
-        claim.allocationClaimedBlockTimestamp = timestamp
-        claim.amount = BigNumber(amount.toString())
+        pendingClaimCopy.allocationClaimedBlockTimestamp = timestamp
+        pendingClaimCopy.amount = BigNumber(amount.toString())
           .dividedBy(1e18)
           .toFormat(3)
 
-        logger.info('onAllocationClaimed() updated claim', claim)
-        this.claims.push(claim)
+        logger.info(
+          'onAllocationClaimed() pending claim finalized',
+          pendingClaimCopy
+        )
+        
+        this.claims.push(pendingClaimCopy)
+        this.pendingClaim = null
       }
     }
   }

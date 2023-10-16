@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
+import { useFacilitatorStore } from '~/stores/facilitator';
 
 const auth = useAuth()
 
@@ -78,11 +79,6 @@ const auth = useAuth()
 // From Distribution
 const claimableAtomicTokens = useState<string | null>(
   'claimableAtomicTokens',
-  () => null
-)
-// From Facilitator
-const alreadyClaimedTokens = useState<string | null>(
-  'alreadyClaimedTokens',
   () => null
 )
 
@@ -99,21 +95,23 @@ const lifetimeRewards = computed(() => {
     .toFormat(4) + ' $ATOR'
 })
 const pendingRewards = computed(() => {
-  if (!claimableAtomicTokens.value || !alreadyClaimedTokens.value) {
+  const store = useFacilitatorStore()
+  if (!claimableAtomicTokens.value || !store.totalClaimedTokens) {
     return null
   }
 
   const pending = BigNumber(claimableAtomicTokens.value)
-    .minus(alreadyClaimedTokens.value)
+    .minus(store.totalClaimedTokens)
     .dividedBy(1e18)
 
   if (pending.lt(0)) { return '0.0000 $ATOR' }
   return pending.toFormat(4) + ' $ATOR'
 })
 const previouslyClaimed = computed(() => {
-  if (!alreadyClaimedTokens.value) { return null }
+  const store = useFacilitatorStore()
+  if (!store.totalClaimedTokens) { return null }
   
-  return BigNumber(alreadyClaimedTokens.value)
+  return BigNumber(store.totalClaimedTokens)
     .dividedBy(1e18)
     .toFormat(4) + ' $ATOR'
 })

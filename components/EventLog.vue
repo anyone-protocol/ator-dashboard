@@ -51,14 +51,15 @@
           </v-checkbox-btn>
 
           <v-btn
-            icon
             variant="text"
             color="primary"
             size="x-small"
             class="log-text"
+            prepend-icon="mdi-content-copy"
+            :append-icon="logsCopySuccess ? 'mdi-check' : undefined"
             @click="onCopyLogsToClipboardClicked"
           >
-            <v-icon>mdi-content-copy</v-icon>
+            Copy Logs
           </v-btn>
         </th>
       </tr>
@@ -123,14 +124,18 @@ import { VTable } from 'vuetify/lib/components/index.mjs'
 import { useEventlogStore } from '~/stores/eventlog'
 import Logger, { LogLevel } from '~/utils/logger'
 
+const logger = new Logger('EventLog.vue')
 const logs = useEventlogStore()
+const table = ref<VTable>()
+const logsCopySuccess = ref(false)
+
 const logColorClass = (type: LogLevel) => {
   if (type === 'error') { return 'text-error' }
   if (type === 'warn') { return 'text-warn' }
   return ''
 }
-const table = ref<VTable>()
-const scrollToEnd = () => {
+/* NB: Scroll to end of logs on new messages */
+watch(logs.logs, () => {
   if (!table.value) { return }
   const wrapper = (table.value.$el as HTMLDivElement)
     .getElementsByClassName('v-table__wrapper')
@@ -141,10 +146,8 @@ const scrollToEnd = () => {
     left: 0,
     behavior: 'smooth'
   })
-}
-watch(logs.logs, scrollToEnd)
+})
 
-const logger = new Logger('EventLog.vue')
 const onCopyLogsToClipboardClicked = debounce(async () => {
   const type = 'text/plain'
   const logsJson = JSON.stringify(logs.logs)
@@ -153,6 +156,7 @@ const onCopyLogsToClipboardClicked = debounce(async () => {
 
   try {
     await navigator.clipboard.write([item])
+    logsCopySuccess.value = true
   } catch (error) {
     logger.error('Error copying logs to clipboard', error)
   }

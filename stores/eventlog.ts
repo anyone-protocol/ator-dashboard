@@ -45,7 +45,7 @@ export const useEventlogStore = defineStore('eventlog', {
         /* eslint-disable @typescript-eslint/no-unsafe-member-access */
         const currentPart = typeof c === 'object'
           ? JSON.stringify(c)
-          : c.toString() || ''
+          : `${c}`
         /* eslint-enable @typescript-eslint/no-unsafe-argument */
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */
         /* eslint-enable @typescript-eslint/no-unsafe-call */
