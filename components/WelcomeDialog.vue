@@ -2,7 +2,7 @@
   <v-dialog v-model="open" width="500">
     <v-card>
       <v-card-title>
-        Welcome
+        <h4>Welcome</h4>
       </v-card-title>
       <v-card-text>
         The <strong>ATOR Dashboard</strong> is currently undergoing beta
@@ -14,7 +14,12 @@
           v-model="hideUntilUpdate"
           label="Hide until next update"
         />
-        <v-btn color="primary-background" @click="close">Okay</v-btn>
+        <v-btn
+          color="primary-background"
+          @click="close"
+        >
+          Okay
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

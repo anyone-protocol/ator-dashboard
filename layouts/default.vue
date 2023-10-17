@@ -51,6 +51,8 @@
     <Footer />
 
     <WelcomeDialog />
+    <ReportIssueDialog />
+    <SupportIssueDialog />
   </v-app>
 </template>
 

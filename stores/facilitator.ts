@@ -51,6 +51,8 @@ export const useFacilitatorStore = defineStore('facilitator', {
       if (auth.value?.address) {
         const { address } = auth.value
 
+        logger.info('queryEventsForAuthedUser', address)
+
         const requestingUpdate = await facilitator
           .query('RequestingUpdate', address)
         const allocationClaimed = await facilitator
@@ -108,7 +110,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
           }
         }
 
-        // NB: Check if last claim is pending, add copy to state as pending
+        // NB: Check if last claim is pending, set copy as pending claim
         if (
           currentClaim.requestingUpdateTransactionHash
           && !currentClaim.allocationClaimedTransactionHash

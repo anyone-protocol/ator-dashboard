@@ -103,8 +103,16 @@ export class RelayRegistry {
   }
 
   async claim(fingerprint: string): Promise<WriteInteractionResponse | null> {
-    if (!this.contract) { return null }
-    if (!this.sign) { return null }
+    this.logger.info(`Claiming fingerprint ${fingerprint}`)
+
+    if (!this.contract) {
+      this.logger.error('claim() relay registry contract is null')
+      return null
+    }
+    if (!this.sign) {
+      this.logger.error('claim() relay registry sign() is null')
+      return null
+    }
 
     return this.contract
       .connect({ signer: this.sign, type: 'ethereum' })
@@ -114,8 +122,16 @@ export class RelayRegistry {
   async renounce(
     fingerprint: string
   ): Promise<WriteInteractionResponse | null> {
-    if (!this.contract) { return null }
-    if (!this.sign) { return null }
+    this.logger.info(`Renouncing fingerprint ${fingerprint}`)
+
+    if (!this.contract) {
+      this.logger.error('renounce() relay registry contract is null')
+      return null
+    }
+    if (!this.sign) {
+      this.logger.error('renounce() relay registry sign() is null')
+      return null
+    }
 
     return this.contract
       .connect({ signer: this.sign, type: 'ethereum' })

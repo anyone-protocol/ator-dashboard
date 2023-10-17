@@ -2,11 +2,25 @@ import { defineStore } from 'pinia'
 
 import { LogLevel } from '~/utils/logger'
 
-type LogMessage = {
+export type LogMessage = {
   level: LogLevel
   timestamp: number
   source: string
   message: string
+}
+
+export type SupportIssue = {
+  address: string
+  logs: LogMessage[]
+  host: string
+  path: string
+  phase: string
+}
+
+export type EncryptedPayload = {
+  encrypted: string
+  nonce: string
+  publicKey: string
 }
 
 interface EventlogStoreState {
@@ -16,7 +30,9 @@ interface EventlogStoreState {
     warn: boolean
     info: boolean
     debug: boolean
-  }
+  },
+  isReportIssueOpen: boolean,
+  isSupportIssueOpen: boolean
 }
 
 export const useEventlogStore = defineStore('eventlog', {
@@ -28,7 +44,9 @@ export const useEventlogStore = defineStore('eventlog', {
         warn: true,
         info: true,
         debug: false
-      }
+      },
+      isReportIssueOpen: false,
+      isSupportIssueOpen: false
     }
   },
   getters: {
@@ -43,9 +61,11 @@ export const useEventlogStore = defineStore('eventlog', {
         /* eslint-disable @typescript-eslint/no-unsafe-assignment */
         /* eslint-disable @typescript-eslint/no-unsafe-call */
         /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-        const currentPart = typeof c === 'object'
-          ? JSON.stringify(c)
-          : `${c}`
+        const currentPart = c instanceof Error
+          ? c.stack || c.message
+          : typeof c === 'object'
+            ? JSON.stringify(c)
+            : `${c}`
         /* eslint-enable @typescript-eslint/no-unsafe-argument */
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */
         /* eslint-enable @typescript-eslint/no-unsafe-call */
