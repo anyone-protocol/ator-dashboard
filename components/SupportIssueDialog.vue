@@ -156,9 +156,11 @@ const onDecryptClicked = debounce(() => {
     )
     logger.info('decrypted support issue', decrypted)
 
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
     const parsed = JSON.parse(decrypted)
     logger.info('parsed support issue', parsed)
 
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
     supportIssue.value = parsed
   } catch (error) {
     logger.error('Error decrypting', error)

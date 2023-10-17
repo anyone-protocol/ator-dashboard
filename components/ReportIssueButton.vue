@@ -4,7 +4,9 @@
     color="primary"
     size="small"
     @click="onReportIssueClicked"
-  >Report Issue</v-btn>
+  >
+    Report Issue
+  </v-btn>
 </template>
 
 <script setup lang="ts">
