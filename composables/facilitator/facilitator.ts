@@ -193,8 +193,8 @@ export class Facilitator {
       const result = await this.signer.sendTransaction({ to, value })
       await result.wait()
       const block = await result.getBlock()
-      if (!block) { throw new Error('Could not get block for funding tx') }
-      useFacilitatorStore().addPendingClaim(result.hash, block.timestamp)
+      const timestamp = block?.timestamp || Math.floor(Date.now() / 1000)
+      useFacilitatorStore().addPendingClaim(result.hash, timestamp)
 
       return result
     } catch (error) {

@@ -57,6 +57,7 @@
           >
             Logs
           </v-btn>
+          <ReportIssueButton />
         </v-col>
         <v-spacer />
         <v-col cols="6">

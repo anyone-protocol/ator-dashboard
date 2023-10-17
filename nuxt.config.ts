@@ -41,7 +41,12 @@ export default defineNuxtConfig({
       distributionContract: 'WysKExOUoAhMuclQsmd46_D8AtxzkhYhTMdeGZ8JwLY',
       facilitatorContract: '0xf133cA3F076C84872E6AaD2d0FB815B9196c35C2',
       goerliAtorTokenContract: '0x639683be73c27202faa061496d72687db93e9dde',
-      phase: 'dev'
+      phase: 'dev',
+
+      supportWalletPublicKeyBase64:
+        'K3jnSGVyHj4kSzgce3+k8gJsfHvUoQeJMNPO8CcsO2s=',
+      githubNewIssueUrl:
+        'https://github.com/ATOR-Development/ator-dashboard/issues/new'
     },
   },
 
