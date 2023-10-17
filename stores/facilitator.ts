@@ -33,7 +33,7 @@ export const useFacilitatorStore = defineStore('facilitator', {
   getters: {
     claimLog: state => {
       if (state.pendingClaim) {
-        return [...state.claims, state.pendingClaim]
+        return [state.pendingClaim, ...state.claims]
       } else {
         return state.claims
       }
