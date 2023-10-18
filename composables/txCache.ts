@@ -31,6 +31,7 @@ export class TxCache {
     })
   }
 
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   public async getTransactionData<Data = any>(
     txId: string
   ): Promise<Data | null> {
