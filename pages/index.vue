@@ -42,9 +42,12 @@
 <script setup lang="ts">
 import BigNumber from 'bignumber.js'
 
-import { RelayRegistryState, ValidationStats } from '~/composables'
+import { RelayRegistryState } from '~/composables'
+import { useMetricsStore } from '~/stores/metrics'
 
 useHead({ title: 'Dashboard' })
+
+const metrics = useMetricsStore()
 
 const totalVerifiedRelays = useState<RelayRegistryState['verified'] | null>(
   'totalVerifiedRelays',
@@ -64,53 +67,53 @@ const verified = computed(() => {
   
   return Object.keys(totalVerifiedRelays.value)
 })
-const validationStats = useState<ValidationStats | null>(
-  'validationStats',
-  () => null
-)
-const validationStatsTimestamp = useState<number | null>(
-  'validationStatsTimestamp',
-  () => null
-)
 const timestamp = computed(
-  () => validationStatsTimestamp.value
-    && new Date(validationStatsTimestamp.value)
+  () => metrics.validation.timestamp && new Date(metrics.validation.timestamp)
 )
 const atorBandwidth = computed(() => {
-  if (!validationStats.value) { return null }
+  if (!metrics.validation.latest) { return null }
 
-  const bandwidth = validationStats
-    .value
-    .verified_and_running.observed_bandwidth
+  const bandwidth = metrics
+    .validation
+    .latest
+    .verified_and_running
+    .observed_bandwidth
 
   return BigNumber(bandwidth)
     .dividedBy(Math.pow(1024, 2))
     .toFormat(3) + ' MiB/s'
 })
-const networkStatsCards = computed(() => [
-  {
-    key: 'total-users',
-    label: 'Total Users',
-    value: users.value.length || '',
-    icon: 'mdi-crowd'
-  },
-  {
-    key: 'verified-relays',
-    label: 'Verified Relays',
-    value: verified.value.length || '',
-    icon: 'mdi-lifebuoy'
-  },
-  {
-    key: 'active-relays',
-    label: 'Active Relays',
-    value: validationStats.value?.verification.running || '',
-    icon: 'mdi-transit-connection'
-  },
-  {
-    key: 'observed-bandwidth',
-    label: 'Observed Bandwidth',
-    value: atorBandwidth.value || '',
-    icon: 'mdi-speedometer'
-  }
-])
+const networkStatsCards = computed(() => {
+  const totalUsers = users.value.length || ''
+  const verifiedRelays = verified.value.length || ''
+  const activeRelays = metrics.validation.latest?.verification.running || ''
+  const observedBandwidth = atorBandwidth.value || ''
+
+  return [
+    {
+      key: 'total-users',
+      label: 'Total Users',
+      value: totalUsers,
+      icon: 'mdi-crowd'
+    },
+    {
+      key: 'verified-relays',
+      label: 'Verified Relays',
+      value: verifiedRelays,
+      icon: 'mdi-lifebuoy'
+    },
+    {
+      key: 'active-relays',
+      label: 'Active Relays',
+      value: activeRelays,
+      icon: 'mdi-transit-connection'
+    },
+    {
+      key: 'observed-bandwidth',
+      label: 'Observed Bandwidth',
+      value: observedBandwidth,
+      icon: 'mdi-speedometer'
+    }
+  ]
+})
 </script>

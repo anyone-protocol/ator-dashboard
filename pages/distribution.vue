@@ -110,8 +110,8 @@
                     v-model="page"
                     total-visible="10"
                     :length="
-                      previousDistributions
-                        ? (previousDistributions.length / pageSize)
+                      previousDistributions.length > 0
+                        ? Math.ceil(previousDistributions.length / pageSize)
                         : 0
                     "
                   />

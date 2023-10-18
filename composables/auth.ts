@@ -35,9 +35,9 @@ export const setAuth = (address?: string) => {
   const auth = useAuth()
 
   // TODO -> use actual authed address
-  // address = address
-  //   ? '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
-  //   : undefined
+  address = address
+    ? '0x0A393A0dFc3613eeD5Bd2A0A56d482351f4e3996'
+    : undefined
 
   if (address) {
     auth.value = { address: ethers.getAddress(address) }
