@@ -150,7 +150,7 @@
 import BigNumber from 'bignumber.js'
 
 import { useRelayRegistry } from '~/composables'
-import { ValidatedRelay, VerificationResultDto } from '~/composables/metrics'
+import { HumanizedValidatedRelay, useMetricsStore } from '~/stores/metrics'
 import { Fingerprint } from '~/utils/contracts'
 import Logger from '~/utils/logger'
 
@@ -176,42 +176,25 @@ const relayRegistryRefreshing = useState<boolean>(
 )
 
 const auth = useAuth()
+const metrics = useMetricsStore()
 const claimable = useState<Fingerprint[] | null>('claimableRelays', () => null)
 const verifiedRelays = useState<Fingerprint[] | null>(
   'verifiedRelays',
   () => null
 )
-
-const relayMetrics = useState<VerificationResultDto[] | null>(
-  'relayMetrics',
-  () => null
-)
-const relayMetricsTimestamp = useState<number | null>(
-  'relayMetricsTimestamp',
-  () => null
-)
 const timestamp = computed(
-  () => relayMetricsTimestamp.value
-    && new Date(relayMetricsTimestamp.value)
+  () => metrics.relays.timestamp && new Date(metrics.relays.timestamp)
 )
-
-interface HumanizedValidatedRelay
-  extends Omit<ValidatedRelay, 'consensus_weight' | 'observed_bandwidth'>
-{
-  consensus_weight: string
-  observed_bandwidth: string
-}
 
 const verified = computed(() => {
   if (!auth.value) { return null }
   if (!verifiedRelays.value) { return null }
-  if (!relayMetrics.value) { return null }
+  if (!metrics.relays.latest) { return null }
 
   return verifiedRelays.value
     .map<Partial<HumanizedValidatedRelay>>(
       fp => {
-        const myMetrics = relayMetrics
-          .value!
+        const myMetrics = metrics.relays.latest!
           .find(({ relay }) => fp === relay.fingerprint)
         const relay = myMetrics ? myMetrics.relay : null
 

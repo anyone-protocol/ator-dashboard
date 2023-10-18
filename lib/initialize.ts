@@ -9,6 +9,7 @@ import {
   useRelayRegistry
 } from '~/composables'
 import { useFacilitatorStore } from '~/stores/facilitator'
+import { useMetricsStore } from '~/stores/metrics'
 
 let dashboardInitialized = false
 
@@ -20,7 +21,7 @@ export const initializeDashboard = () => {
   initAtorToken()
   initDistribution()
   initFacilitator()
-  useRelayMetrics().refresh()
+  useMetricsStore().refresh()
   /* eslint-enable @typescript-eslint/no-floating-promises */
 
   dashboardInitialized = true

@@ -32,12 +32,14 @@ export class TxCache {
   }
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  public async getTransactionData(txId: string): Promise<any> {
+  public async getTransactionData<Data = any>(
+    txId: string
+  ): Promise<Data | null> {
     try {
+      const { arweave: { gateway } } = useAppConfig()
       const db = await this.openDB()
   
-      /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-      return new Promise<any>((resolve, reject) => {
+      const fromCache = await new Promise<Data>((resolve, reject) => {
         const transaction = db.transaction(this.objectStoreName, 'readonly')
         const objectStore = transaction.objectStore(this.objectStoreName)
         const request = objectStore.get(this.keyPrefix + txId)
@@ -47,9 +49,16 @@ export class TxCache {
         }
         
         request.onsuccess = () => {
-          resolve(request.result)
+          resolve(request.result as Data)
         }
       })
+
+      if (fromCache) { return fromCache }
+
+      const fetched = await $fetch<Data>(`${gateway}/${txId}`)
+      await this.saveTransactionData(txId, fetched)
+
+      return fetched
     } catch (error) {
       this.logger.error('Failed to get transaction data', error)
     }
