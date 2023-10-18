@@ -30,6 +30,7 @@ job "deploy-dashboard-stage" {
             NUXT_PUBLIC_GOERLI_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/goerli/stage/address" ]]"
             {{with secret "kv/dashboard/stage"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
+                NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{.Data.data.SUPPORT_ADDRESS_BASE64}}"
             {{end}}
             EOH
             destination = "secrets/file.env"

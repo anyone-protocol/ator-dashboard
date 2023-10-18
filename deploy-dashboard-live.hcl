@@ -29,6 +29,7 @@ job "deploy-dashboard-live" {
             NUXT_PUBLIC_GOERLI_ATOR_TOKEN_CONTRACT="[[ consulKey "ator-token/goerli/live/address" ]]"
             {{with secret "kv/dashboard/live"}}
                 PERMAWEB_KEY="{{.Data.data.DASHBOARD_OWNER_KEY}}"
+                NUXT_PUBLIC_SUPPORT_WALLET_PUBLIC_KEY_BASE64 = "{{.Data.data.SUPPORT_ADDRESS_BASE64}}"
             {{end}}
             EOH
             destination = "secrets/file.env"
