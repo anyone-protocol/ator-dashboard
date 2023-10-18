@@ -40,6 +40,20 @@
       <v-card-actions>
         <v-container class="pt-0">
           <v-row dense>
+            <v-col cols="12" class="text-center">
+              <v-btn
+                variant="outlined"
+                size="x-small"
+                color="primary"
+                :append-icon="logsCopySuccess ? 'mdi-check' : undefined"
+                @click="onCopyLogsClicked"
+              >
+                (Optional) Copy Encrypted Logs
+              </v-btn>
+            </v-col>
+          </v-row>
+
+          <v-row dense>
             <v-col cols="auto">
               <v-btn
                 variant="outlined"
@@ -56,22 +70,10 @@
                 variant="outlined"
                 size="x-small"
                 color="primary"
+                append-icon="mdi-open-in-new"
                 @click="onReportIssueClicked"
               >
-                Step 1) Open Issue
-              </v-btn>
-            </v-col>
-            <v-spacer />
-            <v-col cols="auto">
-              <v-btn
-                variant="outlined"
-                size="x-small"
-                color="primary"
-                :append-icon="logsCopySuccess ? 'mdi-check' : undefined"
-                :disabled="!payload"
-                @click="onCopyLogsClicked"
-              >
-                Step 2) Copy Encrypted Logs
+                Open GitHub Issue
               </v-btn>
             </v-col>
           </v-row>
@@ -83,6 +85,7 @@
 
 <script setup lang="ts">
 import { hexlify } from 'ethers'
+import { storeToRefs } from 'pinia';
 import { VTextField } from 'vuetify/lib/components/index.mjs'
 
 import {
@@ -102,53 +105,42 @@ const title = ref<string>('')
 const titleField = ref<VTextField>()
 const desc = ref<string>('')
 const payload = ref<EncryptedPayload>()
+const { isReportIssueOpen, isSupportIssueOpen } = storeToRefs(eventlog)
 
 const rules = {
   required: (value: string) => !!value || 'Required'
 }
 
+watch(isReportIssueOpen, (value) => {
+  if (!value) {
+    // NB: Drop encryption related stuff when dialog closes
+    logsCopySuccess.value = false
+    payload.value = undefined
+  }
+})
+
 const onCancelClicked = debounce(() => {
-  eventlog.isReportIssueOpen = false
+  isReportIssueOpen.value = false
 })
 
 const onReportIssueClicked = debounce(async () => {
   await titleField.value!.validate()
   if (!title.value) { return }
 
+  const description = desc.value || '<Enter description here>'
+
   try {
-    const supportIssue: SupportIssue = {
-      address: auth.value?.address || 'anonymous',
-      logs: eventlog.logs,
-      host: window.location.host,
-      path: route.path,
-      phase: config.public.phase
+    const baseBody = `**Description**\n${description}`
+    let encryptedBody = ''
+
+    if (payload.value && logsCopySuccess.value) {
+      encryptedBody = `\n\n**Logs**\n<Paste Encrypted Logs Here>`
     }
 
-    logger.info('created support issue', supportIssue)
-
-    const { encrypted, publicKey, nonce } = encrypt(
-      JSON.stringify(supportIssue),
-      config.public.supportWalletPublicKeyBase64
-    )
-
-    const encryptedPayload: EncryptedPayload = {
-      encrypted: hexlify(encrypted),
-      nonce: hexlify(nonce),
-      publicKey: hexlify(publicKey)
-    }
-
-    logger.info('support issue encrypted payload', encryptedPayload)
-
-    const body = encodeURI(
-      `**Description**\n${desc.value}\n\n` +
-      `**Nonce (Do not edit)**\n${encryptedPayload.nonce}\n\n` +
-      `**Temporary Public Key (Do not edit)**\n` +
-      `${encryptedPayload.publicKey}\n\n` +
-      `**Logs**\n<Paste Encrypted Logs Here>`
-    )
+    const body = encodeURI(baseBody + encryptedBody)
     const urlBase = `${config.public.githubNewIssueUrl}?template=bug_report.md`
     const url = `${urlBase}&title=${encodeURI(title.value)}&body=${body}`
-    payload.value = encryptedPayload
+
     logger.info('creating new issue with url', url)
     window.open(url, '_blank')
   } catch (error) {
@@ -161,21 +153,41 @@ const onKeyup = (evt: KeyboardEvent) => {
   lastkeys.push(evt.key)
   if (lastkeys.length > 5) { lastkeys.shift() }
   if (lastkeys.join('') === 'idkfa') {
-    eventlog.isReportIssueOpen = false
-    eventlog.isSupportIssueOpen = true
+    isReportIssueOpen.value = false
+    isSupportIssueOpen.value = true
   }
 }
 
 const logsCopySuccess = ref<boolean>(false)
 const onCopyLogsClicked = debounce(async () => {
-  if (!payload.value) { return }
-
   try {
+    const supportIssue: SupportIssue = {
+      address: auth.value?.address || 'anonymous',
+      logs: eventlog.logs,
+      host: window.location.host,
+      path: route.path,
+      phase: config.public.phase
+    }
+
+    const { encrypted, publicKey, nonce } = encrypt(
+      JSON.stringify(supportIssue),
+      config.public.supportWalletPublicKeyBase64
+    )
+
+    const encryptedPayload: EncryptedPayload = {
+      encrypted: hexlify(encrypted),
+      nonce: hexlify(nonce),
+      publicKey: hexlify(publicKey)
+    }
+
+    payload.value = encryptedPayload
+
     const type = 'text/plain'
-    const logsJson = JSON.stringify(payload.value.encrypted)
-    const logsBlob = new Blob([logsJson], { type })
+    const logsJson = JSON.stringify(payload.value)
+    const logsBlob = new Blob([ logsJson ], { type })
     const item = new ClipboardItem({ [type]: logsBlob })
-    await navigator.clipboard.write([item])
+    await navigator.clipboard.write([ item ])
+    logger.info('copied encrypted logs to clipboard')
     logsCopySuccess.value = true
   } catch (error) {
     logger.error('Error copying logs to clipboard', error)
