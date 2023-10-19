@@ -5,6 +5,6 @@ const arweaveConfig = window.location.hostname === 'localhost'
   ? { protocol: 'https', host: 'arweave.net', port: 443 }
   : {}
 
-const arweave = new Arweave(arweaveConfig)
+const arweave = Arweave.init(arweaveConfig)
 
 export const useArweave = () => arweave
