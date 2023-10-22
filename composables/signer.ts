@@ -15,7 +15,7 @@ export const useSigner = async () => {
     try {
       const signer = await provider.getSigner()
       if (provider._network.name !== NETWORKS.GOERLI.name) {
-        await window.ethereum!.request({
+        await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
           params: [{
             chainId: NETWORKS.GOERLI.hex

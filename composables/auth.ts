@@ -41,9 +41,8 @@ export const setAuth = (address?: string) => {
 
   if (address) {
     auth.value = { address: ethers.getAddress(address) }
-    /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
-    /* @ts-ignore */
-    window.ethereum!.once('accountsChanged', onAccountsChanged)
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-call */
+    window.ethereum.once('accountsChanged', onAccountsChanged)
   } else {
     auth.value = undefined
   }
