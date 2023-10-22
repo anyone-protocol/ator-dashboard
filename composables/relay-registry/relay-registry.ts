@@ -1,8 +1,4 @@
-import {
-  Contract,
-  SigningFunction,
-  WriteInteractionResponse
-} from 'warp-contracts'
+import { Contract, WriteInteractionResponse } from 'warp-contracts'
 
 import { Claimable, EvmAddress, Fingerprint } from '~/utils/contracts'
 import {
@@ -18,18 +14,15 @@ export class RelayRegistry {
   private contract: Contract<RelayRegistryState> | null = null
   private _isInitialized: boolean = false
   private readonly logger = new Logger('RelayRegistry')
-  private sign: SigningFunction | null = null
 
   get isInitialized() { return this._isInitialized }
 
   initialize(
-    contract: Contract<RelayRegistryState>,
-    sign: SigningFunction
+    contract: Contract<RelayRegistryState>
   ) {
     if (this._isInitialized) { return }
 
     this.contract = contract
-    this.sign = sign
     this._isInitialized = true
 
     /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
@@ -146,15 +139,15 @@ export class RelayRegistry {
 }
 
 const relayRegistry = new RelayRegistry()
-export const initRelayRegistry = async () => {
+export const initRelayRegistry = () => {
   if (relayRegistry.isInitialized) { return }
 
   const config = useRuntimeConfig()
-  const warp = await useWarp()
+  const warp = useWarp()
   const contract = warp.contract<RelayRegistryState>(
     config.public.relayRegistryAddress
   )
 
-  relayRegistry.initialize(contract, await createWarpSigningFunction())
+  relayRegistry.initialize(contract)
 }
 export const useRelayRegistry = () => relayRegistry

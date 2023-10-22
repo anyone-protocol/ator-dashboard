@@ -7,4 +7,4 @@ const warp = WarpFactory
   .forMainnet()
   .use(new EthersExtension())
 
-export const useWarp = async () => warp
+export const useWarp = () => warp

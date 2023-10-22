@@ -182,11 +182,11 @@ export class Distribution {
 }
 
 const distribution = new Distribution()
-export const initDistribution = async () => {
+export const initDistribution = () => {
   if (distribution.isInitialized) { return }
 
   const config = useRuntimeConfig()
-  const warp = await useWarp()
+  const warp = useWarp()
   const contract = warp.contract<DistributionState>(
     config.public.distributionContract
   )
