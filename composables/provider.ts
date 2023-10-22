@@ -1,4 +1,4 @@
-import { BrowserProvider, ethers } from 'ethers'
+import { AbstractProvider, BrowserProvider, ethers } from 'ethers'
 
 export const NETWORKS = {
   MAINNET: { decimal: 1, hex: '0x1', name: 'mainnet' },
@@ -12,7 +12,7 @@ export const useSuggestMetaMask = () => useState<boolean | undefined>(
 
 export const suggestMetaMask = useSuggestMetaMask()
 
-let provider = ethers.getDefaultProvider(
+let provider: AbstractProvider | BrowserProvider = ethers.getDefaultProvider(
   NETWORKS.GOERLI.decimal,
   {
     // NB: Required to force fallback provider.  Errors with goerli otherwise.

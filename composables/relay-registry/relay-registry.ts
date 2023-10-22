@@ -15,10 +15,10 @@ import Logger from '~/utils/logger'
 
 export class RelayRegistry {
   private _refreshing: boolean = false
-  private sign: SigningFunction | null = null
   private contract: Contract<RelayRegistryState> | null = null
   private _isInitialized: boolean = false
   private readonly logger = new Logger('RelayRegistry')
+  private sign: SigningFunction | null = null
 
   get isInitialized() { return this._isInitialized }
 
@@ -109,13 +109,16 @@ export class RelayRegistry {
       this.logger.error('claim() relay registry contract is null')
       return null
     }
-    if (!this.sign) {
-      this.logger.error('claim() relay registry sign() is null')
+
+    const warpSigner = await useWarpSigner()
+    if (!warpSigner) {
+      this.logger.error('claim() relay registry warpSigner is null')
       return null
     }
 
     return this.contract
-      .connect({ signer: this.sign, type: 'ethereum' })
+      /* @ts-expect-error warp types */
+      .connect(warpSigner)
       .writeInteraction<Claim>({ function: 'claim', fingerprint })
   }
 
@@ -128,13 +131,16 @@ export class RelayRegistry {
       this.logger.error('renounce() relay registry contract is null')
       return null
     }
-    if (!this.sign) {
-      this.logger.error('renounce() relay registry sign() is null')
+
+    const warpSigner = await useWarpSigner()
+    if (!warpSigner) {
+      this.logger.error('renounce() relay registry warpSigner is null')
       return null
     }
 
     return this.contract
-      .connect({ signer: this.sign, type: 'ethereum' })
+      /* @ts-expect-error warp types */
+      .connect(warpSigner)
       .writeInteraction<Renounce>({ function: 'renounce', fingerprint })
   }
 }

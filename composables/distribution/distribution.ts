@@ -1,10 +1,10 @@
-import { Contract, SigningFunction } from 'warp-contracts'
+import { Contract } from 'warp-contracts'
 import BigNumber from 'bignumber.js'
 import moment from 'moment'
 
-import { Claimable } from '~~/utils/contracts'
-import { DistributionState } from './contract'
+import { Claimable } from '~/utils/contracts'
 import Logger from '~/utils/logger'
+import { DistributionState } from './contract'
 
 export type PreviousDistribution = {
   timestamp: string,
@@ -20,17 +20,15 @@ export type PreviousDistribution = {
 export class Distribution {
   private _refreshing: boolean = false
   private contract: Contract<DistributionState> | null = null
-  private sign: SigningFunction | null = null
   private _isInitialized: boolean = false
   private logger = new Logger('Distribution')
 
   get isInitialized() { return this._isInitialized }
 
-  initialize(contract: Contract<DistributionState>, sign: SigningFunction) {
+  initialize(contract: Contract<DistributionState>) {
     if (this._isInitialized) { return }
 
     this.contract = contract
-    this.sign = sign
     this._isInitialized = true
     /* eslint-disable-next-line @typescript-eslint/no-floating-promises */
     this.refresh()
@@ -193,6 +191,6 @@ export const initDistribution = async () => {
     config.public.distributionContract
   )
 
-  distribution.initialize(contract, await createWarpSigningFunction())
+  distribution.initialize(contract)
 }
 export const useDistribution = () => distribution

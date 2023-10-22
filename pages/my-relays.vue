@@ -1,5 +1,9 @@
 <template>
   <v-container class="my-relays-page h-100">
+    <!-- <v-row>
+      <v-col>TODO -> REMOVE THIS</v-col>
+      <v-col><v-btn @click="claim('FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF')">debug</v-btn></v-col>
+    </v-row> -->
     <v-row class="h-100">
       <v-col cols="12" class="h-100">
         <v-table>
