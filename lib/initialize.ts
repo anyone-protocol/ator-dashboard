@@ -10,7 +10,9 @@ import {
 } from '~/composables'
 import { useFacilitatorStore } from '~/stores/facilitator'
 import { useMetricsStore } from '~/stores/metrics'
+import Logger from '~/utils/logger'
 
+const logger = new Logger('initialize')
 let dashboardInitialized = false
 
 export const initializeDashboard = () => {
@@ -23,6 +25,9 @@ export const initializeDashboard = () => {
   initFacilitator()
   useMetricsStore().refresh()
   /* eslint-enable @typescript-eslint/no-floating-promises */
+
+  const config = useRuntimeConfig()
+  logger.info(`Dashboard version ${config.public.version}`)
 
   dashboardInitialized = true
 }
