@@ -33,6 +33,8 @@ export default defineNuxtConfig({
    */
   runtimeConfig: {
     public: {
+      version: process.env.npm_package_version || '-',
+
       relayRegistryAddress: 'R5PXlkYsP5HYVCzGhF9xzZXQqBog3KrRchp47aa5e3w',
       
       // Validator Public Key
