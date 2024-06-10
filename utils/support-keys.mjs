@@ -15,13 +15,17 @@ function getEncryptionPublicKey(privateKeyHex) {
     .fromSecretKey(privateKeyUint8Array)
     .publicKey
 
-  return naclUtil.encodeBase64(encryptionPublicKey)
+  return {
+    publicKeyHex: Buffer.from(encryptionPublicKey).toString('hex'),
+    publicKeyBase64: naclUtil.encodeBase64(encryptionPublicKey)
+  }
 }
 
 const randomBytes = nacl.randomBytes(32);
 
 const privateKey = Buffer.from(randomBytes).toString('hex');
-const publicKeyBase64 = getEncryptionPublicKey(privateKey)
+const {publicKeyHex, publicKeyBase64} = getEncryptionPublicKey(privateKey)
 
 console.log(`${privateKey} - ${publicKeyBase64}`);
+console.log(`${publicKeyHex}`);
 
